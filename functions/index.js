@@ -1,11 +1,10 @@
-const Readable = require('stream').Readable
-const readline = require('readline')
-
 const functions = require('firebase-functions');
 const Firestore = require('@google-cloud/firestore');
 const PROJECTID = 'gffft-auth';
 
 const COLLECTION_NOUNS = 'username_nouns';
+const COLLECTION_VERBS = 'username_verbs';
+const COLLECTION_ADJECTIVES = 'username_adjectives';
 
 const firestore = new Firestore({
   projectId: PROJECTID,
@@ -13,24 +12,17 @@ const firestore = new Firestore({
 });
 
 exports.addNouns = functions.https.onRequest(async (req, res) => {
+  console.log('addNouns()');
   if (req.method === 'DELETE') throw new Error('not yet built');
   if (req.method === 'POST') {
     // store/insert a new document
     const data = req.rawBody.toString();
 
     let lines = data.split('\n');
-    console.log('loading');
     lines.forEach((line) => {
       console.log(`line: ${line}`);
-      let word = line.split(' ')[0];
-      console.log(`word: ${word}`);
-      if (word.length > 0 && !word.includes('_')) {
-        firestore.collection(COLLECTION_NOUNS)
-          .doc(word)
-          .set({count: 0});
-      }
+      addToCollection(COLLECTION_NOUNS, line);
     });
-    console.log('done');
 
     return res.status(200).send("done?");
 
@@ -68,3 +60,58 @@ exports.addNouns = functions.https.onRequest(async (req, res) => {
   //     return res.status(404).send({error: 'Unable to retrieve the document'});
   //   });
 });
+
+exports.addVerbs = functions.https.onRequest(async (req, res) => {
+  if (req.method === 'DELETE') throw new Error('not yet built');
+  if (req.method === 'POST') {
+    // store/insert a new document
+    const data = req.rawBody.toString();
+
+    let lines = data.split('\n');
+    lines.forEach((line) => {
+      addToCollection(COLLECTION_VERBS, line);
+    });
+
+    return res.status(200).send("done??");
+  }
+});
+
+exports.addAdjectives = functions.https.onRequest(async (req, res) => {
+  console.log("addAdjectives() called");
+  let writes = [];
+  if (req.method === 'DELETE') throw new Error('not yet built');
+  if (req.method === 'POST') {
+    // store/insert a new document
+    const data = req.rawBody.toString();
+
+    let lines = data.split('\n');
+    console.log(`processing ${lines.length}`);
+    const batch = firestore.batch();
+    lines.forEach((line) => {
+      writes.push(addToCollection(COLLECTION_ADJECTIVES, line));
+    });
+  }
+  await Promise.all(writes).then(() => {
+    return res.status(200).send("promise I'm done");
+  });
+});
+
+const addToCollection = async (collection, value) => {
+  // if (!value) {
+  //   return false;
+  // }
+  console.log(`line: ${value}`);
+  let line_split = value.split(' ');
+  // if (line_split.length <= 0) {
+  //   return false;
+  // }
+  let word = line_split[0];
+  console.log(`word: ${word}`);
+  if (!word.includes('_')) {
+    return firestore.collection(collection)
+      .doc(word)
+      .set({count: 0});
+  }
+  return Promise.resolve('word is invalid');
+};
+
