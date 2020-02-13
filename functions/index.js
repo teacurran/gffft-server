@@ -33,10 +33,10 @@ exports.setUsername = functions.https.onRequest(async (req, res) => {
 
     let username_raw;
     if (Math.floor(Math.random() * 2) === 0) {
-      username_raw = verb.id+ "_" + noun;
+      username_raw = verb.id+ "_" + noun.id;
       await firestore.collection(COLLECTION_VERBS).doc(verb.id).set({count: verb.data.count + 1});
     } else {
-      username_raw = adjective.id + "_" + noun;
+      username_raw = adjective.id + "_" + noun.id;
       await firestore.collection(COLLECTION_ADJECTIVES).doc(adjective.id).set({count: adjective.data.count + 1});
     }
     await firestore.collection(COLLECTION_NOUNS).doc(noun.id).set({count: noun.data.count + 1});
@@ -53,9 +53,9 @@ exports.setUsername = functions.https.onRequest(async (req, res) => {
     }
 
     const username = username_raw + "_" + username_counter;
-    return firestore.collection(COLLECTION_USERS).doc(request.body.id)
+    return firestore.collection(COLLECTION_USERS).doc(req.body.id)
                   .set({username: username, username_raw: username_raw, username_counter: username_counter})
-                  .then(doc => res.status(200).send(`username: ${doc.data.username}`))
+                  .then(doc => res.status(200).send(`username: ${JSON.stringify(doc)}`))
 });
 
 exports.addNouns = functions.https.onRequest(async (req, res) => {
