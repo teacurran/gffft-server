@@ -14,22 +14,12 @@ const firestore = new Firestore({
 
 exports.setUsername = functions.https.onRequest(async (req, res) => {
     let [noun, verb, adjective] = await Promise.all([
-        firestore.collection(COLLECTION_NOUNS)
-            .orderBy('count', 'asc').limit(1).get().then(snapshot => {
-                return (snapshot.empty) ? null : snapshot.docs[0];
-            }),
-        firestore.collection(COLLECTION_VERBS)
-            .orderBy('count', 'asc').limit(1).get().then(snapshot => {
-                return (snapshot.empty) ? null : snapshot.docs[0];
-            }),
-        firestore.collection(COLLECTION_ADJECTIVES)
-            .orderBy('count', 'asc').limit(1).get().then(snapshot => {
-                return (snapshot.empty) ? null : snapshot.docs[0];
-            })
-      ]
-    )
-
-    console.log(`found: ${JSON.stringify(noun)}, ${JSON.stringify(verb)}, ${JSON.stringify(adjective)}`);
+      getRandomItem(COLLECTION_NOUNS),
+      getRandomItem(COLLECTION_VERBS),
+      getRandomItem(COLLECTION_ADJECTIVES)
+    ]).catch(error => {
+      console.log(`error: ${error.message}`);
+    });
 
     let username_raw;
     if (Math.floor(Math.random() * 2) === 0) {
@@ -41,7 +31,7 @@ exports.setUsername = functions.https.onRequest(async (req, res) => {
     }
     await firestore.collection(COLLECTION_NOUNS).doc(noun.id).set({count: (noun.data.count) ? noun.data.count + 1 : 1});
 
-    let username_counter = 1
+    let username_counter = 1;
     let existing_user = await firestore.collection(COLLECTION_USERS)
         .where('username_raw', '==', username_raw)
         .orderBy('username_counter', 'desc').limit(1).get()
@@ -52,11 +42,25 @@ exports.setUsername = functions.https.onRequest(async (req, res) => {
       username_counter = existing_user.data.username_counter;
     }
 
-    const username = username_raw + "_" + username_counter;
+    const username = username_counter > 1 ? username_raw + "_" + username_counter : username_raw;
     return firestore.collection(COLLECTION_USERS).doc(req.body.id)
                   .set({username: username, username_raw: username_raw, username_counter: username_counter})
-                  .then(doc => res.status(200).send(`username: ${JSON.stringify(doc)}`))
+                  .then(() => res.json({username: username}))
 });
+
+const getRandomItem = async (collection) => {
+  return firestore.collection(collection)
+    .orderBy('random', 'asc')
+    .limit(1)
+    .get()
+    .then(snapshot => {
+      return (snapshot.empty) ? null : snapshot.docs[0];
+    });
+};
+
+const randomInt = (low, high) => {
+  return Math.floor(Math.random() * (high - low) + low)
+};
 
 exports.addNouns = functions.https.onRequest(async (req, res) => {
   console.log('addNouns()');
@@ -113,10 +117,13 @@ const addToCollection = async (collection, value) => {
   }
   let word = line_split[0];
   console.log(`word: ${word}`);
-  if (!word.includes('_')) {
+  if (!word.includes('_') && !word.includes('-')) {
     return firestore.collection(collection)
       .doc(word)
-      .set({count: 0});
+      .set({
+        count: 0,
+        random: randomInt(0, 9999999)
+      });
   }
   return Promise.resolve('word is invalid');
 };
