@@ -24,12 +24,24 @@ exports.setUsername = functions.https.onRequest(async (req, res) => {
     let username_raw;
     if (Math.floor(Math.random() * 2) === 0) {
       username_raw = verb.id+ "_" + noun.id;
-      await firestore.collection(COLLECTION_VERBS).doc(verb.id).set({count: verb.data.count ? verb.data.count + 1 : 1});
+      await firestore.collection(COLLECTION_VERBS).doc(verb.id).set(
+        {
+          count: verb.data.count ? verb.data.count + 1 : 1,
+          random: randomInt(0, 9999999)
+        }, {merge: true});
     } else {
       username_raw = adjective.id + "_" + noun.id;
-      await firestore.collection(COLLECTION_ADJECTIVES).doc(adjective.id).set({count: (adjective.data.count) ? adjective.data.count + 1 : 1});
+      await firestore.collection(COLLECTION_ADJECTIVES).doc(adjective.id).set(
+        {
+          count: (adjective.data.count) ? adjective.data.count + 1 : 1,
+          random: randomInt(0, 9999999)
+        }, {merge: true});
     }
-    await firestore.collection(COLLECTION_NOUNS).doc(noun.id).set({count: (noun.data.count) ? noun.data.count + 1 : 1});
+    await firestore.collection(COLLECTION_NOUNS).doc(noun.id).set(
+        {
+          count: (noun.data.count) ? noun.data.count + 1 : 1,
+          random: randomInt(0, 9999999)
+        }, {merge: true});
 
     let username_counter = 1;
     let existing_user = await firestore.collection(COLLECTION_USERS)
