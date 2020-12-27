@@ -105,12 +105,12 @@
               <alias>postgresql</alias>
               <run>
                 <env>
-                  <POSTGRES_USER>gffft_test</POSTGRES_USER>
-                  <POSTGRES_PASSWORD>gffft_test</POSTGRES_PASSWORD>
-                  <POSTGRES_DB>gffft_test</POSTGRES_DB>
+                  <POSTGRES_USER>gffft-test</POSTGRES_USER>
+                  <POSTGRES_PASSWORD>gffft-test</POSTGRES_PASSWORD>
+                  <POSTGRES_DB>gffft-test</POSTGRES_DB>
                 </env>
                 <ports>
-                  <port>5432:5432</port>
+                  <port>5433:5432</port>
                 </ports>
                 <log>
                   <prefix>PostgreSQL: </prefix>
