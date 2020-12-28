@@ -1,0 +1,15 @@
+
+== Graavl VM
+
+Download and install the Community Edition: https://www.graalvm.org/docs/getting-started/
+
+== Kubernetes
+
+[source]
+----
+brew install minikube
+brew install draft
+brew install helm
+
+helm repo add bitnami https://charts.bitnami.com/bitnamihel
+----

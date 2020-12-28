@@ -1,0 +1,32 @@
+services:
+  gffft-db:
+    image: postgis/postgis
+    restart: always
+    environment:
+      POSTGRES_USER: gffft
+      POSTGRES_PASSWORD: gffft
+      POSTGRES_DB: gffft
+    volumes:
+      - gffft_db:/var/lib/postgresql/data
+    ports:
+      - "5442:5432"
+
+  api:
+    image: gffft-api
+    build:
+      context: ./api
+    command: mvn quarkus:dev -DskipTests
+    depends_on:
+      - gffft-db
+    environment:
+      quarkus.datasource.reactive.url: vertx-reactive:postgresql://gffft-db:5432/gffft
+      quarkus.datasource.username: gffft
+      quarkus.datasource.password: gffft
+    volumes:
+      - ./api:/usr/src/app
+    ports:
+      - "5005:5005"
+      - "8080:8080"
+
+volumes:
+  gffft_db:
