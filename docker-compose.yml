@@ -18,6 +18,7 @@ services:
     command: mvn quarkus:dev -DskipTests
     depends_on:
       - gffft-db
+      - firebase-emulator
     environment:
       quarkus.datasource.reactive.url: vertx-reactive:postgresql://gffft-db:5432/gffft
       quarkus.datasource.username: gffft
@@ -27,6 +28,18 @@ services:
     ports:
       - "5005:5005"
       - "8080:8080"
+
+  # Emulator for firebase auth
+  firebase-emulator:
+    image: gffft-firebase-emulator
+    build: ./firebase-emulator
+    volumes:
+      - ./firebase-emulator:/app
+    ports:
+      - "9099:9099"
+      - "9199:9199"
+    command: firebase emulators:start --project gweb-restor-dev
+
 
 volumes:
   gffft_db:
