@@ -1,68 +1,69 @@
-import * as functions from "firebase-functions";
-import * as firebaseAdmin from "firebase-admin";
-import {collection, get, set, query, where, limit} from "typesaurus";
-import {User} from "./models";
+import * as functions from "firebase-functions"
+import * as firebaseAdmin from "firebase-admin"
+import {collection, get, set, query, where, limit} from "typesaurus"
+import {User} from "./models"
 
 // import Firestore = require('firebase/firestore');
 
-const PROJECTID = "gffft-auth";
-const COLLECTION_ADJECTIVES = "username_adjectives";
-const COLLECTION_NOUNS = "username_nouns";
-const COLLECTION_USERS = "users";
-const COLLECTION_VERBS = "username_verbs";
+const PROJECTID = "gffft-auth"
+const COLLECTION_ADJECTIVES = "username_adjectives"
+const COLLECTION_NOUNS = "username_nouns"
+const COLLECTION_USERS = "users"
+const COLLECTION_VERBS = "username_verbs"
 
-const users = collection<User>(COLLECTION_USERS);
-// const adjectives = collection<User>(COLLECTION_ADJECTIVES)
-// const nouns = collection<User>(COLLECTION_NOUNS)
-// const verbs = collection<User>(COLLECTION_VERBS)
+const users = collection<User>(COLLECTION_USERS)
+const adjectives = collection<User>(COLLECTION_ADJECTIVES)
+const nouns = collection<User>(COLLECTION_NOUNS)
+
+const verbs = collection<User>(COLLECTION_VERBS)
 
 firebaseAdmin.initializeApp({
   projectId: PROJECTID,
-});
+})
 
-const firestore = firebaseAdmin.firestore();
+const firestore = firebaseAdmin.firestore()
 
 export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+  functions.logger.info("Hello logs!", {structuredData: true})
+  response.send("Hello from Firebase!")
+})
 
 export const setUsername = functions.https.onRequest(async (req, res) => {
   // see if this user exists, get their username counter
   const user = await get(users, req.body.id).then((snapshot) => {
     if (snapshot != null) {
-      return snapshot.data;
+      return snapshot.data
     }
-    return null;
-  });
+    return null
+  })
 
-  let usernameCounter = 0;
+  let usernameCounter = 0
   if (user) {
-    usernameCounter = user.usernameCounter;
+    usernameCounter = user.usernameCounter
     if (isNaN(usernameCounter)) {
-      usernameCounter = 1;
+      usernameCounter = 1
     }
   }
-  usernameCounter++;
+  usernameCounter++
 
   // todo: might ned a transaction here
   // get a new username for them
-  const username = await getUniqueUsername();
+  const username = await getUniqueUsername()
 
   set(users, req.body.id, {
     username: username,
     usernameCounter: usernameCounter,
-  } as User).then(() => res.json({username: username}));
-});
+  } as User).then(() => res.json({username: username}))
+})
 
 /* eslint no-await-in-loop: "off" */
 const getUniqueUsername = async () => {
-  let counter = 0;
+  let counter = 0
   while (counter < 1000) {
-    counter++;
+    counter++
 
     // get a new username
-    const username = await getUsername();
+    const username = await getUsername()
 
     // check to see if someone already has this username
     const existingUser = await query(users, [
@@ -70,18 +71,18 @@ const getUniqueUsername = async () => {
       limit(1),
     ]).then((results) => {
       if (results.length > 0) {
-        return results[0];
+        return results[0]
       }
-      return null;
-    });
+      return null
+    })
 
     // no matches, use this one
     if (!existingUser) {
-      return username;
+      return username
     }
   }
-  return null;
-};
+  return null
+}
 
 const getUsername = async () => {
   const [noun, verb, adjective] = await Promise.all([
@@ -89,13 +90,13 @@ const getUsername = async () => {
     getRandomItem(COLLECTION_VERBS),
     getRandomItem(COLLECTION_ADJECTIVES),
   ]).catch((error) => {
-    console.log(`error: ${error.message}`);
-    throw error;
-  });
+    console.log(`error: ${error.message}`)
+    throw error
+  })
 
-  let usernameRaw;
+  let usernameRaw
   if (Math.floor(Math.random() * 2) === 0) {
-    usernameRaw = verb?.id + "_" + noun?.id;
+    usernameRaw = verb?.id + "_" + noun?.id
     await firestore
         .collection(COLLECTION_VERBS)
         .doc(verb.id)
@@ -105,9 +106,9 @@ const getUsername = async () => {
               random: randomInt(0, 9999999),
             },
             {merge: true}
-        );
+        )
   } else {
-    usernameRaw = adjective.id + "_" + noun.id;
+    usernameRaw = adjective.id + "_" + noun.id
     await firestore
         .collection(COLLECTION_ADJECTIVES)
         .doc(adjective.id)
@@ -117,7 +118,7 @@ const getUsername = async () => {
               random: randomInt(0, 9999999),
             },
             {merge: true}
-        );
+        )
   }
   await firestore
       .collection(COLLECTION_NOUNS)
@@ -128,9 +129,9 @@ const getUsername = async () => {
             random: randomInt(0, 9999999),
           },
           {merge: true}
-      );
-  return usernameRaw;
-};
+      )
+  return usernameRaw
+}
 
 const getRandomItem = (collection: string) => {
   return firestore
@@ -142,15 +143,15 @@ const getRandomItem = (collection: string) => {
         if (snapshot.empty) {
           throw new Error(
               "unable to find random item from collection:" + collection
-          );
+          )
         }
-        return snapshot.docs[0];
-      });
-};
+        return snapshot.docs[0]
+      })
+}
 
 const randomInt = (low: number, high: number) => {
-  return Math.floor(Math.random() * (high - low) + low);
-};
+  return Math.floor(Math.random() * (high - low) + low)
+}
 
 /*
 exports.addNouns = functions.https.onRequest(async (req, res) => {
