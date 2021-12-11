@@ -1,6 +1,7 @@
-import * as firebaseAdmin from "firebase-admin";
 import * as functions from "firebase-functions";
-import {collection, get, set} from "typesaurus";
+import * as firebaseAdmin from "firebase-admin";
+import {collection, get, set, query, where, limit} from "typesaurus";
+import {User} from "./models";
 
 // import Firestore = require('firebase/firestore');
 
@@ -9,26 +10,6 @@ const COLLECTION_ADJECTIVES = "username_adjectives";
 const COLLECTION_NOUNS = "username_nouns";
 const COLLECTION_USERS = "users";
 const COLLECTION_VERBS = "username_verbs";
-
-type User = {
-  username: string;
-  usernameCounter: number;
-};
-
-// type Adjective = {
-//     count: number,
-//     random: number
-// }
-
-// type Noun = {
-//     count: number,
-//     random: number
-// }
-
-// type Verb = {
-//     count: number,
-//     random: number
-// }
 
 const users = collection<User>(COLLECTION_USERS);
 // const adjectives = collection<User>(COLLECTION_ADJECTIVES)
@@ -47,23 +28,26 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 });
 
 export const setUsername = functions.https.onRequest(async (req, res) => {
-  const username = await getUniqueUsername();
-
-  let usernameCounter = 0;
-
-  const existingUser = await get(users, req.body.id).then((snapshot) => {
+  // see if this user exists, get their username counter
+  const user = await get(users, req.body.id).then((snapshot) => {
     if (snapshot != null) {
       return snapshot.data;
     }
     return null;
   });
-  if (existingUser) {
-    usernameCounter = existingUser.usernameCounter;
+
+  let usernameCounter = 0;
+  if (user) {
+    usernameCounter = user.usernameCounter;
     if (isNaN(usernameCounter)) {
       usernameCounter = 1;
     }
   }
   usernameCounter++;
+
+  // todo: might ned a transaction here
+  // get a new username for them
+  const username = await getUniqueUsername();
 
   set(users, req.body.id, {
     username: username,
@@ -76,17 +60,22 @@ const getUniqueUsername = async () => {
   let counter = 0;
   while (counter < 1000) {
     counter++;
+
+    // get a new username
     const username = await getUsername();
 
-    const existingUser = await firestore
-        .collection(COLLECTION_USERS)
-        .where("username_raw", "==", username)
-        .orderBy("username_counter", "desc")
-        .limit(1)
-        .get()
-        .then((snapshot) => {
-          return snapshot.empty ? null : snapshot.docs[0];
-        });
+    // check to see if someone already has this username
+    const existingUser = await query(users, [
+      where("username", "==", username),
+      limit(1),
+    ]).then((results) => {
+      if (results.length > 0) {
+        return results[0];
+      }
+      return null;
+    });
+
+    // no matches, use this one
     if (!existingUser) {
       return username;
     }
@@ -152,7 +141,8 @@ const getRandomItem = (collection: string) => {
       .then((snapshot) => {
         if (snapshot.empty) {
           throw new Error(
-              "unable to find random item from collection:" + collection);
+              "unable to find random item from collection:" + collection
+          );
         }
         return snapshot.docs[0];
       });
