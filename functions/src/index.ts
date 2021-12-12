@@ -2,9 +2,11 @@ import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit} from "typesaurus"
 import {User} from "./models"
-import * as express from "express"
-import {Request, Response} from "express"
+import express, {Request, Response} from "express"
 import {requiredAuthentication} from "./auth"
+import cors from "cors"
+
+import bodyParser = require("body-parser")
 
 
 // import Firestore = require('firebase/firestore');
@@ -31,6 +33,14 @@ const firestore = firebaseAdmin.firestore()
 // initialize express server
 const apiApp = express()
 
+apiApp.use(bodyParser.json({limit: "50mb"}))
+apiApp.use(bodyParser.urlencoded({extended: true}))
+
+const corsOptions: cors.CorsOptions = {
+  origin: true,
+}
+const corsMiddleware = cors(corsOptions)
+apiApp.use(corsMiddleware)
 
 apiApp.get(
     "/authenticated",
