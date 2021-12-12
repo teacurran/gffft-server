@@ -2,6 +2,10 @@ import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit} from "typesaurus"
 import {User} from "./models"
+import * as express from "express"
+import {Request, Response} from "express"
+import {requiredAuthentication} from "./auth"
+
 
 // import Firestore = require('firebase/firestore');
 
@@ -12,10 +16,10 @@ const COLLECTION_USERS = "users"
 const COLLECTION_VERBS = "username_verbs"
 
 const users = collection<User>(COLLECTION_USERS)
-const adjectives = collection<User>(COLLECTION_ADJECTIVES)
-const nouns = collection<User>(COLLECTION_NOUNS)
+// const adjectives = collection<User>(COLLECTION_ADJECTIVES)
+// const nouns = collection<User>(COLLECTION_NOUNS)
 
-const verbs = collection<User>(COLLECTION_VERBS)
+// const verbs = collection<User>(COLLECTION_VERBS)
 
 firebaseAdmin.initializeApp({
   projectId: PROJECTID,
@@ -23,10 +27,21 @@ firebaseAdmin.initializeApp({
 
 const firestore = firebaseAdmin.firestore()
 
-export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true})
-  response.send("Hello from Firebase!")
-})
+
+// initialize express server
+const apiApp = express()
+
+
+apiApp.get(
+    "/authenticated",
+    requiredAuthentication,
+    (req: Request, res: Response) => {
+      res.send(`Authenticated! user: ${res.locals.user}`)
+    }
+)
+
+// define google cloud function name
+export const api = functions.https.onRequest(apiApp)
 
 export const setUsername = functions.https.onRequest(async (req, res) => {
   // see if this user exists, get their username counter

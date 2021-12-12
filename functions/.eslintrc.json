@@ -82,22 +82,6 @@
     //Enforces the use of catch() on un-returned promises
     "promise/catch-or-return": 2,
     // Warn against nested then() or catch() statements
-    "promise/no-nesting": 1,
-    "max-len": [
-      2,
-      120,
-      2,
-      {
-        "ignoreUrls": true
-      }
-    ],
-    // note you must disable the base rule as it can report incorrect errors
-    "semi": [
-      2,
-      "never"
-    ],
-    "@typescript-eslint/semi": [
-      "error"
-    ]
+    "promise/no-nesting": 1
   }
 }
