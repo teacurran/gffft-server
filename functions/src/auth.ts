@@ -22,6 +22,7 @@ export const requiredAuthentication = async (
 
   const iamUser = await authenticateAndFetchUser(idToken)
   res.locals.iamUser = iamUser
+
   next()
 }
 
@@ -51,7 +52,7 @@ export const optionalAuthentication = async (
 }
 
 /**
- * Adds two numbers together.
+ * gets user from firebase
  * @param {string} idToken Token to look up.
  * @return {Promise<UserRecord>}.
  */
