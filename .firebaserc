@@ -1,6 +1,5 @@
 {
   "projects": {
-    "staging": "gffft-auth",
     "default": "gffft-auth"
   }
 }
