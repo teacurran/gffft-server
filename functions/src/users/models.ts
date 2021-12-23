@@ -2,19 +2,18 @@ export type User = {
     username: string;
     usernameCounter: number;
   };
-  
-  export type Adjective = {
+
+export type Adjective = {
     count: number;
     random: number;
   };
-  
-  export type Noun = {
+
+export type Noun = {
     count: number;
     random: number;
   };
-  
-  export type Verb = {
+
+export type Verb = {
     count: number;
     random: number;
   };
-  

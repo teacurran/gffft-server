@@ -1,34 +1,32 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, {Request, Response} from "express"
 
-import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
-import {getUser} from './data'
+import {getUser, iamUserToJson} from "./data"
 import UserRecord = firebaseAdmin.auth.UserRecord;
 
-import {
-    ContainerTypes,
-    createValidator,
-    ValidatedRequest,
-    ValidatedRequestSchema
-  } from 'express-joi-validation';
-import { requiredAuthentication } from '../auth';
-import { iamUserToJson } from './data';
-import { User } from './models';
-const Joi = require('joi');
+// import {
+//   ContainerTypes,
+//   createValidator,
+//   ValidatedRequestSchema,
+// } from "express-joi-validation"
+import {requiredAuthentication} from "../auth"
+import {User} from "./models"
+// import Joi from "joi"
 
-const userUpdateRequestParams = Joi.object({
-    uid: Joi.string().required(),
-    displayName: Joi.string().required()
-  });
-  export interface UserUpdateRequest extends ValidatedRequestSchema {
-    [ContainerTypes.Body]: {
-      uid: string;
-      displayName: string;
-    };
-  }
-  
-const router = express.Router();
-const validator = createValidator();
+// const userUpdateRequestParams = Joi.object({
+//   uid: Joi.string().required(),
+//   displayName: Joi.string().required(),
+// })
+// export interface UserUpdateRequest extends ValidatedRequestSchema {
+//     [ContainerTypes.Body]: {
+//       uid: string;
+//       displayName: string;
+//     };
+//   }
+
+// eslint-disable-next-line new-cap
+const router = express.Router()
+// const validator = createValidator()
 
 router.get(
     "/me",
@@ -42,5 +40,4 @@ router.get(
 )
 
 
-
-export default router;
+export default router

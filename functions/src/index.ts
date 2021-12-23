@@ -7,8 +7,8 @@ import UserRecord = firebaseAdmin.auth.UserRecord;
 
 import bodyParser = require("body-parser")
 import {getUser, iamUserToJson} from "./users/data"
-import users from './users/api';
-import { User } from "./users/models"
+import users from "./users/api"
+import {User} from "./users/models"
 
 // import Firestore = require('firebase/firestore');
 
@@ -46,7 +46,7 @@ apiApp.get(
     }
 )
 
-apiApp.use('/users', users)
+apiApp.use("/users", users)
 
 apiApp.get(
     "/users/me",
