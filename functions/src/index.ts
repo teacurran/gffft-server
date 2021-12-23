@@ -1,14 +1,14 @@
 import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
-import {User} from "./models"
 import express, {Request, Response} from "express"
 import {requiredAuthentication} from "./auth"
 import cors from "cors"
 import UserRecord = firebaseAdmin.auth.UserRecord;
 
 import bodyParser = require("body-parser")
-import {getUser, iamUserToJson} from "./helpers/users"
-
+import {getUser, iamUserToJson} from "./users/data"
+import users from './users/api';
+import { User } from "./users/models"
 
 // import Firestore = require('firebase/firestore');
 
@@ -45,6 +45,8 @@ apiApp.get(
       res.send(`Authenticated! user: ${res.locals.user}`)
     }
 )
+
+apiApp.use('/users', users)
 
 apiApp.get(
     "/users/me",
