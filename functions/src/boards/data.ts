@@ -31,7 +31,8 @@ export async function getOrCreateDefaultBoard(userId: string): Promise<Board> {
     board = {
       key: DEFAULT_BOARD_KEY,
     } as Board
-    await add<Board>(userBoards, board)
+    const result = await add<Board>(userBoards, board)
+    board.id = result.id
   }
 
   return board
