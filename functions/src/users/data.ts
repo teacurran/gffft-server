@@ -16,7 +16,7 @@ const users = collection<User>(COLLECTION_USERS)
 export interface IUserType {
   id: string
   username: string
-  board: IBoardType
+  board: IBoardType | null
 }
 
 /**

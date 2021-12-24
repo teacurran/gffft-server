@@ -13,7 +13,10 @@ export interface IBoardType {
    */
 export function boardToJson(
     board: Board,
-): IBoardType {
+): IBoardType | null {
+  if (board == null) {
+    return null
+  }
   const item: IBoardType = {
     id: board.key,
     name: board.name,
