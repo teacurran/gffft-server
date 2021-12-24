@@ -1,8 +1,10 @@
 import {QueryDocumentSnapshot} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit} from "typesaurus"
+import {Board} from "../boards/models"
+import {boardToJson, IBoardType} from "../boards/types"
 import {User} from "./models"
-import UserRecord = firebaseAdmin.auth.UserRecord;
+import UserRecord = firebaseAdmin.auth.UserRecord
 
 const COLLECTION_USERS = "users"
 const COLLECTION_ADJECTIVES = "username_adjectives"
@@ -12,25 +14,29 @@ const COLLECTION_VERBS = "username_verbs"
 const users = collection<User>(COLLECTION_USERS)
 
 export interface IUserType {
-  id: string;
-  username: string;
+  id: string
+  username: string
+  board: IBoardType
 }
 
 /**
  * Serialized iam user to json
  * @param {UserRecord} iamUser user to serialize
  * @param {User} user
+ * @param {Board} board
  * @return {IIAMUserType}
  */
 export function iamUserToJson(
     iamUser: UserRecord,
-    user: User
+    user: User,
+    board: Board
 ): IUserType {
   const userRecord: UserRecord = JSON.parse(JSON.stringify(iamUser))
 
   const item: IUserType = {
     id: userRecord.uid,
     username: user.username,
+    board: boardToJson(board),
   }
   return item
 }

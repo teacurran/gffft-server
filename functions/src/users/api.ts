@@ -11,6 +11,8 @@ import UserRecord = firebaseAdmin.auth.UserRecord;
 // } from "express-joi-validation"
 import {requiredAuthentication} from "../auth"
 import {User} from "./models"
+import {getOrCreateDefaultBoard} from "../boards/data"
+import {Board} from "../boards/models"
 // import Joi from "joi"
 
 // const userUpdateRequestParams = Joi.object({
@@ -33,9 +35,11 @@ router.get(
     requiredAuthentication,
     async (req: Request, res: Response) => {
       const iamUser: UserRecord = res.locals.iamUser
-      const user: User = await getUser(iamUser.uid)
+      const userId = iamUser.uid
+      const user: User = await getUser(userId)
+      const board: Board = await getOrCreateDefaultBoard(userId)
 
-      res.json(iamUserToJson(iamUser, user))
+      res.json(iamUserToJson(iamUser, user, board))
     }
 )
 
