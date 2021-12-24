@@ -1,5 +1,5 @@
 export type Board = {
-    key: string,
-    name: string,
-    description: string
+    id: string,
+    name?: string,
+    description?: string
   }

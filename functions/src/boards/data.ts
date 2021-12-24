@@ -16,12 +16,17 @@ export async function getOrCreateDefaultBoard(userId: string): Promise<Board> {
   const userBoards = boardsCollection(userId)
   let board = await get(userBoards, DEFAULT_BOARD_ID).then((snapshot) => {
     if (snapshot != null) {
-      return snapshot.data
+      const value = snapshot.data
+      value.id = snapshot.ref.id
+      return value
     }
     return null
   })
   if (board == null) {
-    board = {} as Board
+    board = {
+      id: DEFAULT_BOARD_ID,
+      name: DEFAULT_BOARD_ID,
+    } as Board
     await set<Board>(userBoards, DEFAULT_BOARD_ID, board)
   }
 
