@@ -1,4 +1,4 @@
-import {collection, get, set, query, subcollection, where, limit, add} from "typesaurus"
+import {collection, query, subcollection, where, limit, add} from "typesaurus"
 import {Board} from "./models"
 import {User} from "../users/models"
 
