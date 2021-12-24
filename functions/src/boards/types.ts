@@ -2,8 +2,8 @@ import {Board} from "./models"
 
 export interface IBoardType {
     id: string
-    name: string
-    description: string
+    name?: string
+    description?: string
   }
 
 /**
