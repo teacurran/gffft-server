@@ -20,8 +20,13 @@ export const requiredAuthentication = async (
     res.locals = {}
   }
 
-  const iamUser = await authenticateAndFetchUser(idToken)
-  res.locals.iamUser = iamUser
+  try {
+    const iamUser = await authenticateAndFetchUser(idToken)
+    res.locals.iamUser = iamUser
+  } catch (error) {
+    res.status(403).send("Unauthorized: Token expired")
+    return
+  }
 
   next()
 }
