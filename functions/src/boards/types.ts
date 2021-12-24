@@ -2,6 +2,7 @@ import {Board} from "./models"
 
 export interface IBoardType {
     id: string
+    key?: string
     name?: string
     description?: string
   }
@@ -20,6 +21,7 @@ export function boardToJson(
   }
   const item: IBoardType = {
     id: board.id,
+    key: board.key,
     name: board.name,
     description: board.description,
   }
