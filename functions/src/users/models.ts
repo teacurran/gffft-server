@@ -1,7 +1,7 @@
 export type User = {
-    username: string;
-    usernameCounter: number;
-  };
+    username: string
+    usernameCounter: number
+  }
 
 export type Adjective = {
     count: number;

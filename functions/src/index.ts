@@ -1,30 +1,16 @@
 import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
-import express, {Request, Response} from "express"
-import {requiredAuthentication} from "./auth"
+import express, {} from "express"
 import cors from "cors"
-import UserRecord = firebaseAdmin.auth.UserRecord;
 
 import bodyParser = require("body-parser")
-import {getUser, iamUserToJson} from "./users/data"
 import users from "./users/api"
-import {User} from "./users/models"
-
-// import Firestore = require('firebase/firestore');
+import boards from "./boards/api"
 
 const PROJECTID = "gffft-auth"
-
-// const COLLECTION_USERS = "users"
-// const users = collection<User>(COLLECTION_USERS)
-// const adjectives = collection<User>(COLLECTION_ADJECTIVES)
-// const nouns = collection<User>(COLLECTION_NOUNS)
-
-// const verbs = collection<User>(COLLECTION_VERBS)
-
 firebaseAdmin.initializeApp({
   projectId: PROJECTID,
 })
-
 
 // initialize express server
 const apiApp = express()
@@ -38,26 +24,8 @@ const corsOptions: cors.CorsOptions = {
 const corsMiddleware = cors(corsOptions)
 apiApp.use(corsMiddleware)
 
-apiApp.get(
-    "/authenticated",
-    requiredAuthentication,
-    (req: Request, res: Response) => {
-      res.send(`Authenticated! user: ${res.locals.user}`)
-    }
-)
-
 apiApp.use("/users", users)
-
-apiApp.get(
-    "/users/me",
-    requiredAuthentication,
-    async (req: Request, res: Response) => {
-      const iamUser: UserRecord = res.locals.iamUser
-      const user: User = await getUser(iamUser.uid)
-
-      res.json(iamUserToJson(iamUser, user))
-    }
-)
+apiApp.use("/boards", boards)
 
 // define google cloud function name
 export const api = functions.https.onRequest(apiApp)
