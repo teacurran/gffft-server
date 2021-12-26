@@ -4,8 +4,10 @@ import express, {} from "express"
 import cors from "cors"
 
 import bodyParser = require("body-parser")
-import users from "./users/api"
+
 import boards from "./boards/api"
+import gfffts from "./gfffts/api"
+import users from "./users/api"
 
 const PROJECTID = "gffft-auth"
 firebaseAdmin.initializeApp({
@@ -25,6 +27,7 @@ const corsMiddleware = cors(corsOptions)
 apiApp.use(corsMiddleware)
 
 apiApp.use("/users", users)
+apiApp.use("/gfffts", gfffts)
 apiApp.use("/boards", boards)
 
 // define google cloud function name
