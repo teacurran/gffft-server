@@ -20,6 +20,7 @@ services:
       - "9099:9099"
       - "9199:9199"
       - "5000:5000"
+      - "8080:8080"
     command: firebase emulators:start --project gffft-auth
 
 volumes:

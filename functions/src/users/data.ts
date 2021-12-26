@@ -1,4 +1,4 @@
-import {QueryDocumentSnapshot} from "@google-cloud/firestore"
+import {QueryDocumentSnapshot, WriteResult} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit} from "typesaurus"
 import {Board} from "../boards/models"
@@ -7,10 +7,10 @@ import {randomInt} from "../utils"
 import {User} from "./models"
 import UserRecord = firebaseAdmin.auth.UserRecord
 
-const COLLECTION_USERS = "users"
-const COLLECTION_ADJECTIVES = "username_adjectives"
-const COLLECTION_NOUNS = "username_nouns"
-const COLLECTION_VERBS = "username_verbs"
+export const COLLECTION_USERS = "users"
+export const COLLECTION_ADJECTIVES = "username_adjectives"
+export const COLLECTION_NOUNS = "username_nouns"
+export const COLLECTION_VERBS = "username_verbs"
 
 const users = collection<User>(COLLECTION_USERS)
 
@@ -162,4 +162,40 @@ const getRandomItem = async (collection: string): Promise<QueryDocumentSnapshot<
         }
         return snapshot.docs[0]
       })
+}
+
+export const addAdjective = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_ADJECTIVES, value)
+}
+
+export const addNoun = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_NOUNS, value)
+}
+
+export const addVerb = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_VERBS, value)
+}
+
+const addToCollection = async (collection: string, value: string): Promise<WriteResult | string> => {
+  const firestore = firebaseAdmin.firestore()
+
+  if (!value) {
+    return Promise.resolve("no value")
+  }
+  console.log(`line: ${value}`)
+  const lineSplit = Array.isArray(value) ? value : value.split(" ")
+  if (lineSplit.length <= 0) {
+    return Promise.resolve("no value")
+  }
+  const word = lineSplit[0]
+  console.log(`word: ${word}`)
+  if (!word.includes("_") && !word.includes("-")) {
+    return firestore.collection(collection)
+        .doc(word)
+        .set({
+          count: 0,
+          random: randomInt(0, 9999999),
+        })
+  }
+  return Promise.resolve("word is invalid")
 }
