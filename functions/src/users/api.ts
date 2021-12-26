@@ -27,10 +27,10 @@ import {Board} from "../boards/models"
 //   }
 
 // eslint-disable-next-line new-cap
-const router = express.Router()
+const api = express.Router()
 // const validator = createValidator()
 
-router.get(
+api.get(
     "/me",
     requiredAuthentication,
     async (req: Request, res: Response) => {
@@ -44,4 +44,4 @@ router.get(
 )
 
 
-export default router
+export default api

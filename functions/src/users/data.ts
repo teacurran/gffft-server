@@ -3,6 +3,7 @@ import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit} from "typesaurus"
 import {Board} from "../boards/models"
 import {boardToJson, IBoardType} from "../boards/types"
+import {randomInt} from "../utils"
 import {User} from "./models"
 import UserRecord = firebaseAdmin.auth.UserRecord
 
@@ -161,8 +162,4 @@ const getRandomItem = async (collection: string): Promise<QueryDocumentSnapshot<
         }
         return snapshot.docs[0]
       })
-}
-
-const randomInt = (low: number, high: number) => {
-  return Math.floor(Math.random() * (high - low) + low)
 }
