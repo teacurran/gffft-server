@@ -1,19 +1,21 @@
-import {collection, query, subcollection, where, limit, add} from "typesaurus"
+import {query, subcollection, where, limit, add} from "typesaurus"
 import {Board} from "./models"
 import {User} from "../users/models"
+import {Gffft} from "../gfffts/models"
+import {gffftsCollection} from "../gfffts/data"
 
 const DEFAULT_BOARD_KEY = "default"
 
-const usersCollection = collection<User>("users")
-const boardsCollection = subcollection<Board, User>("boards", usersCollection)
+const boardsCollection = subcollection<Board, Gffft, User>("boards", gffftsCollection)
 
 /**
- * Gets a user from firestore if already exists
- * @param {string} userId user to look up
+ * gets or creates the default board for a user
+ * @param {string} userId
+ * @param {string} gffftId
  * @return {IIAMUserType}
  */
-export async function getOrCreateDefaultBoard(userId: string): Promise<Board> {
-  const userBoards = boardsCollection(userId)
+export async function getOrCreateDefaultBoard(userId: string, gffftId: string): Promise<Board> {
+  const userBoards = boardsCollection([userId, gffftId])
 
   let board = await query(userBoards, [
     where("key", "==", DEFAULT_BOARD_KEY),

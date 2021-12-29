@@ -12,7 +12,7 @@ export const COLLECTION_ADJECTIVES = "username_adjectives"
 export const COLLECTION_NOUNS = "username_nouns"
 export const COLLECTION_VERBS = "username_verbs"
 
-const users = collection<User>(COLLECTION_USERS)
+export const usersCollection = collection<User>("users")
 
 export interface IUserType {
   id: string
@@ -48,7 +48,7 @@ export function iamUserToJson(
  * @return {IIAMUserType}
  */
 export async function getUser(userId: string): Promise<User> {
-  let user = await get(users, userId).then((snapshot) => {
+  let user = await get(usersCollection, userId).then((snapshot) => {
     if (snapshot != null) {
       return snapshot.data
     }
@@ -60,7 +60,7 @@ export async function getUser(userId: string): Promise<User> {
   if (user?.username == null) {
     user.username = await getUniqueUsername()
     user.usernameCounter = 0
-    await set<User>(users, userId, user)
+    await set<User>(usersCollection, userId, user)
   }
 
   return user
@@ -76,7 +76,7 @@ const getUniqueUsername = async () => {
     const username = await getUsername()
 
     // check to see if someone already has this username
-    const existingUser = await query(users, [
+    const existingUser = await query(usersCollection, [
       where("username", "==", username),
       limit(1),
     ]).then((results) => {

@@ -1,11 +1,11 @@
-import {collection, query, subcollection, where, limit, add} from "typesaurus"
+import {query, subcollection, where, limit, add} from "typesaurus"
 import {Gffft} from "./models"
 import {User} from "../users/models"
+import {usersCollection} from "../users/data"
 
 const DEFAULT_GFFFT_KEY = "default"
 
-const usersCollection = collection<User>("users")
-const gffftsCollection = subcollection<Gffft, User>("boards", usersCollection)
+export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
 
 /**
  * Gets a user from firestore if already exists

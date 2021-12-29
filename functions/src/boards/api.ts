@@ -7,6 +7,8 @@ import UserRecord = firebaseAdmin.auth.UserRecord
 import {requiredAuthentication} from "../auth"
 import {Board} from "./models"
 import {boardToJson} from "./types"
+import {getOrCreateDefaultGffft} from "../gfffts/data"
+import {Gffft} from "../gfffts/models"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -17,7 +19,9 @@ router.get(
     requiredAuthentication,
     async (req: Request, res: Response) => {
       const iamUser: UserRecord = res.locals.iamUser
-      const board: Board = await getOrCreateDefaultBoard(iamUser.uid)
+      const userId = iamUser.uid
+      const gffft: Gffft = await getOrCreateDefaultGffft(userId)
+      const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
 
       res.json(boardToJson(board))
     }

@@ -13,6 +13,8 @@ import {requiredAuthentication} from "../auth"
 import {User} from "./models"
 import {getOrCreateDefaultBoard} from "../boards/data"
 import {Board} from "../boards/models"
+import {getOrCreateDefaultGffft} from "../gfffts/data"
+import {Gffft} from "../gfffts/models"
 // import Joi from "joi"
 
 // const userUpdateRequestParams = Joi.object({
@@ -37,7 +39,8 @@ router.get(
       const iamUser: UserRecord = res.locals.iamUser
       const userId = iamUser.uid
       const user: User = await getUser(userId)
-      const board: Board = await getOrCreateDefaultBoard(userId)
+      const gffft: Gffft = await getOrCreateDefaultGffft(userId)
+      const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
 
       res.json(iamUserToJson(iamUser, user, board))
     }
