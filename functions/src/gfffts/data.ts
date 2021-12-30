@@ -1,4 +1,4 @@
-import {query, subcollection, where, limit, add} from "typesaurus"
+import {query, subcollection, where, limit, add, upset} from "typesaurus"
 import {Gffft} from "./models"
 import {User} from "../users/models"
 import {usersCollection} from "../users/data"
@@ -10,7 +10,7 @@ export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollec
 /**
  * Gets a user from firestore if already exists
  * @param {string} userId user to look up
- * @return {IIAMUserType}
+ * @return {Promise<Gffft>}
  */
 export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   const userGfffts = gffftsCollection(userId)
@@ -38,3 +38,15 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   return gffft
 }
 
+
+/**
+ * @param {userId} userId user to look up
+ * @param {gffft} gffft being saved
+ * @return {IIAMUserType}
+ */
+export async function updateGffft(userId: string, gffft: Gffft): Promise<void> {
+  console.log(`updating gffft: ${gffft.id}, userId: ${userId}`)
+  const userGfffts = gffftsCollection(userId)
+
+  return upset<Gffft>(userGfffts, gffft.id, gffft)
+}
