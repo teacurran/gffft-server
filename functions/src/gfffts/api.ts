@@ -82,18 +82,22 @@ router.put(
 
       const item = req.body
 
+      gffft.description = item.description
+      gffft.enableAltHandles = item.enableAltHandles
+      gffft.intro = item.intro
+      gffft.name = item.name
+      gffft.enabled = item.enabled
       gffft.allowMembers = item.allowMembers
+      gffft.requireApproval = item.requireApproval
+
       gffft.boardEnabled = item.boardEnabled
       gffft.boardWhoCanPost = item.boardWhoCanPost
       gffft.boardWhoCanView = item.boardWhoCanView
-      gffft.description = item.description
-      gffft.enableAltHandles = item.enableAltHandles
-      gffft.enabled = item.enabled
+
       gffft.galleryEnabled = item.galleryEnabled
       gffft.galleryWhoCanPost = item.galleryWhoCanPost
       gffft.galleryWhoCanView = item.galleryWhoCanView
-      gffft.intro = item.intro
-      gffft.name = item.name
+
       gffft.pagesEnabled = item.pagesEnabled
       gffft.pagesWhoCanEdit = item.pagesWhoCanEdit
       gffft.pagesWhoCanView = item.pagesWhoCanView

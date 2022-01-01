@@ -26,5 +26,7 @@ module.exports = {
     "import/no-unresolved": 0,
     "semi": [2, "never"],
     "max-len": [2, 120, 2, {"ignoreUrls": true}],
+    "indent": ["error", 2],
+    "require-jsdoc" : 0
   },
 }
