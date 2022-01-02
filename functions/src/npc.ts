@@ -15,7 +15,6 @@ const baseUrl = isProduction ? "https://us-central1-gffft-auth.cloudfunctions.ne
 
 async function runNpc(npcId: string, userId: string) {
   const token = `npc-${npcId}-${userId}`
-  await createNpc(npcId)
 
   const userClient = new UserClient(baseUrl, token)
   await userClient.getMe().catch((e)=>console.log(e))
@@ -28,6 +27,7 @@ async function runNpc(npcId: string, userId: string) {
 (async () => {
   const npcId = "user_activity_bot"
 
+  await createNpc(npcId)
   for (let count = 1000; count < 1100; count++) {
     console.log(`running runner for npc# ${count}`)
     await runNpc(npcId, `npc#${count}`)
