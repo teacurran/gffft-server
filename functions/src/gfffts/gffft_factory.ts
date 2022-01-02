@@ -1,7 +1,8 @@
 import * as faker from "faker"
 import {Factory} from "fishery"
 import {DeepPartial} from "fishery/dist/types"
-import {IGffftType} from "./types"
+import {IGffftType} from "./gffft_types"
+
 
 export const gffftFactory = Factory.define<IGffftType>(() => {
   const name = faker.company.companyName()

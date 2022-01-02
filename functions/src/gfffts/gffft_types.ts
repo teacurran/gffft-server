@@ -1,27 +1,52 @@
 import {Gffft} from "./models"
 
+
 export interface IGffftType {
     id?: string
     key?: string
-    name: string;
-    description: string;
-    intro?: string,
-    tags?: string[],
-    enabled: boolean,
-    allowMembers: boolean,
-    requireApproval: boolean,
-    enableAltHandles: boolean,
-    pagesEnabled: boolean,
-    pagesWhoCanView?: string,
-    pagesWhoCanEdit?: string,
-    boardEnabled: boolean,
-    boardWhoCanView?: string,
-    boardWhoCanPost?: string,
-    galleryEnabled: boolean,
-    galleryWhoCanView?: string,
-    galleryWhoCanPost?: string,
-
+    name: string
+    description: string
+    intro?: string
+    tags?: string[]
+    enabled: boolean
+    allowMembers: boolean
+    requireApproval: boolean
+    enableAltHandles: boolean
+    pagesEnabled: boolean
+    pagesWhoCanView?: string
+    pagesWhoCanEdit?: string
+    boardEnabled: boolean
+    boardWhoCanView?: string
+    boardWhoCanPost?: string
+    galleryEnabled: boolean
+    galleryWhoCanView?: string
+    galleryWhoCanPost?: string
   }
+
+/**
+ * @swagger
+ * definitions:
+ *   IUserTypeMinimal:
+ *     type: object
+ *     properties:
+ *       total:
+ *         type: number
+ *       offset:
+ *         type: number
+ *       count:
+ *         type: number
+ *       items:
+ *         type: array
+ *         required: false
+ *         items:
+ *           $ref: '#/definitions/IGffftType'
+ */
+export interface IGffftResultsType {
+  total: number
+  offset: number
+  count: number
+  items?: IGffftType
+}
 
 /**
    * to Json

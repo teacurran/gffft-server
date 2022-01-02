@@ -2,14 +2,16 @@ import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
 import express, {} from "express"
 import cors from "cors"
+import jsdocSwagger from "express-jsdoc-swagger"
 
 import bodyParser = require("body-parser")
 
 import boards from "./boards/api"
-import gfffts from "./gfffts/api"
+import gfffts from "./gfffts/gffft_api"
 import users from "./users/api"
 import {WriteResult} from "@google-cloud/firestore"
 import {addAdjective, addNoun, addVerb} from "./users/data"
+import openApiOptions from "./openapi/openapi_api"
 
 const PROJECTID = "gffft-auth"
 firebaseAdmin.initializeApp({
@@ -31,6 +33,8 @@ apiApp.use(corsMiddleware)
 apiApp.use("/users", users)
 apiApp.use("/gfffts", gfffts)
 apiApp.use("/boards", boards)
+
+jsdocSwagger(apiApp)(openApiOptions)
 
 // define google cloud function name
 export const api = functions.https.onRequest(apiApp)

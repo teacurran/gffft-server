@@ -4,10 +4,52 @@ import {getOrCreateDefaultGffft, updateGffft} from "./data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {Gffft} from "./models"
-import {gffftToJson} from "./types"
+import {gffftToJson} from "./gffft_types"
 import Joi = require("joi")
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 
+/**
+ * @swagger
+ * definitions:
+ *   GffftUpdateRequest:
+ *     type: object
+ *     properties:
+ *       id:
+ *         type: string
+ *       name:
+ *         type: string
+ *       description:
+ *         type: string
+ *       intro:
+ *         type: string
+ *       enabled:
+ *         type: boolean
+ *       allowMembers:
+ *         type: boolean
+ *       allowAltHandles:
+ *         type: boolean
+ *       requireApproval:
+ *         type: boolean
+ *       pagesEnabled:
+ *         type: boolean
+ *       pagesWhoCanEdit:
+ *         type: string
+ *       pagesWhoCanView:
+ *         type: string
+ *       boardEnabled:
+ *         type: boolean
+ *       boardWHoCanView:
+ *         type: string
+ *       boardWhoCanPost:
+ *         type: String
+ *       galleryEnabled:
+ *         type: boolean
+ *       galleryWHoCanView:
+ *         type: string
+ *       galleryWhoCanPost:
+ *         type: string
+ *
+*/
 const gffftUpdateRequestParams = Joi.object({
   id: Joi.string().allow(null),
   name: Joi.string().required(),
@@ -51,13 +93,13 @@ export interface GffftUpdateRequest extends ValidatedRequestSchema {
   };
 }
 
-
 // eslint-disable-next-line new-cap
 const router = express.Router()
 const validator = createValidator()
 
+
 router.get(
-  "/default",
+  "/",
   requiredAuthentication,
   async (req: Request, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
@@ -103,6 +145,17 @@ router.put(
     updateGffft(iamUser.id, gffft).then(() => {
       res.sendStatus(204)
     })
+  }
+)
+
+router.get(
+  "/default",
+  requiredAuthentication,
+  async (req: Request, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
+
+    res.json(gffftToJson(gffft))
   }
 )
 

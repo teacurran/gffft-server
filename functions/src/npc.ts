@@ -1,5 +1,5 @@
 import * as firebaseAdmin from "firebase-admin"
-import {GffftClient} from "./gfffts/client"
+import {GffftClient} from "./gfffts/gffft_client"
 import {createGffft} from "./gfffts/gffft_factory"
 import {createNpc} from "./npcs/data"
 import {UserClient} from "./users/client"
@@ -8,6 +8,7 @@ const PROJECTID = "gffft-auth"
 firebaseAdmin.initializeApp({
   projectId: PROJECTID,
 })
+
 
 const isProduction = process.env.NODE_ENV === "production"
 

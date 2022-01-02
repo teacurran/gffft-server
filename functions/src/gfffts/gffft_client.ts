@@ -1,5 +1,5 @@
 import {Http} from "../common/http"
-import {IGffftType} from "./types"
+import {IGffftType} from "./gffft_types"
 
 export class GffftClient {
     client: Http
