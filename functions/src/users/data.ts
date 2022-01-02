@@ -28,9 +28,9 @@ export interface IUserType {
  * @return {IIAMUserType}
  */
 export function iamUserToJson(
-    iamUser: UserRecord,
-    user: User,
-    board: Board
+  iamUser: UserRecord,
+  user: User,
+  board: Board
 ): IUserType {
   const userRecord: UserRecord = JSON.parse(JSON.stringify(iamUser))
 
@@ -112,38 +112,38 @@ const getUsername = async () => {
   if (Math.floor(Math.random() * 2) === 0) {
     usernameRaw = verb?.id + "-" + noun?.id
     await firestore
-        .collection(COLLECTION_VERBS)
-        .doc(verb.id)
-        .set(
-            {
-              count: verb.get("count") ? verb.get("count") + 1 : 1,
-              random: randomInt(0, 9999999),
-            },
-            {merge: true}
-        )
+      .collection(COLLECTION_VERBS)
+      .doc(verb.id)
+      .set(
+        {
+          count: verb.get("count") ? verb.get("count") + 1 : 1,
+          random: randomInt(0, 9999999),
+        },
+        {merge: true}
+      )
   } else {
     usernameRaw = adjective.id + "-" + noun.id
     await firestore
-        .collection(COLLECTION_ADJECTIVES)
-        .doc(adjective.id)
-        .set(
-            {
-              count: adjective.get("count") ? adjective.get("count") + 1 : 1,
-              random: randomInt(0, 9999999),
-            },
-            {merge: true}
-        )
+      .collection(COLLECTION_ADJECTIVES)
+      .doc(adjective.id)
+      .set(
+        {
+          count: adjective.get("count") ? adjective.get("count") + 1 : 1,
+          random: randomInt(0, 9999999),
+        },
+        {merge: true}
+      )
   }
   await firestore
-      .collection(COLLECTION_NOUNS)
-      .doc(noun.id)
-      .set(
-          {
-            count: noun.get("count") ? noun.get("count") + 1 : 1,
-            random: randomInt(0, 9999999),
-          },
-          {merge: true}
-      )
+    .collection(COLLECTION_NOUNS)
+    .doc(noun.id)
+    .set(
+      {
+        count: noun.get("count") ? noun.get("count") + 1 : 1,
+        random: randomInt(0, 9999999),
+      },
+      {merge: true}
+    )
   return usernameRaw
 }
 
@@ -151,17 +151,17 @@ const getRandomItem = async (collection: string): Promise<QueryDocumentSnapshot<
   const firestore = firebaseAdmin.firestore()
 
   return firestore
-      .collection(collection)
-      .orderBy("random", "asc")
-      .limit(1)
-      .get().then((snapshot) => {
-        if (snapshot.empty) {
-          throw new Error(
-              "unable to find random item from collection:" + collection
-          )
-        }
-        return snapshot.docs[0]
-      })
+    .collection(collection)
+    .orderBy("random", "asc")
+    .limit(1)
+    .get().then((snapshot) => {
+      if (snapshot.empty) {
+        throw new Error(
+          "unable to find random item from collection:" + collection
+        )
+      }
+      return snapshot.docs[0]
+    })
 }
 
 export const addAdjective = async (value: string): Promise<WriteResult | string> => {
@@ -191,11 +191,11 @@ const addToCollection = async (collection: string, value: string): Promise<Write
   console.log(`word: ${word}`)
   if (!word.includes("_") && !word.includes("-")) {
     return firestore.collection(collection)
-        .doc(word)
-        .set({
-          count: 0,
-          random: randomInt(0, 9999999),
-        })
+      .doc(word)
+      .set({
+        count: 0,
+        random: randomInt(0, 9999999),
+      })
   }
   return Promise.resolve("word is invalid")
 }

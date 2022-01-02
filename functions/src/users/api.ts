@@ -33,17 +33,17 @@ const router = express.Router()
 // const validator = createValidator()
 
 router.get(
-    "/me",
-    requiredAuthentication,
-    async (req: Request, res: Response) => {
-      const iamUser: UserRecord = res.locals.iamUser
-      const userId = iamUser.uid
-      const user: User = await getUser(userId)
-      const gffft: Gffft = await getOrCreateDefaultGffft(userId)
-      const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
+  "/me",
+  requiredAuthentication,
+  async (req: Request, res: Response) => {
+    const iamUser: UserRecord = res.locals.iamUser
+    const userId = iamUser.uid
+    const user: User = await getUser(userId)
+    const gffft: Gffft = await getOrCreateDefaultGffft(userId)
+    const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
 
-      res.json(iamUserToJson(iamUser, user, board))
-    }
+    res.json(iamUserToJson(iamUser, user, board))
+  }
 )
 
 
