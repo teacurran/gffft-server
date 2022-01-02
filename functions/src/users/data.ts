@@ -1,11 +1,11 @@
 import {QueryDocumentSnapshot, WriteResult} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit} from "typesaurus"
+import {LoggedInUser} from "../auth"
 import {Board} from "../boards/models"
 import {boardToJson, IBoardType} from "../boards/types"
-import {randomInt} from "../utils"
+import {randomInt} from "../common/utils"
 import {User} from "./models"
-import UserRecord = firebaseAdmin.auth.UserRecord
 
 export const COLLECTION_USERS = "users"
 export const COLLECTION_ADJECTIVES = "username_adjectives"
@@ -28,14 +28,12 @@ export interface IUserType {
  * @return {IIAMUserType}
  */
 export function iamUserToJson(
-  iamUser: UserRecord,
+  iamUser: LoggedInUser,
   user: User,
   board: Board
 ): IUserType {
-  const userRecord: UserRecord = JSON.parse(JSON.stringify(iamUser))
-
   const item: IUserType = {
-    id: userRecord.uid,
+    id: iamUser.id,
     username: user.username,
     board: boardToJson(board),
   }
@@ -58,7 +56,7 @@ export async function getUser(userId: string): Promise<User> {
     user = {} as User
   }
   if (user?.username == null) {
-    user.username = await getUniqueUsername()
+    user.username = await getUniqueUsername(userId.startsWith("npc#"))
     user.usernameCounter = 0
     await set<User>(usersCollection, userId, user)
   }
@@ -67,13 +65,15 @@ export async function getUser(userId: string): Promise<User> {
 }
 
 /* eslint no-await-in-loop: "off" */
-const getUniqueUsername = async () => {
+const getUniqueUsername = async (isNpc: boolean) => {
   let counter = 0
   while (counter < 1000) {
     counter++
 
     // get a new username
-    const username = await getUsername()
+    const generatedUsername = await getUsername()
+    const npcPrefix = isNpc ? "npc-" : ""
+    const username = `${npcPrefix}${generatedUsername}`
 
     // check to see if someone already has this username
     const existingUser = await query(usersCollection, [

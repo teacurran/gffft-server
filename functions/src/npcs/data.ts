@@ -1,4 +1,4 @@
-import {collection, get} from "typesaurus"
+import {collection, get, set} from "typesaurus"
 import {Npc} from "./models"
 
 export const npcsCollection = collection<Npc>("npcs")
@@ -8,17 +8,25 @@ export const npcsCollection = collection<Npc>("npcs")
  * @param {string} id item to look up
  * @return {IIAMUserType}
  */
-export async function getNpc(id: string): Promise<Npc> {
-  let item = await get(npcsCollection, id).then((snapshot) => {
-    if (snapshot != null) {
-      return snapshot.data
-    }
-    return null
+export async function createNpc(id: string): Promise<void> {
+  return set(npcsCollection, id, {
+    role: "bot",
   })
-  if (item == null) {
-    item = {} as Npc
-  }
+}
 
-  return item
+
+/**
+ * Gets an npc from firestore if already exists
+ * @param {string} npcId item to look up
+ * @return {IIAMUserType}
+ */
+export async function getNpc(npcId: string): Promise<Npc> {
+  console.log(`getting npc:${npcId}, path:${npcsCollection.path}`)
+  return get(npcsCollection, npcId).then((item) => {
+    if (item != null) {
+      return item.data
+    }
+    return {} as Npc
+  })
 }
 

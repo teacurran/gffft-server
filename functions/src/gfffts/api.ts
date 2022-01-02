@@ -59,53 +59,53 @@ const router = express.Router()
 const validator = createValidator()
 
 router.get(
-    "/default",
-    requiredAuthentication,
-    async (req: Request, res: Response) => {
-      const iamUser: UserRecord = res.locals.iamUser
-      const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.uid)
+  "/default",
+  requiredAuthentication,
+  async (req: Request, res: Response) => {
+    const iamUser: UserRecord = res.locals.iamUser
+    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.uid)
 
-      res.json(gffftToJson(gffft))
-    }
+    res.json(gffftToJson(gffft))
+  }
 )
 
 router.put(
-    "/",
-    requiredAuthentication,
-    validator.body(gffftUpdateRequestParams),
-    async (
-        req: ValidatedRequest<GffftUpdateRequest>,
-        res: Response,
-    ) => {
-      const iamUser: UserRecord = res.locals.iamUser
-      const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.uid)
+  "/",
+  requiredAuthentication,
+  validator.body(gffftUpdateRequestParams),
+  async (
+    req: ValidatedRequest<GffftUpdateRequest>,
+    res: Response,
+  ) => {
+    const iamUser: UserRecord = res.locals.iamUser
+    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.uid)
 
-      const item = req.body
+    const item = req.body
 
-      gffft.description = item.description
-      gffft.enableAltHandles = item.enableAltHandles
-      gffft.intro = item.intro
-      gffft.name = item.name
-      gffft.enabled = item.enabled
-      gffft.allowMembers = item.allowMembers
-      gffft.requireApproval = item.requireApproval
+    gffft.description = item.description
+    gffft.enableAltHandles = item.enableAltHandles
+    gffft.intro = item.intro
+    gffft.name = item.name
+    gffft.enabled = item.enabled
+    gffft.allowMembers = item.allowMembers
+    gffft.requireApproval = item.requireApproval
 
-      gffft.boardEnabled = item.boardEnabled
-      gffft.boardWhoCanPost = item.boardWhoCanPost
-      gffft.boardWhoCanView = item.boardWhoCanView
+    gffft.boardEnabled = item.boardEnabled
+    gffft.boardWhoCanPost = item.boardWhoCanPost
+    gffft.boardWhoCanView = item.boardWhoCanView
 
-      gffft.galleryEnabled = item.galleryEnabled
-      gffft.galleryWhoCanPost = item.galleryWhoCanPost
-      gffft.galleryWhoCanView = item.galleryWhoCanView
+    gffft.galleryEnabled = item.galleryEnabled
+    gffft.galleryWhoCanPost = item.galleryWhoCanPost
+    gffft.galleryWhoCanView = item.galleryWhoCanView
 
-      gffft.pagesEnabled = item.pagesEnabled
-      gffft.pagesWhoCanEdit = item.pagesWhoCanEdit
-      gffft.pagesWhoCanView = item.pagesWhoCanView
+    gffft.pagesEnabled = item.pagesEnabled
+    gffft.pagesWhoCanEdit = item.pagesWhoCanEdit
+    gffft.pagesWhoCanView = item.pagesWhoCanView
 
-      updateGffft(iamUser.uid, gffft).then(() => {
-        res.sendStatus(204)
-      })
-    }
+    updateGffft(iamUser.uid, gffft).then(() => {
+      res.sendStatus(204)
+    })
+  }
 )
 
 

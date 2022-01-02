@@ -4,13 +4,13 @@ import {IUserType} from "./data"
 export class UserClient {
     client: Http
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl: string, authToken?: string) {
       // todo: generate a bearer token that will get me past the firebase auth
 
-      this.client = new Http(baseUrl)
+      this.client = new Http(baseUrl, authToken)
     }
 
     getMe(): Promise<IUserType> {
-      return this.client.get("/me")
+      return this.client.get("/users/me")
     }
 }

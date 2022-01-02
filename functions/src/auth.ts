@@ -1,4 +1,4 @@
-import firebaseAdmin = require("firebase-admin");
+import * as firebaseAdmin from "firebase-admin"
 import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
 
@@ -67,11 +67,7 @@ export const optionalAuthentication = async (
 async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
   const auth = firebaseAdmin.auth()
   let userId: string
-  if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    const base64String = idToken.split(".")[1]
-    const jsonString = Buffer.from(base64String, "base64").toString("ascii")
-    userId = JSON.parse(jsonString).user_id
-  } else if (idToken.startsWith("npc-")) {
+  if (idToken.startsWith("npc-")) {
     const splitToken = idToken.split("-")
     if (splitToken.length == 3) {
       const npc = await getNpc(splitToken[1])
@@ -84,6 +80,10 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
     } else {
       return null
     }
+  } else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+    const base64String = idToken.split(".")[1]
+    const jsonString = Buffer.from(base64String, "base64").toString("ascii")
+    userId = JSON.parse(jsonString).user_id
   } else {
     const decodedToken = await auth.verifyIdToken(idToken)
     userId = decodedToken.uid

@@ -60,6 +60,7 @@ export class Http {
   }
 
   get<T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig): Promise<R> {
+    console.log(`getting url: ${url}`)
     return this.http.get<T, R>(url, config)
   }
 

@@ -30,7 +30,7 @@ export interface IGffftType {
    * @return {IIAMUserType}
    */
 export function gffftToJson(
-    gffft: Gffft,
+  gffft: Gffft,
 ): IGffftType | null {
   if (gffft == null) {
     return null

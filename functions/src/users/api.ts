@@ -1,15 +1,13 @@
 import express, {Request, Response} from "express"
 
-import * as firebaseAdmin from "firebase-admin"
 import {getUser, iamUserToJson} from "./data"
-import UserRecord = firebaseAdmin.auth.UserRecord;
 
 // import {
 //   ContainerTypes,
 //   createValidator,
 //   ValidatedRequestSchema,
 // } from "express-joi-validation"
-import {requiredAuthentication} from "../auth"
+import {LoggedInUser, requiredAuthentication} from "../auth"
 import {User} from "./models"
 import {getOrCreateDefaultBoard} from "../boards/data"
 import {Board} from "../boards/models"
@@ -36,8 +34,8 @@ router.get(
   "/me",
   requiredAuthentication,
   async (req: Request, res: Response) => {
-    const iamUser: UserRecord = res.locals.iamUser
-    const userId = iamUser.uid
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const userId = iamUser.id
     const user: User = await getUser(userId)
     const gffft: Gffft = await getOrCreateDefaultGffft(userId)
     const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
@@ -45,6 +43,5 @@ router.get(
     res.json(iamUserToJson(iamUser, user, board))
   }
 )
-
 
 export default router

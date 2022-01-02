@@ -25,6 +25,7 @@
     "firebase-functions": "^3.14.1",
     "multer": "^1.4.4",
     "set-script": "^1.0.1",
+    "ts-node": "^10.4.0",
     "typesaurus": "^7.2.0"
   },
   "devDependencies": {

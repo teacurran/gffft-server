@@ -15,16 +15,16 @@ const router = express.Router()
 // const validator = createValidator()
 
 router.get(
-    "/default",
-    requiredAuthentication,
-    async (req: Request, res: Response) => {
-      const iamUser: UserRecord = res.locals.iamUser
-      const userId = iamUser.uid
-      const gffft: Gffft = await getOrCreateDefaultGffft(userId)
-      const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
+  "/default",
+  requiredAuthentication,
+  async (req: Request, res: Response) => {
+    const iamUser: UserRecord = res.locals.iamUser
+    const userId = iamUser.uid
+    const gffft: Gffft = await getOrCreateDefaultGffft(userId)
+    const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
 
-      res.json(boardToJson(board))
-    }
+    res.json(boardToJson(board))
+  }
 )
 
 
