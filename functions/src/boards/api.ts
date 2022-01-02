@@ -1,10 +1,8 @@
 import express, {Request, Response} from "express"
 
-import * as firebaseAdmin from "firebase-admin"
 import {getOrCreateDefaultBoard} from "./data"
-import UserRecord = firebaseAdmin.auth.UserRecord
 
-import {requiredAuthentication} from "../auth"
+import {LoggedInUser, requiredAuthentication} from "../auth"
 import {Board} from "./models"
 import {boardToJson} from "./types"
 import {getOrCreateDefaultGffft} from "../gfffts/data"
@@ -18,8 +16,8 @@ router.get(
   "/default",
   requiredAuthentication,
   async (req: Request, res: Response) => {
-    const iamUser: UserRecord = res.locals.iamUser
-    const userId = iamUser.uid
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const userId = iamUser.id
     const gffft: Gffft = await getOrCreateDefaultGffft(userId)
     const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
 

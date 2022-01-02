@@ -1,10 +1,8 @@
 import express, {Request, Response} from "express"
 
-import * as firebaseAdmin from "firebase-admin"
 import {getOrCreateDefaultGffft, updateGffft} from "./data"
-import UserRecord = firebaseAdmin.auth.UserRecord
 
-import {requiredAuthentication} from "../auth"
+import {LoggedInUser, requiredAuthentication} from "../auth"
 import {Gffft} from "./models"
 import {gffftToJson} from "./types"
 import Joi = require("joi")
@@ -62,8 +60,8 @@ router.get(
   "/default",
   requiredAuthentication,
   async (req: Request, res: Response) => {
-    const iamUser: UserRecord = res.locals.iamUser
-    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.uid)
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
 
     res.json(gffftToJson(gffft))
   }
@@ -77,8 +75,8 @@ router.put(
     req: ValidatedRequest<GffftUpdateRequest>,
     res: Response,
   ) => {
-    const iamUser: UserRecord = res.locals.iamUser
-    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.uid)
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
 
     const item = req.body
 
@@ -102,7 +100,7 @@ router.put(
     gffft.pagesWhoCanEdit = item.pagesWhoCanEdit
     gffft.pagesWhoCanView = item.pagesWhoCanView
 
-    updateGffft(iamUser.uid, gffft).then(() => {
+    updateGffft(iamUser.id, gffft).then(() => {
       res.sendStatus(204)
     })
   }

@@ -14,9 +14,6 @@ const headers: Readonly<AxiosRequestHeaders> = {
   "X-Requested-With": "XMLHttpRequest",
 }
 
-/**
- *
- */
 export class Http {
   private httpClient: AxiosInstance;
   private authToken?: string;
@@ -60,7 +57,7 @@ export class Http {
   }
 
   get<T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig): Promise<R> {
-    console.log(`getting url: ${url}`)
+    console.log(`GET: ${url}`)
     return this.http.get<T, R>(url, config)
   }
 
@@ -77,10 +74,12 @@ export class Http {
     data?: T,
     config?: AxiosRequestConfig
   ): Promise<R> {
+    console.log(`PUT: ${url}`)
     return this.http.put<T, R>(url, data, config)
   }
 
   delete<T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig): Promise<R> {
+    console.log(`DELETE: ${url}`)
     return this.http.delete<T, R>(url, config)
   }
 

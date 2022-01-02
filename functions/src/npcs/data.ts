@@ -21,7 +21,6 @@ export async function createNpc(id: string): Promise<void> {
  * @return {IIAMUserType}
  */
 export async function getNpc(npcId: string): Promise<Npc> {
-  console.log(`getting npc:${npcId}, path:${npcsCollection.path}`)
   return get(npcsCollection, npcId).then((item) => {
     if (item != null) {
       return item.data
