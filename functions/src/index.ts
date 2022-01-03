@@ -8,9 +8,9 @@ import bodyParser = require("body-parser")
 
 import boards from "./boards/api"
 import gfffts from "./gfffts/gffft_api"
-import users from "./users/api"
+import users from "./users/user_api"
 import {WriteResult} from "@google-cloud/firestore"
-import {addAdjective, addNoun, addVerb} from "./users/data"
+import {addAdjective, addNoun, addVerb} from "./users/user_data"
 import openApiOptions from "./openapi/openapi_api"
 
 const PROJECTID = "gffft-auth"
@@ -36,8 +36,11 @@ apiApp.use("/boards", boards)
 
 jsdocSwagger(apiApp)(openApiOptions)
 
+export default apiApp
+
 // define google cloud function name
 export const api = functions.https.onRequest(apiApp)
+
 
 export const addNouns = functions.https.onRequest(async (req, res) => {
   console.log("addNouns()")

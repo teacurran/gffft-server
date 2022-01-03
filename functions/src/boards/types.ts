@@ -14,7 +14,7 @@ export interface IBoardType {
    * @return {IIAMUserType}
    */
 export function boardToJson(
-    board: Board,
+  board: Board,
 ): IBoardType | null {
   if (board == null) {
     return null

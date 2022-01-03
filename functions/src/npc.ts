@@ -2,7 +2,7 @@ import * as firebaseAdmin from "firebase-admin"
 import {GffftClient} from "./gfffts/gffft_client"
 import {createGffft} from "./gfffts/gffft_factory"
 import {createNpc} from "./npcs/data"
-import {UserClient} from "./users/client"
+import {UserClient} from "./users/user_client"
 
 const PROJECTID = "gffft-auth"
 firebaseAdmin.initializeApp({
@@ -22,7 +22,7 @@ async function runNpc(npcId: string, userId: string) {
 
   const gffftClient = new GffftClient(baseUrl, token)
   const gffft = await createGffft({})
-  gffftClient.updateGffft(gffft)
+  gffftClient.updateGffft(gffft).catch((e)=>console.log(e))
 }
 
 (async () => {

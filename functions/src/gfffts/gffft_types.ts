@@ -1,5 +1,5 @@
-import {Gffft} from "./models"
-
+import {notEmpty} from "../common/utils"
+import {Gffft} from "./gffft_models"
 
 export interface IGffftType {
     id?: string
@@ -21,7 +21,23 @@ export interface IGffftType {
     galleryEnabled: boolean
     galleryWhoCanView?: string
     galleryWhoCanPost?: string
+    createdAt?: Date;
+    updatedAt?: Date;
   }
+
+export interface IGffftMinimalType {
+    id?: string
+    key?: string
+    name: string
+    description: string
+    tags?: string[]
+    allowMembers: boolean
+    requireApproval: boolean
+    pagesEnabled: boolean
+    boardEnabled: boolean
+    galleryEnabled: boolean
+  }
+
 
 /**
  * @swagger
@@ -42,10 +58,18 @@ export interface IGffftType {
  *           $ref: '#/definitions/IGffftType'
  */
 export interface IGffftResultsType {
-  total: number
-  offset: number
   count: number
-  items?: IGffftType
+  items: IGffftMinimalType[]
+}
+
+export function gffftsToJson(
+  items: Gffft[]
+): IGffftResultsType {
+  const itemsJson = items.map((item) => gffftToJsonMinimal(item)).filter(notEmpty)
+  return {
+    count: items.length,
+    items: itemsJson,
+  }
 }
 
 /**
@@ -80,6 +104,33 @@ export function gffftToJson(
     galleryEnabled: gffft.galleryEnabled,
     galleryWhoCanView: gffft.boardWhoCanView,
     galleryWhoCanPost: gffft.galleryWhoCanPost,
+  }
+  return item
+}
+
+/**
+   * to Json
+   * @param {Gffft} gffft to serialize
+   * @param {User} user
+   * @return {IIAMUserType}
+   */
+export function gffftToJsonMinimal(
+  gffft: Gffft,
+): IGffftMinimalType | null {
+  if (gffft == null) {
+    return null
+  }
+  const item: IGffftMinimalType = {
+    id: gffft.id,
+    key: gffft.key,
+    name: gffft.name,
+    description: gffft.description,
+    tags: gffft.tags,
+    allowMembers: gffft.allowMembers,
+    requireApproval: gffft.requireApproval,
+    pagesEnabled: gffft.pagesEnabled,
+    boardEnabled: gffft.boardEnabled,
+    galleryEnabled: gffft.galleryEnabled,
   }
   return item
 }

@@ -1,12 +1,13 @@
 import express, {Request, Response} from "express"
 
+
 import {getOrCreateDefaultBoard} from "./data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {Board} from "./models"
 import {boardToJson} from "./types"
-import {getOrCreateDefaultGffft} from "../gfffts/data"
-import {Gffft} from "../gfffts/models"
+import {getOrCreateDefaultGffft} from "../gfffts/gffft_data"
+import {Gffft} from "../gfffts/gffft_models"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()

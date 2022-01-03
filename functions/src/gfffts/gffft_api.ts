@@ -1,12 +1,26 @@
 import express, {Request, Response} from "express"
 
-import {getOrCreateDefaultGffft, updateGffft} from "./data"
+import {getGfffts, getOrCreateDefaultGffft, updateGffft} from "./gffft_data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
-import {Gffft} from "./models"
-import {gffftToJson} from "./gffft_types"
+import {Gffft} from "./gffft_models"
+import {gffftsToJson, gffftToJson} from "./gffft_types"
 import Joi = require("joi")
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
+
+export interface GffftListRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Query]: {
+    q?: string
+    max: number
+    offset?: string
+  };
+}
+const gffftListRequestParams = Joi.object({
+  q: Joi.string().optional(),
+  max: Joi.number().optional().max(100).default(10),
+  offset: Joi.string().optional(),
+})
+
 
 /**
  * @swagger
@@ -97,15 +111,15 @@ export interface GffftUpdateRequest extends ValidatedRequestSchema {
 const router = express.Router()
 const validator = createValidator()
 
-
 router.get(
   "/",
+  validator.query(gffftListRequestParams),
   requiredAuthentication,
-  async (req: Request, res: Response) => {
+  async (req: ValidatedRequest<GffftListRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
-    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
-
-    res.json(gffftToJson(gffft))
+    getGfffts(iamUser.id, req.query.offset, req.query.max, req.query.q).then((items) => {
+      res.json(gffftsToJson(items))
+    })
   }
 )
 
@@ -141,6 +155,9 @@ router.put(
     gffft.pagesEnabled = item.pagesEnabled
     gffft.pagesWhoCanEdit = item.pagesWhoCanEdit
     gffft.pagesWhoCanView = item.pagesWhoCanView
+
+    gffft.createdAt = gffft.createdAt ?? new Date()
+    gffft.updatedAt = new Date()
 
     updateGffft(iamUser.id, gffft).then(() => {
       res.sendStatus(204)
