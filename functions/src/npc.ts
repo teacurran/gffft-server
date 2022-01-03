@@ -33,7 +33,7 @@ async function runNpc(npcId: string, userId: string) {
     console.log(`running runner for npc# ${count}`)
     await runNpc(npcId, `npc#${count}`)
   }
-})().catch((e: any) => {
+})().catch((e) => {
   console.error(e)
   // Deal with the fact the chain failed
 })

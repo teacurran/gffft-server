@@ -27,6 +27,6 @@ module.exports = {
     "semi": [2, "never"],
     "max-len": [2, 120, 2, {"ignoreUrls": true}],
     "indent": ["error", 2],
-    "require-jsdoc" : 0
+    "require-jsdoc": 0,
   },
 }
