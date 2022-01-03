@@ -5,7 +5,7 @@ import {getGfffts, getOrCreateDefaultGffft, updateGffft} from "./gffft_data"
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {Gffft} from "./gffft_models"
 import {gffftsToJson, gffftToJson} from "./gffft_types"
-import Joi = require("joi")
+import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
