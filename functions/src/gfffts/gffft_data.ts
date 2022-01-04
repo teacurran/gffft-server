@@ -49,6 +49,7 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
   ]
 
   if (q) {
+    console.log(`using query search: ${q}`)
     // this is a real basic prefix search
     // will probalby upgrade to an external full text later
     const qLower = q.toLowerCase()
@@ -59,7 +60,10 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
     }
   } else {
     if (offset) {
+      console.log(`using non-query offset search: ${offset}`)
       queries.push(order("id", "desc", [startAfter(offset)]))
+    } else {
+      queries.push(order("id", "desc"))
     }
   }
 
