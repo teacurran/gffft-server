@@ -27,10 +27,8 @@ export interface IGffftType {
 
 export interface IGffftMinimalType {
     id?: string
-    key?: string
     name: string
     description: string
-    tags?: string[]
     allowMembers: boolean
     requireApproval: boolean
     pagesEnabled: boolean
@@ -122,10 +120,8 @@ export function gffftToJsonMinimal(
   }
   const item: IGffftMinimalType = {
     id: gffft.id,
-    key: gffft.key,
     name: gffft.name,
     description: gffft.description,
-    tags: gffft.tags,
     allowMembers: gffft.allowMembers,
     requireApproval: gffft.requireApproval,
     pagesEnabled: gffft.pagesEnabled,

@@ -155,6 +155,7 @@ router.put(
     gffft.pagesEnabled = item.pagesEnabled
     gffft.pagesWhoCanEdit = item.pagesWhoCanEdit
     gffft.pagesWhoCanView = item.pagesWhoCanView
+    gffft.tags = item.tags
 
     gffft.createdAt = gffft.createdAt ?? new Date()
     gffft.updatedAt = new Date()
