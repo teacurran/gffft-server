@@ -4,7 +4,9 @@ import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
 const DEFAULT_GFFFT_KEY = "default"
-const FRUIT_CODE_CHARS = "0123456789abcdefghijklmnopqr"
+const FRUIT_CODE_CHARS = "🍏🍎🍐🍊🍋🍌🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🥨🐈"
+// const FRUIT_CODE_CHARS = "123456789Z"
+const FRUIT_CODE_LENGTH = 9
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
@@ -16,18 +18,23 @@ async function getUniqueFruitCode(): Promise<string> {
   // limit loop to prevent overflow
   for (let i = 0; i < 1000; i++) {
     fruitCode = ""
-    for (let fc = 0; fc < 6; fc++) {
+    for (let fc = 0; fc < FRUIT_CODE_LENGTH; fc++) {
       fruitCode += FRUIT_CODE_CHARS[Math.floor(Math.random() * FRUIT_CODE_CHARS.length)]
     }
+    console.log(`checking fruitcode: ${fruitCode}`)
 
     const fruitCodeExists = await query(gffftsGroup, [
       where("fruitCode", "==", fruitCode),
       limit(1),
     ]).then((results) => {
+      console.log(`got results: ${results.length}`)
       return (results.length > 0)
+    }).catch((reason) => {
+      console.log(`encountered error: ${reason}`)
     })
 
     if (!fruitCodeExists) {
+      console.log("fruitCode is good!")
       return fruitCode
     }
   }
@@ -75,7 +82,12 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
     if (results.length > 0) {
       const gffft = results[0].data
       gffft.id = results[0].ref.id
+
+      // below this are hacks to upgrade data as I've changed my mind about it.
       if (!gffft.fruitCode) {
+        gffft.fruitCode = await getUniqueFruitCode()
+        await updateGffft(userId, gffft)
+      } else if (gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
         gffft.fruitCode = await getUniqueFruitCode()
         await updateGffft(userId, gffft)
       }
