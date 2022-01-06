@@ -2,6 +2,7 @@ export type Gffft = {
     id: string
     key: string
     name: string
+    fruitCode?: string
     nameLower: string
     description: string
     intro?: string

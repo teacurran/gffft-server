@@ -26,6 +26,18 @@ router.get(
   }
 )
 
+router.post(
+  "/createPost",
+  requiredAuthentication,
+  async (req: Request, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const userId = iamUser.id
+    const gffft: Gffft = await getOrCreateDefaultGffft(userId)
+    const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
+
+    res.json(boardToJson(board))
+  }
+)
 
 export default router
 

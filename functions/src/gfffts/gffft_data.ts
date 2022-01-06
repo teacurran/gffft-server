@@ -4,8 +4,34 @@ import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
 const DEFAULT_GFFFT_KEY = "default"
+const FRUIT_CODE_CHARS = "0123456789abcdefghijklmnopqr"
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
+export const gffftsGroup = group("gfffts", [gffftsCollection])
+
+async function getUniqueFruitCode(): Promise<string> {
+  let fruitCode = ""
+
+  // limit loop to prevent overflow
+  for (let i = 0; i < 1000; i++) {
+    fruitCode = ""
+    for (let fc = 0; fc < 6; fc++) {
+      fruitCode += FRUIT_CODE_CHARS[Math.floor(Math.random() * FRUIT_CODE_CHARS.length)]
+    }
+
+    const fruitCodeExists = await query(gffftsGroup, [
+      where("fruitCode", "==", fruitCode),
+      limit(1),
+    ]).then((results) => {
+      return (results.length > 0)
+    })
+
+    if (!fruitCodeExists) {
+      return fruitCode
+    }
+  }
+  throw new Error("unable to generate unique fruitcode")
+}
 
 /**
  * Gets a user from firestore if already exists
@@ -18,11 +44,15 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   let gffft = await query(userGfffts, [
     where("key", "==", DEFAULT_GFFFT_KEY),
     limit(1),
-  ]).then((results) => {
+  ]).then(async (results) => {
     if (results.length > 0) {
-      const value = results[0].data
-      value.id = results[0].ref.id
-      return value
+      const gffft = results[0].data
+      gffft.id = results[0].ref.id
+      if (!gffft.fruitCode) {
+        gffft.fruitCode = await getUniqueFruitCode()
+        await updateGffft(userId, gffft)
+      }
+      return gffft
     }
     return null
   })
@@ -30,6 +60,7 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   if (gffft == null) {
     gffft = {
       key: DEFAULT_GFFFT_KEY,
+      fruitCode: await getUniqueFruitCode(),
     } as Gffft
     const result = await add<Gffft>(userGfffts, gffft)
     gffft.id = result.id
@@ -39,11 +70,6 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
 }
 
 export async function getGfffts(userId: string, offset?: string, maxResults = 20, q?: string): Promise<Gffft[]> {
-  const userGfffts = gffftsCollection(userId)
-
-  const gffftsGroup = group("gfffts", [userGfffts])
-
-
   const queries: Query<Gffft, keyof Gffft>[] = [
     where("enabled", "==", true),
   ]

@@ -5,6 +5,7 @@ export interface IGffftType {
     id?: string
     key?: string
     name: string
+    fruitCode?: string
     description: string
     intro?: string
     tags?: string[]
