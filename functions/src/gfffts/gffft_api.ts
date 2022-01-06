@@ -118,7 +118,7 @@ router.get(
   async (req: ValidatedRequest<GffftListRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
     getGfffts(iamUser.id, req.query.offset, req.query.max, req.query.q).then((items) => {
-      res.json(gffftsToJson(items))
+      res.json(gffftsToJson(iamUser.id, items))
     })
   }
 )
@@ -173,7 +173,7 @@ router.get(
     const iamUser: LoggedInUser = res.locals.iamUser
     const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
 
-    res.json(gffftToJson(gffft))
+    res.json(gffftToJson(iamUser.id, gffft))
   }
 )
 

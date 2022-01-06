@@ -34,6 +34,10 @@ export type GffftMember = {
     updatedAt?: Date
   }
 
+export type GffftMemberCounter = {
+  memberCount: number
+}
+
 export const TYPE_OWNER = "owner"
 export const TYPE_ADMIN = "admin"
 export const TYPE_MEMBER = "member"
