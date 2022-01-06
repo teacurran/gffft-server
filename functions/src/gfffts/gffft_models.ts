@@ -1,3 +1,6 @@
+import {Ref} from "typesaurus"
+import {User} from "../users/user_models"
+
 export type Gffft = {
     id: string
     key: string
@@ -23,3 +26,15 @@ export type Gffft = {
     createdAt?: Date
     updatedAt?: Date
   }
+
+export type GffftMember = {
+    user: Ref<User>
+    type: string
+    createdAt?: Date
+    updatedAt?: Date
+  }
+
+export const TYPE_OWNER = "owner"
+export const TYPE_ADMIN = "admin"
+export const TYPE_MEMBER = "member"
+export const TYPE_ANON = "anon"

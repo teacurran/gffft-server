@@ -1,5 +1,5 @@
-import {query, subcollection, where, limit, add, upset, group, order, Query, startAfter} from "typesaurus"
-import {Gffft} from "./gffft_models"
+import {query, subcollection, where, limit, add, upset, group, order, Query, startAfter, get, ref} from "typesaurus"
+import {Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
@@ -7,6 +7,7 @@ const DEFAULT_GFFFT_KEY = "default"
 const FRUIT_CODE_CHARS = "0123456789abcdefghijklmnopqr"
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
+export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
 export const gffftsGroup = group("gfffts", [gffftsCollection])
 
 async function getUniqueFruitCode(): Promise<string> {
@@ -33,6 +34,32 @@ async function getUniqueFruitCode(): Promise<string> {
   throw new Error("unable to generate unique fruitcode")
 }
 
+async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
+  const gffftMembers = gffftsMembersCollection([userId, gffft.id])
+
+  const userRef = ref(usersCollection, userId)
+  const memberRef = ref(gffftMembers, userId)
+  return get(memberRef).then((snapshot) => {
+    if (snapshot == null) {
+      const member = {
+        user: userRef,
+        type: TYPE_OWNER,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as GffftMember
+      return upset(memberRef, member)
+    } else {
+      const member = snapshot.data
+      if (member.type != TYPE_OWNER) {
+        member.type = TYPE_OWNER
+        member.updatedAt = new Date()
+        return upset(memberRef, member)
+      }
+    }
+    return
+  })
+}
+
 /**
  * Gets a user from firestore if already exists
  * @param {string} userId user to look up
@@ -52,6 +79,7 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
         gffft.fruitCode = await getUniqueFruitCode()
         await updateGffft(userId, gffft)
       }
+      await ensureOwnership(gffft, userId)
       return gffft
     }
     return null
@@ -65,6 +93,8 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
     const result = await add<Gffft>(userGfffts, gffft)
     gffft.id = result.id
   }
+
+  await ensureOwnership(gffft, userId)
 
   return gffft
 }

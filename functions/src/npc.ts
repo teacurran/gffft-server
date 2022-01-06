@@ -9,7 +9,6 @@ firebaseAdmin.initializeApp({
   projectId: PROJECTID,
 })
 
-
 const isProduction = process.env.NODE_ENV === "production"
 
 const baseUrl = isProduction ? "https://us-central1-gffft-auth.cloudfunctions.net/api" : "http://localhost:5000/gffft-auth/us-central1/api"
