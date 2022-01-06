@@ -6,7 +6,7 @@ import jsdocSwagger from "express-jsdoc-swagger"
 
 import bodyParser = require("body-parser")
 
-import boards from "./boards/api"
+import boards from "./boards/board_api"
 import gfffts from "./gfffts/gffft_api"
 import users from "./users/user_api"
 import {WriteResult} from "@google-cloud/firestore"

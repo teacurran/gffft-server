@@ -1,5 +1,5 @@
 import {query, subcollection, where, limit, add} from "typesaurus"
-import {Board} from "./models"
+import {Board} from "./board_models"
 import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
 import {gffftsCollection} from "../gfffts/gffft_data"

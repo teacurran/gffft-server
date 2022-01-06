@@ -1,11 +1,11 @@
 import express, {Request, Response} from "express"
 
 
-import {getOrCreateDefaultBoard} from "./data"
+import {getOrCreateDefaultBoard} from "./board_data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
-import {Board} from "./models"
-import {boardToJson} from "./types"
+import {Board} from "./board_models"
+import {boardToJson} from "./board_types"
 import {getOrCreateDefaultGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import Joi from "joi"

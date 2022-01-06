@@ -1,4 +1,4 @@
-import {Board} from "./models"
+import {Board} from "./board_models"
 
 export interface IBoardType {
     id: string

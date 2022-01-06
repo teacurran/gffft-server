@@ -6,7 +6,6 @@ export interface IGffftType {
     gid?: string
     key?: string
     name: string
-    fruitCode?: string
     description: string
     intro?: string
     tags?: string[]
@@ -39,6 +38,22 @@ export interface IGffftMinimalType {
     galleryEnabled: boolean
   }
 
+export interface IGffftFruitCode {
+  fruitCode: string[]
+}
+
+/**
+   * to Json
+   * @param {string} fruitCode fc serialize
+   * @return {IGffftFruitCode}
+   */
+export function fruitCodeToJson(
+  fruitCode: string[],
+): IGffftFruitCode {
+  return {
+    fruitCode,
+  }
+}
 
 /**
  * @swagger
@@ -144,4 +159,3 @@ export function gffftToJsonMinimal(
   }
   return item
 }
-

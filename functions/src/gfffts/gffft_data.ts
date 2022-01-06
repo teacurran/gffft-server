@@ -1,25 +1,25 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query, startAfter, get, ref} from "typesaurus"
-import {Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
+import {DecoratedGffft, Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
 const DEFAULT_GFFFT_KEY = "default"
-const FRUIT_CODE_CHARS = "🍏🍎🍐🍊🍋🍌🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🥨🐈"
-// const FRUIT_CODE_CHARS = "123456789Z"
+const FRUIT_CODE_CHARS_DISPLAY = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🥨🐈"]
+const FRUIT_CODE_CHARS_STORED = [..."abcdefghijklmnopqrst"]
 const FRUIT_CODE_LENGTH = 9
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
 export const gffftsGroup = group("gfffts", [gffftsCollection])
 
-async function getUniqueFruitCode(): Promise<string> {
+export async function getUniqueFruitCode(): Promise<string> {
   let fruitCode = ""
 
   // limit loop to prevent overflow
   for (let i = 0; i < 1000; i++) {
     fruitCode = ""
     for (let fc = 0; fc < FRUIT_CODE_LENGTH; fc++) {
-      fruitCode += FRUIT_CODE_CHARS[Math.floor(Math.random() * FRUIT_CODE_CHARS.length)]
+      fruitCode += FRUIT_CODE_CHARS_STORED[Math.floor(Math.random() * FRUIT_CODE_CHARS_STORED.length)]
     }
     console.log(`checking fruitcode: ${fruitCode}`)
 
@@ -34,7 +34,6 @@ async function getUniqueFruitCode(): Promise<string> {
     })
 
     if (!fruitCodeExists) {
-      console.log("fruitCode is good!")
       return fruitCode
     }
   }
@@ -43,7 +42,6 @@ async function getUniqueFruitCode(): Promise<string> {
 
 async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
   const gffftMembers = gffftsMembersCollection([userId, gffft.id])
-
   const userRef = ref(usersCollection, userId)
   const memberRef = ref(gffftMembers, userId)
   return get(memberRef).then((snapshot) => {
@@ -65,6 +63,26 @@ async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
     }
     return
   })
+}
+
+function translateFruitCodeToEmoji(fruitCode: string): string[] {
+  console.log(`translating fc:${fruitCode}`)
+  const fcEmoji: string[] = []
+  for (let index = 0; index < fruitCode.length; index++) {
+    const thisChar = fruitCode.charAt(index)
+    const position = FRUIT_CODE_CHARS_STORED.indexOf(thisChar)
+    console.log(`new char:${FRUIT_CODE_CHARS_DISPLAY[position]}`)
+    fcEmoji[index] = FRUIT_CODE_CHARS_DISPLAY[position]
+  }
+  console.log("emoji version fc:" + fcEmoji + "")
+  return fcEmoji
+}
+
+export function decorateGffft(gffft: Gffft): DecoratedGffft {
+  return {
+    ...gffft,
+    fruitCodeEmoji: translateFruitCodeToEmoji(gffft.fruitCode ?? ""),
+  }
 }
 
 /**
@@ -146,7 +164,6 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
   })
 }
 
-
 /**
  * @param {userId} userId user to look up
  * @param {gffft} gffft being saved
@@ -160,3 +177,20 @@ export async function updateGffft(userId: string, gffft: Gffft): Promise<void> {
   return upset<Gffft>(userGfffts, gffft.id, gffft)
 }
 
+export async function getGffft(userId: string, gffftId: string): Promise<Gffft | null> {
+  const userGfffts = gffftsCollection(userId)
+  const gffftRef = ref(userGfffts, gffftId)
+
+  return get(gffftRef).then((snapshot) => {
+    return snapshot == null ? null : snapshot.data
+  })
+}
+
+export async function getDecoratedGffft(userId: string, gffftId: string): Promise<DecoratedGffft | null> {
+  const userGfffts = gffftsCollection(userId)
+  const gffftRef = ref(userGfffts, gffftId)
+
+  return get(gffftRef).then((snapshot) => {
+    return snapshot == null ? null : decorateGffft(snapshot.data)
+  })
+}

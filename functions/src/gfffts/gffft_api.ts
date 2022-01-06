@@ -1,12 +1,14 @@
 import express, {Request, Response} from "express"
 
-import {getGfffts, getOrCreateDefaultGffft, updateGffft} from "./gffft_data"
+import {decorateGffft, getDecoratedGffft, getGffft, getGfffts, getOrCreateDefaultGffft,
+  getUniqueFruitCode, gffftsCollection, gffftsMembersCollection, updateGffft} from "./gffft_data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
-import {Gffft} from "./gffft_models"
-import {gffftsToJson, gffftToJson} from "./gffft_types"
+import {Gffft, TYPE_OWNER} from "./gffft_models"
+import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_types"
 import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
+import {get, ref, upset} from "typesaurus"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -177,6 +179,107 @@ router.get(
   }
 )
 
+const fruitCodeParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+})
+export interface FruitCodeRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+  }
+}
+export interface FruitCodeBodyRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Body]: {
+    uid: string
+    gid: string
+  }
+}
+
+router.get(
+  "/fruit-code",
+  requiredAuthentication,
+  validator.query(fruitCodeParams),
+  async (req: ValidatedRequest<FruitCodeRequest>, res: Response) => {
+    const gffft = await getDecoratedGffft(req.query.uid, req.query.gid)
+
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+
+    if (!gffft?.fruitCodeEmoji) {
+      console.error(`gffft encounterd without id:${gffft?.id} fruitCode:${gffft?.fruitCode}`)
+      res.sendStatus(500)
+      return
+    }
+
+    res.json(fruitCodeToJson(gffft?.fruitCodeEmoji ?? ""))
+  }
+)
+
+router.get(
+  "/fruit-code",
+  requiredAuthentication,
+  validator.query(fruitCodeParams),
+  async (req: ValidatedRequest<FruitCodeRequest>, res: Response) => {
+    const gffft = await getDecoratedGffft(req.query.uid, req.query.gid)
+
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+
+    if (!gffft?.fruitCodeEmoji) {
+      console.error(`gffft encounterd without id:${gffft?.id} fruitCode:${gffft?.fruitCode}`)
+      res.sendStatus(500)
+      return
+    }
+
+    res.json(fruitCodeToJson(gffft?.fruitCodeEmoji ?? ""))
+  }
+)
+
+router.put(
+  "/fruit-code",
+  requiredAuthentication,
+  validator.body(fruitCodeParams),
+  async (req: ValidatedRequest<FruitCodeBodyRequest>, res: Response) => {
+    const gffft = await getGffft(req.body.uid, req.body.gid)
+
+    if (gffft == null) {
+      res.sendStatus(404)
+      return
+    }
+
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const userId = iamUser.id
+
+    const gffftMembers = gffftsMembersCollection([userId, gffft.id])
+    const memberRef = ref(gffftMembers, userId)
+
+    const gfffts = gffftsCollection(userId)
+    const gffftRef = ref(gfffts, gffft.id)
+
+    const isOwner = await get(memberRef).then((snapshot) => {
+      if (snapshot == null) {
+        return false
+      }
+      const member = snapshot.data
+      if (member.type != TYPE_OWNER) {
+        return false
+      }
+      return true
+    })
+
+    if (isOwner) {
+      gffft.fruitCode = await getUniqueFruitCode()
+      await upset(gffftRef, gffft)
+    }
+
+    res.json(fruitCodeToJson(decorateGffft(gffft).fruitCodeEmoji))
+  }
+)
 
 export default router
 

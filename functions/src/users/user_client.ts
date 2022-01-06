@@ -14,3 +14,4 @@ export class UserClient {
       return this.client.get("/users/me")
     }
 }
+
