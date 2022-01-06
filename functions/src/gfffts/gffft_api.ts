@@ -1,6 +1,6 @@
 import express, {Request, Response} from "express"
 
-import {decorateGffft, getDecoratedGffft, getGffft, getGfffts, getOrCreateDefaultGffft,
+import {getGffft, getGfffts, getOrCreateDefaultGffft,
   getUniqueFruitCode, gffftsCollection, gffftsMembersCollection, updateGffft} from "./gffft_data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
@@ -201,20 +201,20 @@ router.get(
   requiredAuthentication,
   validator.query(fruitCodeParams),
   async (req: ValidatedRequest<FruitCodeRequest>, res: Response) => {
-    const gffft = await getDecoratedGffft(req.query.uid, req.query.gid)
+    const gffft = await getGffft(req.query.uid, req.query.gid)
 
     if (!gffft) {
       res.sendStatus(404)
       return
     }
 
-    if (!gffft?.fruitCodeEmoji) {
+    if (!gffft?.fruitCode) {
       console.error(`gffft encounterd without id:${gffft?.id} fruitCode:${gffft?.fruitCode}`)
       res.sendStatus(500)
       return
     }
 
-    res.json(fruitCodeToJson(gffft?.fruitCodeEmoji ?? ""))
+    res.json(fruitCodeToJson(gffft?.fruitCode ?? ""))
   }
 )
 
@@ -223,20 +223,20 @@ router.get(
   requiredAuthentication,
   validator.query(fruitCodeParams),
   async (req: ValidatedRequest<FruitCodeRequest>, res: Response) => {
-    const gffft = await getDecoratedGffft(req.query.uid, req.query.gid)
+    const gffft = await getGffft(req.query.uid, req.query.gid)
 
     if (!gffft) {
       res.sendStatus(404)
       return
     }
 
-    if (!gffft?.fruitCodeEmoji) {
+    if (!gffft?.fruitCode) {
       console.error(`gffft encounterd without id:${gffft?.id} fruitCode:${gffft?.fruitCode}`)
       res.sendStatus(500)
       return
     }
 
-    res.json(fruitCodeToJson(gffft?.fruitCodeEmoji ?? ""))
+    res.json(fruitCodeToJson(gffft?.fruitCode ?? ""))
   }
 )
 
@@ -277,7 +277,7 @@ router.put(
       await upset(gffftRef, gffft)
     }
 
-    res.json(fruitCodeToJson(decorateGffft(gffft).fruitCodeEmoji))
+    res.json(fruitCodeToJson(gffft.fruitCode ?? ""))
   }
 )
 

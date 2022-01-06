@@ -27,10 +27,6 @@ export type Gffft = {
     updatedAt?: Date
   }
 
-export interface DecoratedGffft extends Gffft {
-  fruitCodeEmoji: string[]
-}
-
 export type GffftMember = {
     user: Ref<User>
     type: string

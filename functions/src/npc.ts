@@ -17,11 +17,22 @@ async function runNpc(npcId: string, userId: string) {
   const token = `npc-${npcId}-${userId}`
 
   const userClient = new UserClient(baseUrl, token)
-  await userClient.getMe().catch((e)=>console.log(e))
+  const user = await userClient.getMe()
+  console.log(`got user: ${user.id}`)
 
   const gffftClient = new GffftClient(baseUrl, token)
-  const gffft = await createGffft({})
-  gffftClient.updateGffft(gffft).catch((e)=>console.log(e))
+  const gffftStub = await createGffft({})
+  gffftClient.updateGffft(gffftStub)
+
+  const gffft = await gffftClient.getDefaultGffft()
+
+  console.log(`working with gffft:${gffft.gid} name:${gffft.name}`)
+  if (user && gffft && gffft.gid) {
+    gffftClient.updateFruitCode({
+      uid: user.id,
+      gid: gffft.gid,
+    }).catch((e)=>console.log(e))
+  }
 }
 
 (async () => {

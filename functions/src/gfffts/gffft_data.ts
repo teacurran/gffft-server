@@ -1,11 +1,10 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query, startAfter, get, ref} from "typesaurus"
-import {DecoratedGffft, Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
+import {Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
 const DEFAULT_GFFFT_KEY = "default"
-const FRUIT_CODE_CHARS_DISPLAY = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🥨🐈"]
-const FRUIT_CODE_CHARS_STORED = [..."abcdefghijklmnopqrst"]
+const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🥨🐈"]
 const FRUIT_CODE_LENGTH = 9
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
@@ -19,7 +18,7 @@ export async function getUniqueFruitCode(): Promise<string> {
   for (let i = 0; i < 1000; i++) {
     fruitCode = ""
     for (let fc = 0; fc < FRUIT_CODE_LENGTH; fc++) {
-      fruitCode += FRUIT_CODE_CHARS_STORED[Math.floor(Math.random() * FRUIT_CODE_CHARS_STORED.length)]
+      fruitCode += FRUITS[Math.floor(Math.random() * FRUITS.length)]
     }
     console.log(`checking fruitcode: ${fruitCode}`)
 
@@ -63,26 +62,6 @@ async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
     }
     return
   })
-}
-
-function translateFruitCodeToEmoji(fruitCode: string): string[] {
-  console.log(`translating fc:${fruitCode}`)
-  const fcEmoji: string[] = []
-  for (let index = 0; index < fruitCode.length; index++) {
-    const thisChar = fruitCode.charAt(index)
-    const position = FRUIT_CODE_CHARS_STORED.indexOf(thisChar)
-    console.log(`new char:${FRUIT_CODE_CHARS_DISPLAY[position]}`)
-    fcEmoji[index] = FRUIT_CODE_CHARS_DISPLAY[position]
-  }
-  console.log("emoji version fc:" + fcEmoji + "")
-  return fcEmoji
-}
-
-export function decorateGffft(gffft: Gffft): DecoratedGffft {
-  return {
-    ...gffft,
-    fruitCodeEmoji: translateFruitCodeToEmoji(gffft.fruitCode ?? ""),
-  }
 }
 
 /**
@@ -183,14 +162,5 @@ export async function getGffft(userId: string, gffftId: string): Promise<Gffft |
 
   return get(gffftRef).then((snapshot) => {
     return snapshot == null ? null : snapshot.data
-  })
-}
-
-export async function getDecoratedGffft(userId: string, gffftId: string): Promise<DecoratedGffft | null> {
-  const userGfffts = gffftsCollection(userId)
-  const gffftRef = ref(userGfffts, gffftId)
-
-  return get(gffftRef).then((snapshot) => {
-    return snapshot == null ? null : decorateGffft(snapshot.data)
   })
 }

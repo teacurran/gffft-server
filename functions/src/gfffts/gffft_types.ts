@@ -1,6 +1,11 @@
 import {notEmpty} from "../common/utils"
 import {Gffft} from "./gffft_models"
 
+export interface IGffftId {
+  uid: string
+  gid: string
+}
+
 export interface IGffftType {
     uid?: string
     gid?: string
@@ -26,6 +31,7 @@ export interface IGffftType {
     updatedAt?: Date;
   }
 
+
 export interface IGffftMinimalType {
     uid?: string
     gid?: string
@@ -48,10 +54,10 @@ export interface IGffftFruitCode {
    * @return {IGffftFruitCode}
    */
 export function fruitCodeToJson(
-  fruitCode: string[],
+  fruitCode: string,
 ): IGffftFruitCode {
   return {
-    fruitCode,
+    fruitCode: [...fruitCode],
   }
 }
 

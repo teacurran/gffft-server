@@ -1,5 +1,5 @@
 import {Http} from "../common/http"
-import {IGffftType} from "./gffft_types"
+import {IGffftFruitCode, IGffftId, IGffftType} from "./gffft_types"
 
 export class GffftClient {
     client: Http
@@ -10,11 +10,18 @@ export class GffftClient {
       this.client = new Http(baseUrl, authToken)
     }
 
-    getDefaultGffft(): Promise<IGffftType> {
-      return this.client.get("/gfffts/default")
+    async getDefaultGffft(): Promise<IGffftType> {
+      return this.client.get<IGffftType>("/gfffts/default").then((response) => Promise.resolve(response.data))
     }
 
-    updateGffft(data: IGffftType): Promise<void> {
+    async updateGffft(data: IGffftType): Promise<void> {
       return this.client.put("/gfffts", data)
+    }
+
+    async updateFruitCode(gffftId: IGffftId): Promise<IGffftFruitCode> {
+      return this.client.put<IGffftId, IGffftFruitCode>("/gfffts/fruit-code", {
+        uid: gffftId.uid,
+        gid: gffftId.gid,
+      })
     }
 }

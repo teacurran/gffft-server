@@ -16,18 +16,18 @@ const headers: Readonly<AxiosRequestHeaders> = {
 }
 
 export class Http {
-  private httpClient: AxiosInstance;
+  private axios: AxiosInstance;
   private authToken?: string;
 
   constructor(baseUrl: string, authToken?: string) {
-    this.httpClient = axios.create({
+    this.axios = axios.create({
       baseURL: baseUrl,
       headers,
       withCredentials: true,
     })
     this.authToken = authToken
 
-    this.httpClient.interceptors.response.use(
+    this.axios.interceptors.response.use(
       (response) => response,
       (error) => {
         const {response} = error
@@ -35,7 +35,7 @@ export class Http {
       }
     )
 
-    this.httpClient.interceptors.request.use((config) => {
+    this.axios.interceptors.request.use((config) => {
       if (this.authToken) {
         if (!config.headers) {
           config.headers = {}
@@ -48,18 +48,13 @@ export class Http {
     })
   }
 
-  // eslint-disable-next-line require-jsdoc
-  private get http(): AxiosInstance {
-    return this.httpClient
-  }
-
   request<T = any, R = AxiosResponse<T>>(config: AxiosRequestConfig): Promise<R> {
-    return this.http.request(config)
+    return this.axios.request(config)
   }
 
-  get<T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig): Promise<R> {
+  async get<T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig): Promise<R> {
     console.log(`GET: ${url}`)
-    return this.http.get<T, R>(url, config)
+    return this.axios.get<T, R>(url, config)
   }
 
   post<T = any, R = AxiosResponse<T>>(
@@ -67,7 +62,7 @@ export class Http {
     data?: T,
     config?: AxiosRequestConfig
   ): Promise<R> {
-    return this.http.post<T, R>(url, data, config)
+    return this.axios.post<T, R>(url, data, config)
   }
 
   put<T = any, R = AxiosResponse<T>>(
@@ -76,12 +71,12 @@ export class Http {
     config?: AxiosRequestConfig
   ): Promise<R> {
     console.log(`PUT: ${url}`)
-    return this.http.put<T, R>(url, data, config)
+    return this.axios.put<T, R>(url, data, config)
   }
 
   delete<T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig): Promise<R> {
     console.log(`DELETE: ${url}`)
-    return this.http.delete<T, R>(url, config)
+    return this.axios.delete<T, R>(url, config)
   }
 
   // Handle global app errors
