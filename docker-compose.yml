@@ -34,8 +34,8 @@ services:
     environment:
       SERVICE: local
       NODE_ENV: dockerCompose
-      FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
-      FIRESTORE_EMULATOR_HOST: "localhost:8080"
+      FIREBASE_AUTH_EMULATOR_HOST: "firebase-emulator:9099"
+      FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
 
     ports:
       - "3000:3000"
