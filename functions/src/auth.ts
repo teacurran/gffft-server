@@ -27,6 +27,7 @@ export const requiredAuthentication = async (
     const iamUser = await authenticateAndFetchUser(idToken)
     res.locals.iamUser = iamUser
   } catch (error) {
+    console.log(error)
     res.status(403).send("Unauthorized: Token expired")
     return
   }
@@ -65,9 +66,10 @@ export const optionalAuthentication = async (
  * @return {Promise<LoggedInUser|null>}.
  */
 async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
-  const auth = firebaseAdmin.auth()
+  console.log(`authenticating user: ${idToken}`)
   let userId: string
   if (idToken.startsWith("npc-")) {
+    console.log("token appears to be npc")
     const splitToken = idToken.split("-")
     if (splitToken.length == 3) {
       const npc = await getNpc(splitToken[1])
@@ -85,6 +87,7 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
     const jsonString = Buffer.from(base64String, "base64").toString("ascii")
     userId = JSON.parse(jsonString).user_id
   } else {
+    const auth = firebaseAdmin.auth()
     const decodedToken = await auth.verifyIdToken(idToken)
     userId = decodedToken.uid
   }

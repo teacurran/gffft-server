@@ -1,15 +1,15 @@
 services:
-  gffft-db:
-    image: postgis/postgis
-    restart: always
-    environment:
-      POSTGRES_USER: gffft
-      POSTGRES_PASSWORD: gffft
-      POSTGRES_DB: gffft
-    volumes:
-      - gffft_db:/var/lib/postgresql/data
-    ports:
-      - "5442:5432"
+  # gffft-db:
+  #   image: postgis/postgis
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: gffft
+  #     POSTGRES_PASSWORD: gffft
+  #     POSTGRES_DB: gffft
+  #   volumes:
+  #     - gffft_db:/var/lib/postgresql/data
+  #   ports:
+  #     - "5442:5432"
 
   firebase-emulator:
     image: gffft-firebase-emulator
@@ -34,7 +34,9 @@ services:
     environment:
       SERVICE: local
       NODE_ENV: dockerCompose
-      FIREBASE_AUTH_EMULATOR_HOST: "firebase-emulator:9099"
+      FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
+      FIRESTORE_EMULATOR_HOST: "localhost:8080"
+
     ports:
       - "3000:3000"
 
