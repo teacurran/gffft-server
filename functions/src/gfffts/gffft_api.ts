@@ -218,28 +218,6 @@ router.get(
   }
 )
 
-router.get(
-  "/fruit-code",
-  requiredAuthentication,
-  validator.query(fruitCodeParams),
-  async (req: ValidatedRequest<FruitCodeRequest>, res: Response) => {
-    const gffft = await getGffft(req.query.uid, req.query.gid)
-
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-
-    if (!gffft?.fruitCode) {
-      console.error(`gffft encounterd without id:${gffft?.id} fruitCode:${gffft?.fruitCode}`)
-      res.sendStatus(500)
-      return
-    }
-
-    res.json(fruitCodeToJson(gffft?.fruitCode ?? ""))
-  }
-)
-
 router.put(
   "/fruit-code",
   requiredAuthentication,

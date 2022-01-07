@@ -39,7 +39,7 @@ async function runNpc(npcId: string, userId: string) {
   const npcId = "user_activity_bot"
 
   await createNpc(npcId)
-  for (let count = 1000; count < 1100; count++) {
+  for (let count = 1000; count < 2000; count++) {
     console.log(`running runner for npc# ${count}`)
     await runNpc(npcId, `npc#${count}`)
   }

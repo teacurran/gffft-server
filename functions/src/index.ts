@@ -1,17 +1,8 @@
 import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
-import express, {} from "express"
-import cors from "cors"
-import jsdocSwagger from "express-jsdoc-swagger"
 
-import bodyParser = require("body-parser")
-
-import boards from "./boards/board_api"
-import gfffts from "./gfffts/gffft_api"
-import users from "./users/user_api"
 import {WriteResult} from "@google-cloud/firestore"
 import {addAdjective, addNoun, addVerb} from "./users/user_data"
-import openApiOptions from "./openapi/openapi_api"
 import {gffftsCollection} from "./gfffts/gffft_data"
 import {ref, update, value} from "typesaurus"
 import {GffftMemberCounter} from "./gfffts/gffft_models"
@@ -20,30 +11,6 @@ const PROJECTID = "gffft-auth"
 firebaseAdmin.initializeApp({
   projectId: PROJECTID,
 })
-
-// initialize express server
-const apiApp = express()
-
-apiApp.use(bodyParser.json({limit: "50mb"}))
-apiApp.use(bodyParser.urlencoded({extended: true}))
-
-const corsOptions: cors.CorsOptions = {
-  origin: true,
-}
-const corsMiddleware = cors(corsOptions)
-apiApp.use(corsMiddleware)
-
-apiApp.use("/users", users)
-apiApp.use("/gfffts", gfffts)
-apiApp.use("/boards", boards)
-
-jsdocSwagger(apiApp)(openApiOptions)
-
-export default apiApp
-
-// define google cloud function name
-export const api = functions.https.onRequest(apiApp)
-
 
 export const addNouns = functions.https.onRequest(async (req, res) => {
   console.log("addNouns()")
