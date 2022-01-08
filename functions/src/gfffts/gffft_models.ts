@@ -3,6 +3,7 @@ import {User} from "../users/user_models"
 
 export type Gffft = {
     id: string
+    uid?: string,
     key: string
     name: string
     fruitCode?: string
@@ -28,9 +29,9 @@ export type Gffft = {
   }
 
 export interface GffftMemberParams {
-    userId: string
-    gffftId: string
-    memberId: string
+    uid: string
+    gid: string
+    mid: string
   }
 
 export interface GffftMember {

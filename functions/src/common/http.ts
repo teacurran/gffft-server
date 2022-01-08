@@ -82,7 +82,10 @@ export class Http {
   // Handle global app errors
   // We can handle generic app errors depending on the status code
   private handleError(error: { status: unknown }) {
-    const {status} = error
+    if (!error) {
+      return
+    }
+    const status = error.status ? error.status : ""
 
     switch (status) {
     case StatusCode.InternalServerError: {

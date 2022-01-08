@@ -85,15 +85,13 @@ export interface IGffftResultsType {
 
 /**
    * converts a list of gfffts to json
-   * @param {uid} uid that owns this gffft
    * @param {Gffft[]} items to serialize
    * @return {IIAMUserType}
    */
 export function gffftsToJson(
-  uid: string,
   items: Gffft[]
 ): IGffftResultsType {
-  const itemsJson = items.map((item) => gffftToJsonMinimal(uid, item)).filter(notEmpty)
+  const itemsJson = items.map((item) => gffftToJsonMinimal(item)).filter(notEmpty)
   return {
     count: items.length,
     items: itemsJson,
@@ -102,19 +100,17 @@ export function gffftsToJson(
 
 /**
    * to Json
-   * @param {uid} uid that owns this gffft
    * @param {Gffft} gffft to serialize
    * @return {IIAMUserType}
    */
 export function gffftToJson(
-  uid: string,
   gffft: Gffft,
 ): IGffftType | null {
   if (gffft == null) {
     return null
   }
   const item: IGffftType = {
-    uid: uid,
+    uid: gffft.uid,
     gid: gffft.id,
     name: gffft.name,
     description: gffft.description,
@@ -139,19 +135,17 @@ export function gffftToJson(
 
 /**
    * to Json
-   * @param {uid} uid that owns this gffft
    * @param {Gffft} gffft to serialize
    * @return {IIAMUserType}
    */
 export function gffftToJsonMinimal(
-  uid: string,
   gffft: Gffft,
 ): IGffftMinimalType | null {
   if (gffft == null) {
     return null
   }
   const item: IGffftMinimalType = {
-    uid: uid,
+    uid: gffft.uid,
     gid: gffft.id,
     name: gffft.name,
     description: gffft.description,

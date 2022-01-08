@@ -42,7 +42,7 @@ async function runNpc(npcId: string, userId: string) {
   await createNpc(npcId)
   for (let count = 1000; count < 2000; count++) {
     console.log(`running runner for npc# ${count}`)
-    await runNpc(npcId, `npc#${count}`)
+    await runNpc(npcId, `NPC.${count}`)
   }
 })().catch((e) => {
   console.error(e)

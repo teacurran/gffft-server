@@ -102,6 +102,10 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
         gffft.fruitCode = await getUniqueFruitCode()
         await updateGffft(userId, gffft)
       }
+      if (!gffft.uid) {
+        gffft.uid = userId
+        await updateGffft(userId, gffft)
+      }
       await ensureOwnership(gffft, userId)
       return gffft
     }
@@ -112,6 +116,7 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
     gffft = {
       key: DEFAULT_GFFFT_KEY,
       fruitCode: await getUniqueFruitCode(),
+      uid: userId,
     } as Gffft
     const result = await add<Gffft>(userGfffts, gffft)
     gffft.id = result.id
@@ -165,14 +170,15 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
 export async function updateGffft(userId: string, gffft: Gffft): Promise<void> {
   console.log(`updating gffft: ${gffft.id}, userId: ${userId}`)
   const userGfffts = gffftsCollection(userId)
-  gffft.nameLower = gffft.name.toLowerCase()
+  gffft.nameLower = gffft.name ? gffft.name.toLowerCase() : ""
 
   return upset<Gffft>(userGfffts, gffft.id, gffft)
 }
 
-export async function getGffft(userId: string, gffftId: string): Promise<Gffft | null> {
-  const userGfffts = gffftsCollection(userId)
-  const gffftRef = ref(userGfffts, gffftId)
+export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
+  console.log(`looking for gffft:${gid} uid:${uid}`)
+  const userGfffts = gffftsCollection(uid)
+  const gffftRef = ref(userGfffts, gid)
 
   return get(gffftRef).then((snapshot) => {
     return snapshot == null ? null : snapshot.data
