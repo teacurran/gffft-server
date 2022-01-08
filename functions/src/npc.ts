@@ -11,7 +11,7 @@ firebaseAdmin.initializeApp({
 
 const isProduction = process.env.NODE_ENV === "production"
 
-const baseUrl = isProduction ? "https://us-central1-gffft-auth.cloudfunctions.net/api" : "http://localhost:3000/gffft-auth/us-central1/api"
+const baseUrl = isProduction ? "https://us-central1-gffft-auth.cloudfunctions.net/api" : "http://localhost:3000/api"
 
 async function runNpc(npcId: string, userId: string) {
   const token = `npc-${npcId}-${userId}`
@@ -23,7 +23,7 @@ async function runNpc(npcId: string, userId: string) {
 
   const gffftClient = new GffftClient(baseUrl, token)
   const gffftStub = await createGffft({})
-  gffftClient.updateGffft(gffftStub)
+  await gffftClient.updateGffft(gffftStub)
 
   const gffft = await gffftClient.getDefaultGffft()
 

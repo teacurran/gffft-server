@@ -4,12 +4,18 @@ import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
 const DEFAULT_GFFFT_KEY = "default"
-const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🥨🐈"]
+const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
+const RARE_FRUITS = [..."🍅🫑🍆🥑"]
+const ULTRA_RARE_FRUITS = ["...🥨🐈💾🍕"]
 const FRUIT_CODE_LENGTH = 9
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
 export const gffftsGroup = group("gfffts", [gffftsCollection])
+
+function randBelow(high: number): number {
+  return Math.floor(Math.random() * high)
+}
 
 export async function getUniqueFruitCode(): Promise<string> {
   let fruitCode = ""
@@ -18,7 +24,15 @@ export async function getUniqueFruitCode(): Promise<string> {
   for (let i = 0; i < 1000; i++) {
     fruitCode = ""
     for (let fc = 0; fc < FRUIT_CODE_LENGTH; fc++) {
-      fruitCode += FRUITS[Math.floor(Math.random() * FRUITS.length)]
+      if (randBelow(1000000) == 999999) {
+        console.log("ULTRA RARE FRUIT GENERATED!")
+        fruitCode += ULTRA_RARE_FRUITS[randBelow(ULTRA_RARE_FRUITS.length)]
+      } else if (randBelow(1000) == 999) {
+        console.log("RARE FRUIT GENERATED!")
+        fruitCode += RARE_FRUITS[randBelow(RARE_FRUITS.length)]
+      } else {
+        fruitCode += FRUITS[randBelow(FRUITS.length)]
+      }
     }
     console.log(`checking fruitcode: ${fruitCode}`)
 
@@ -26,7 +40,6 @@ export async function getUniqueFruitCode(): Promise<string> {
       where("fruitCode", "==", fruitCode),
       limit(1),
     ]).then((results) => {
-      console.log(`got results: ${results.length}`)
       return (results.length > 0)
     }).catch((reason) => {
       console.log(`encountered error: ${reason}`)

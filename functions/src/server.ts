@@ -16,19 +16,20 @@ async function start() {
     projectId: PROJECTID,
   })
 
-  // TODO: restrict this to our approved origins
+  const app = express()
+
+  // TODO: restrict for prod
   const corsOptions: cors.CorsOptions = {
     origin: true,
   }
   const corsMiddleware = cors(corsOptions)
+  app.use(corsMiddleware)
 
-  const app = express()
   // eslint-disable-next-line new-cap
   const api = express.Router()
 
   app.use(bodyParser.json({limit: "50mb"}))
   app.use(bodyParser.urlencoded({extended: true}))
-  app.use(corsMiddleware)
   jsdocSwagger(app)(openApiOptions)
 
   api.use("/users", users)
@@ -37,7 +38,6 @@ async function start() {
 
   app.use("/api", api)
 
-  // start the express server
   app.listen(PORT, () => {
     console.info(`Server listening on port: ${PORT}`)
   })

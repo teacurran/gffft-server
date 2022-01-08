@@ -9,7 +9,6 @@ export interface IGffftId {
 export interface IGffftType {
     uid?: string
     gid?: string
-    key?: string
     name: string
     description: string
     intro?: string
@@ -117,7 +116,6 @@ export function gffftToJson(
   const item: IGffftType = {
     uid: uid,
     gid: gffft.id,
-    key: gffft.key,
     name: gffft.name,
     description: gffft.description,
     intro: gffft.intro,
