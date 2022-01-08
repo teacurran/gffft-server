@@ -92,7 +92,6 @@ export const gffftMemberCounter = functions.firestore
     const gffftId = context.params.gffftId
     const memberId = context.params.memberId
 
-
     console.log(`trigger: userId:${userId} 
       gffftUd:${gffftId} memberId:${memberId}`)
 
@@ -102,18 +101,23 @@ export const gffftMemberCounter = functions.firestore
     const totalsRef = ref(gffftStats, "totals")
     const todayRef = ref(gffftStats, moment().format("YYYY-MM-DD"))
 
-    if (!change.before.exists) {
-      updateCounter(totalsRef, change.after.data()!.type, 1)
-      updateCounter(todayRef, change.after.data()!.type, 1)
-    } else if (change.before.exists && change.after.exists) {
-      updateCounter(totalsRef, change.before.data()!.type, -1)
-      updateCounter(totalsRef, change.after.data()!.type, 1)
+    const beforeData = change.before.data()
+    const afterData = change.after.data()
 
-      updateCounter(todayRef, change.before.data()!.type, -1)
-      updateCounter(todayRef, change.after.data()!.type, 1)
-    } else if (!change.after.exists) {
-      updateCounter(totalsRef, change.before.data()!.type, -1)
-      updateCounter(todayRef, change.before.data()!.type, -1)
+    if (!change.before.exists && afterData != null) {
+      updateCounter(totalsRef, afterData.type, 1)
+      updateCounter(todayRef, afterData.type, 1)
+    } else if (change.before.exists && change.after.exists && beforeData && afterData) {
+      if (beforeData.type != afterData.type) {
+        updateCounter(totalsRef, beforeData.type, -1)
+        updateCounter(todayRef, beforeData.type, -1)
+
+        updateCounter(totalsRef, afterData.type, 1)
+        updateCounter(todayRef, afterData.type, 1)
+      }
+    } else if (!change.after.exists && beforeData) {
+      updateCounter(totalsRef, beforeData.type, -1)
+      updateCounter(todayRef, beforeData.type, -1)
     }
 
     return
