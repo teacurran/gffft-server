@@ -27,15 +27,40 @@ export type Gffft = {
     updatedAt?: Date
   }
 
-export type GffftMember = {
+export interface GffftMemberParams {
+    userId: string
+    gffftId: string
+    memberId: string
+  }
+
+export interface GffftMember {
     user: Ref<User>
     type: string
     createdAt?: Date
     updatedAt?: Date
   }
 
+export type GffftStats = {
+  ownerCount: number,
+  adminCount: number,
+  memberCount: number,
+  anonCount: number,
+}
+
+export type GffftOwnerCounter = {
+  ownerCount: number
+}
+
+export type GffftAdminCounter = {
+  adminCount: number
+}
+
 export type GffftMemberCounter = {
   memberCount: number
+}
+
+export type GffftAnonCounter = {
+  anonCount: number
 }
 
 export const TYPE_OWNER = "owner"

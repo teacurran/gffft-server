@@ -1,5 +1,5 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query, startAfter, get, ref} from "typesaurus"
-import {Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
+import {Gffft, GffftMember, GffftStats, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
@@ -11,6 +11,7 @@ const FRUIT_CODE_LENGTH = 9
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
+export const gffftsStatsCollection = subcollection<GffftStats, Gffft, User>("stats", gffftsCollection)
 export const gffftsGroup = group("gfffts", [gffftsCollection])
 
 function randBelow(high: number): number {
