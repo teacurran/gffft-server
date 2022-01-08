@@ -11,6 +11,7 @@ export type Gffft = {
     description: string
     intro?: string
     tags?: string[]
+    features?: Array<string>
     enabled: boolean
     allowMembers: boolean
     requireApproval: boolean

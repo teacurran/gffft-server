@@ -39,8 +39,6 @@ router.get(
   requiredAuthentication,
   async (req: Request, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
-    const json = JSON.stringify(iamUser)
-    console.log(`authed user:${json}`)
     const userId = iamUser.id
     const user: User = await getUser(userId)
     const gffft: Gffft = await getOrCreateDefaultGffft(userId)

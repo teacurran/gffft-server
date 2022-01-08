@@ -25,7 +25,6 @@ export const requiredAuthentication = async (
 
   try {
     const iamUser = await authenticateAndFetchUser(idToken)
-    console.log(`setting user: ${JSON.stringify(iamUser)}`)
     res.locals.iamUser = iamUser
   } catch (error) {
     console.log(error)

@@ -8,7 +8,11 @@ import {Gffft, TYPE_OWNER} from "./gffft_models"
 import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_types"
 import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {get, ref, upset} from "typesaurus"
+import {get, getRefPath, ref, upset} from "typesaurus"
+import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
+import {Board} from "../boards/board_models"
+import {Gallery} from "../galleries/gallery_models"
+import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data.ts"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -146,11 +150,22 @@ router.put(
     gffft.allowMembers = item.allowMembers
     gffft.requireApproval = item.requireApproval
 
-    gffft.boardEnabled = item.boardEnabled
+    const features: string[] = []
+    if (item.boardEnabled) {
+      const board: Board = await getOrCreateDefaultBoard(iamUser.id, gffft.id)
+      const userBoards = boardsCollection([iamUser.id, gffft.id])
+      features.push(getRefPath(ref(userBoards, board.id)))
+    }
+
     gffft.boardWhoCanPost = item.boardWhoCanPost
     gffft.boardWhoCanView = item.boardWhoCanView
 
-    gffft.galleryEnabled = item.galleryEnabled
+    if (item.galleryEnabled) {
+      const gallery: Gallery = await getOrCreateDefaultGallery(iamUser.id, gffft.id)
+      const userGalleries = galleryCollection([iamUser.id, gffft.id])
+      features.push(getRefPath(ref(userGalleries, gallery.id)))
+    }
+
     gffft.galleryWhoCanPost = item.galleryWhoCanPost
     gffft.galleryWhoCanView = item.galleryWhoCanView
 
@@ -159,6 +174,7 @@ router.put(
     gffft.pagesWhoCanView = item.pagesWhoCanView
     gffft.tags = item.tags
 
+    gffft.features = features
     gffft.createdAt = gffft.createdAt ?? new Date()
     gffft.updatedAt = new Date()
 

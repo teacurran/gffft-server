@@ -1,23 +1,23 @@
 import {query, subcollection, where, limit, add} from "typesaurus"
-import {Board} from "./board_models"
+import {Gallery} from "./gallery_models"
 import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
 
 const DEFAULT_BOARD_KEY = "default"
 
-export const boardsCollection = subcollection<Board, Gffft, User>("boards", gffftsCollection)
+export const galleryCollection = subcollection<Gallery, Gffft, User>("galleries", gffftsCollection)
 
 /**
- * gets or creates the default board for a user
+ * gets or creates the default gallery for a user
  * @param {string} userId
  * @param {string} gffftId
  * @return {IIAMUserType}
  */
-export async function getOrCreateDefaultBoard(userId: string, gffftId: string): Promise<Board> {
-  const userBoards = boardsCollection([userId, gffftId])
+export async function getOrCreateDefaultGallery(userId: string, gffftId: string): Promise<Gallery> {
+  const userGalleries = galleryCollection([userId, gffftId])
 
-  let board = await query(userBoards, [
+  let gallery = await query(userGalleries, [
     where("key", "==", DEFAULT_BOARD_KEY),
     limit(1),
   ]).then((results) => {
@@ -29,14 +29,14 @@ export async function getOrCreateDefaultBoard(userId: string, gffftId: string): 
     return null
   })
 
-  if (board == null) {
-    board = {
+  if (gallery == null) {
+    gallery = {
       key: DEFAULT_BOARD_KEY,
-    } as Board
-    const result = await add<Board>(userBoards, board)
-    board.id = result.id
+    } as Gallery
+    const result = await add<Gallery>(userGalleries, gallery)
+    gallery.id = result.id
   }
 
-  return board
+  return gallery
 }
 
