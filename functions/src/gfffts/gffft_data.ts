@@ -146,9 +146,9 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
   } else {
     if (offset) {
       console.log(`using non-query offset search: ${offset}`)
-      queries.push(order("id", "desc", [startAfter(offset)]))
+      queries.push(order("nameLower", "asc", [startAfter(offset)]))
     } else {
-      queries.push(order("id", "desc"))
+      queries.push(order("nameLower", "asc"))
     }
   }
 

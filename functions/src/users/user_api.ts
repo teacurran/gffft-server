@@ -10,7 +10,7 @@ import {getUser, iamUserToJson} from "./user_data"
 // } from "express-joi-validation"
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {User} from "./user_models"
-import {getBoardByRef, getOrCreateDefaultBoard} from "../boards/board_data"
+import {getBoard, getBoardByRefString, getOrCreateDefaultBoard, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {getGffft, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
@@ -22,7 +22,7 @@ import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
-import {boardToJson, IBoardType} from "../boards/board_interfaces"
+import {boardToJson, IBoardType, threadsToJson} from "../boards/board_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
 import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 // import Joi from "joi"
@@ -56,11 +56,11 @@ router.get(
   }
 )
 
-export const getByIdParams = Joi.object({
+export const getGffftByIdParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
 })
-export interface GetByIdRequest extends ValidatedRequestSchema {
+export interface GetGffftByIdRequest extends ValidatedRequestSchema {
   [ContainerTypes.Params]: {
     uid: string;
     gid: string;
@@ -70,8 +70,8 @@ export interface GetByIdRequest extends ValidatedRequestSchema {
 router.get(
   "/:uid/gfffts/:gid",
   requiredAuthentication,
-  validator.params(getByIdParams),
-  async (req: ValidatedRequest<GetByIdRequest>, res: Response) => {
+  validator.params(getGffftByIdParams),
+  async (req: ValidatedRequest<GetGffftByIdRequest>, res: Response) => {
     const gffft = await getGffft(req.params.uid, req.params.gid)
     if (!gffft) {
       res.sendStatus(404)
@@ -90,7 +90,7 @@ router.get(
         const feature = gffft.features[i]
         console.log(`looking at feature: ${feature}`)
         if (feature.indexOf("/boards/") != -1) {
-          const board = await getBoardByRef(feature)
+          const board = await getBoardByRefString(feature)
           if (board) {
             boards.push(board)
             if (board.id) {
@@ -151,6 +151,54 @@ router.get(
 
 
     res.json(gffftToJson(gffft, features, boardJson, calendars, galleries, notebookJson))
+  }
+)
+
+export const getBoardThreadsPathParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  bid: Joi.string().required(),
+})
+export const getBoardThreadsQueryParams = Joi.object({
+  max: Joi.string().optional(),
+  offset: Joi.string().optional(),
+})
+export interface GetBoardThreadsRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    bid: string
+  }
+  [ContainerTypes.Query]: {
+    max?: number
+    offset?: string
+  };
+}
+
+router.get(
+  "/:uid/gfffts/:gid/boards/:bid/threads",
+  requiredAuthentication,
+  validator.params(getBoardThreadsPathParams),
+  validator.query(getBoardThreadsQueryParams),
+  async (req: ValidatedRequest<GetBoardThreadsRequest>, res: Response) => {
+    const uid = req.params.uid
+    const gid = req.params.gid
+    const bid = req.params.bid
+
+    // const iamUser: LoggedInUser = res.locals.iamUser
+    // const gffft = await getGffft(uid, gid)
+    const board = await getBoard(uid, gid, bid)
+
+    if (!board) {
+      res.sendStatus(404)
+      return
+    }
+
+    getThreads(uid, gid, bid, req.query.offset, req.query.max).then(
+      (items) => {
+        res.json(threadsToJson(items))
+      }
+    )
   }
 )
 
