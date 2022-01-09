@@ -1,4 +1,4 @@
-import {query, subcollection, where, limit, add} from "typesaurus"
+import {query, subcollection, where, limit, add, pathToRef, get} from "typesaurus"
 import {Calendar} from "./calendar_models"
 import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
@@ -40,3 +40,11 @@ export async function getOrCreateDefaultCalendar(userId: string, gffftId: string
   return calendar
 }
 
+export async function getCalendarByRef(refId: string): Promise<Calendar | null> {
+  return get(pathToRef<Calendar>(refId)).then((snapshot) => {
+    if (snapshot != null) {
+      return snapshot.data
+    }
+    return null
+  })
+}

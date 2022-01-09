@@ -12,11 +12,11 @@ import {get, getRefPath, ref, upset} from "typesaurus"
 import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {Gallery} from "../galleries/gallery_models"
-import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data.ts"
+import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 import {Notebook} from "../notebooks/notebook_models"
 import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/notebook_data"
-import {calendarCollection, getOrCreateDefaultCalendar} from "../calendars/notebook_data"
 import {Calendar} from "../calendars/calendar_models"
+import {calendarCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -54,24 +54,14 @@ const gffftListRequestParams = Joi.object({
  *         type: boolean
  *       requireApproval:
  *         type: boolean
- *       pagesEnabled:
+ *       calendarEnabled:
  *         type: boolean
- *       pagesWhoCanEdit:
- *         type: string
- *       pagesWhoCanView:
- *         type: string
+ *       notebookEnabled:
+ *         type: boolean
  *       boardEnabled:
  *         type: boolean
- *       boardWHoCanView:
- *         type: string
- *       boardWhoCanPost:
- *         type: String
  *       galleryEnabled:
  *         type: boolean
- *       galleryWHoCanView:
- *         type: string
- *       galleryWhoCanPost:
- *         type: string
  *
 */
 const gffftUpdateRequestParams = Joi.object({
@@ -149,7 +139,9 @@ router.put(
     if (item.boardEnabled) {
       const board: Board = await getOrCreateDefaultBoard(iamUser.id, gffft.id)
       const userBoards = boardsCollection([iamUser.id, gffft.id])
-      features.push(getRefPath(ref(userBoards, board.id)))
+      if (board.id) {
+        features.push(getRefPath(ref(userBoards, board.id)))
+      }
     }
 
     if (item.galleryEnabled) {
@@ -161,7 +153,9 @@ router.put(
     if (item.notebookEnabled) {
       const notebook: Notebook = await getOrCreateDefaultNotebook(iamUser.id, gffft.id)
       const userNotebooks = notebookCollection([iamUser.id, gffft.id])
-      features.push(getRefPath(ref(userNotebooks, notebook.id)))
+      if (notebook.id) {
+        features.push(getRefPath(ref(userNotebooks, notebook.id)))
+      }
     }
 
     if (item.calendarEnabled) {
@@ -188,7 +182,7 @@ router.get(
   async (req: Request, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
     const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
-    res.json(gffftToJson(gffft))
+    res.json(gffftToJson(gffft, [], [], [], [], []))
   }
 )
 

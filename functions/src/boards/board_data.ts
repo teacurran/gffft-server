@@ -1,4 +1,4 @@
-import {query, subcollection, where, limit, add} from "typesaurus"
+import {query, subcollection, where, limit, add, pathToRef, get} from "typesaurus"
 import {Board} from "./board_models"
 import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
@@ -38,5 +38,16 @@ export async function getOrCreateDefaultBoard(userId: string, gffftId: string): 
   }
 
   return board
+}
+
+export async function getBoardByRef(refId: string): Promise<Board | null> {
+  return get(pathToRef<Board>(refId)).then((snapshot) => {
+    if (snapshot != null) {
+      const data = snapshot.data
+      data.id = snapshot.ref.id
+      return data
+    }
+    return null
+  })
 }
 

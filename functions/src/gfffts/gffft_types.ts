@@ -1,9 +1,18 @@
+import {IBoardType} from "../boards/board_types"
+import {ICalendarType} from "../calendars/calendar_types"
 import {notEmpty} from "../common/utils"
+import {IGalleryType} from "../galleries/gallery_types"
+import {INotebookType} from "../notebooks/notebook_types"
 import {Gffft} from "./gffft_models"
 
 export interface IGffftId {
   uid: string
   gid: string
+}
+
+export interface IGffftFeatureRef {
+  type: string
+  id: string
 }
 
 export interface IGffftType {
@@ -17,8 +26,13 @@ export interface IGffftType {
     allowMembers: boolean
     requireApproval: boolean
     enableAltHandles: boolean
-    createdAt?: Date;
-    updatedAt?: Date;
+    features?: IGffftFeatureRef[]
+    boards: IBoardType[]
+    calendars: ICalendarType[]
+    galleries: IGalleryType[]
+    notebooks: INotebookType[]
+    createdAt?: Date
+    updatedAt?: Date
   }
 
 export interface IGffftPutType {
@@ -103,13 +117,13 @@ export function gffftsToJson(
   }
 }
 
-/**
-   * to Json
-   * @param {Gffft} gffft to serialize
-   * @return {IIAMUserType}
-   */
 export function gffftToJson(
   gffft: Gffft,
+  features: IGffftFeatureRef[],
+  boards: IBoardType[],
+  calendars: ICalendarType[],
+  galleries: IGalleryType[],
+  notebooks: INotebookType[],
 ): IGffftType | null {
   if (gffft == null || gffft.uid == null) {
     return null
@@ -125,6 +139,11 @@ export function gffftToJson(
     allowMembers: gffft.allowMembers,
     requireApproval: gffft.requireApproval,
     enableAltHandles: gffft.enableAltHandles,
+    features: features,
+    boards: boards,
+    calendars: calendars,
+    galleries: galleries,
+    notebooks: notebooks,
     createdAt: gffft.createdAt,
     updatedAt: gffft.updatedAt,
   }

@@ -1,4 +1,5 @@
-import {query, subcollection, where, limit, add, upset, group, order, Query, startAfter, get, ref} from "typesaurus"
+import {query, subcollection, where, limit, add, upset, group, order, Query,
+  startAfter, get, ref, pathToRef} from "typesaurus"
 import {Gffft, GffftMember, GffftStats, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
@@ -184,3 +185,15 @@ export async function getGffft(uid: string, gid: string): Promise<Gffft | null> 
     return snapshot == null ? null : snapshot.data
   })
 }
+
+export async function getGffftByRef(refId: string): Promise<Gffft | null> {
+  return get(pathToRef<Gffft>(refId)).then((snapshot) => {
+    if (snapshot != null) {
+      const data = snapshot.data
+      data.id = snapshot.ref.id
+      return data
+    }
+    return null
+  })
+}
+

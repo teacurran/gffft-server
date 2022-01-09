@@ -10,13 +10,20 @@ import {getUser, iamUserToJson} from "./user_data"
 // } from "express-joi-validation"
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {User} from "./user_models"
-import {getOrCreateDefaultBoard} from "../boards/board_data"
+import {getBoardByRef, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {getGffft, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {gffftToJson} from "../gfffts/gffft_types"
+import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_types"
+import {getGalleryByRef} from "../galleries/gallery_data"
+import {Calendar} from "../calendars/calendar_models"
+import {Gallery} from "../galleries/gallery_models"
+import {Notebook} from "../notebooks/notebook_models"
+import {getCalendarByRef} from "../calendars/calendar_data"
+import {boardToJson, IBoardType} from "../boards/board_types"
+import {getNotebookByRef} from "../notebooks/notebook_data"
 // import Joi from "joi"
 
 // const userUpdateRequestParams = Joi.object({
@@ -69,7 +76,73 @@ router.get(
       res.sendStatus(404)
       return
     }
-    res.json(gffftToJson(gffft))
+
+    const boards: Board[] = []
+    const calendars: Calendar[] = []
+    const galleries: Gallery[] = []
+    const notebooks: Notebook[] = []
+
+    const features: IGffftFeatureRef[] = []
+
+    if (gffft.features) {
+      for (let i=0; i<gffft.features.length; i++) {
+        const feature = gffft.features[i]
+        console.log(`looking at feature: ${feature}`)
+        if (feature.indexOf("/boards/") != -1) {
+          const board = await getBoardByRef(feature)
+          if (board) {
+            console.log(`boardXX:${JSON.stringify(board)}`)
+            boards.push(board)
+            if (board.id) {
+              features.push({
+                type: "board",
+                id: board.id,
+              })
+            }
+          }
+        } else if (feature.indexOf("/calendars/") != -1) {
+          const calendar = await getCalendarByRef(feature)
+          if (calendar) {
+            calendars.push(calendar)
+            features.push({
+              type: "calendar",
+              id: calendar.id,
+            })
+          }
+        } else if (feature.indexOf("/galleries/") != -1) {
+          const gallery = await getGalleryByRef(feature)
+          if (gallery) {
+            galleries.push(gallery)
+            features.push({
+              type: "gallery",
+              id: gallery.id,
+            })
+          }
+        } else if (feature.indexOf("/notebooks/") != -1) {
+          const notebook = await getNotebookByRef(feature)
+          if (notebook) {
+            notebooks.push(notebook)
+            if (notebook.id) {
+              features.push({
+                type: "notebook",
+                id: notebook.id,
+              })
+            }
+          }
+        }
+      }
+    }
+
+    const boardJson: IBoardType[] = []
+    boards.forEach((board) => {
+      const json = boardToJson(board)
+      if (json != null) {
+        boardJson.push(json)
+      }
+    })
+    console.log(`boardJson:${JSON.stringify(boardJson)} boards: ${JSON.stringify(boards)}`)
+
+    res.json(gffftToJson(gffft, features, boardJson, calendars, galleries, notebooks))
   }
 )
 
