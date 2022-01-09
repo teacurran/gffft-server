@@ -1,10 +1,11 @@
-import {query, subcollection, where, limit, add, pathToRef, get} from "typesaurus"
+import {query, subcollection, where, limit, add, pathToRef, get, upset} from "typesaurus"
 import {Board} from "./board_models"
 import {User} from "../users/user_models"
-import {Gffft} from "../gfffts/gffft_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
+import {Gffft} from "../gfffts/gffft_models"
 
 const DEFAULT_BOARD_KEY = "default"
+const DEFAULT_BOARD_NAME = "board"
 
 export const boardsCollection = subcollection<Board, Gffft, User>("boards", gffftsCollection)
 
@@ -20,11 +21,17 @@ export async function getOrCreateDefaultBoard(userId: string, gffftId: string): 
   let board = await query(userBoards, [
     where("key", "==", DEFAULT_BOARD_KEY),
     limit(1),
-  ]).then((results) => {
+  ]).then(async (results) => {
     if (results.length > 0) {
-      const value = results[0].data
-      value.id = results[0].ref.id
-      return value
+      const item = results[0].data
+      item.id = results[0].ref.id
+
+      // upgrading old data
+      if (!item.name) {
+        item.name = DEFAULT_BOARD_NAME
+        await updateBoard(userId, gffftId, item)
+      }
+      return item
     }
     return null
   })
@@ -32,6 +39,7 @@ export async function getOrCreateDefaultBoard(userId: string, gffftId: string): 
   if (board == null) {
     board = {
       key: DEFAULT_BOARD_KEY,
+      name: DEFAULT_BOARD_NAME,
     } as Board
     const result = await add<Board>(userBoards, board)
     board.id = result.id
@@ -40,12 +48,28 @@ export async function getOrCreateDefaultBoard(userId: string, gffftId: string): 
   return board
 }
 
+export async function updateBoard(userId: string, gffftId: string, board: Board): Promise<void> {
+  console.log(`updating board userId:${userId} gffftId:${gffftId}, boardId: ${board.id}`)
+  const userBoards = boardsCollection([userId, gffftId])
+
+  return upset<Board>(userBoards, board.id, board)
+}
+
+
 export async function getBoardByRef(refId: string): Promise<Board | null> {
-  return get(pathToRef<Board>(refId)).then((snapshot) => {
+  const itemRef = pathToRef<Board>(refId)
+  return get(itemRef).then(async (snapshot) => {
     if (snapshot != null) {
-      const data = snapshot.data
-      data.id = snapshot.ref.id
-      return data
+      const item = snapshot.data
+      item.id = snapshot.ref.id
+
+      // upgrading old data
+      if (!item.name) {
+        item.name = DEFAULT_BOARD_NAME
+        await upset<Board>(itemRef, item)
+      }
+
+      return item
     }
     return null
   })

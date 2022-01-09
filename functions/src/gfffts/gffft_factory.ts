@@ -9,7 +9,7 @@ export const gffftFactory = Factory.define<IGffftPutType>(() => {
   return {
     name: name,
     description: faker.random.words(20),
-    intro: faker.random.words(400),
+    intro: faker.random.words(150),
     tags: [faker.random.word(), faker.random.word(), faker.random.word()],
     enabled: faker.datatype.boolean(),
     allowMembers: faker.datatype.boolean(),

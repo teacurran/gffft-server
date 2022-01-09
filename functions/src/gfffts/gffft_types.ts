@@ -1,8 +1,8 @@
-import {IBoardType} from "../boards/board_types"
+import {IBoardType} from "../boards/board_interfaces"
 import {ICalendarType} from "../calendars/calendar_types"
 import {notEmpty} from "../common/utils"
 import {IGalleryType} from "../galleries/gallery_types"
-import {INotebookType} from "../notebooks/notebook_types"
+import {INotebookType} from "../notebooks/notebook_interfaces"
 import {Gffft} from "./gffft_models"
 
 export interface IGffftId {
@@ -125,7 +125,7 @@ export function gffftToJson(
   galleries: IGalleryType[],
   notebooks: INotebookType[],
 ): IGffftType | null {
-  if (gffft == null || gffft.uid == null) {
+  if (gffft == null || gffft.uid == null || gffft.id == null) {
     return null
   }
   const item: IGffftType = {

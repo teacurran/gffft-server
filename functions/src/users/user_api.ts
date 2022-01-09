@@ -22,8 +22,9 @@ import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
-import {boardToJson, IBoardType} from "../boards/board_types"
+import {boardToJson, IBoardType} from "../boards/board_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
+import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 // import Joi from "joi"
 
 // const userUpdateRequestParams = Joi.object({
@@ -91,7 +92,6 @@ router.get(
         if (feature.indexOf("/boards/") != -1) {
           const board = await getBoardByRef(feature)
           if (board) {
-            console.log(`boardXX:${JSON.stringify(board)}`)
             boards.push(board)
             if (board.id) {
               features.push({
@@ -140,9 +140,17 @@ router.get(
         boardJson.push(json)
       }
     })
-    console.log(`boardJson:${JSON.stringify(boardJson)} boards: ${JSON.stringify(boards)}`)
 
-    res.json(gffftToJson(gffft, features, boardJson, calendars, galleries, notebooks))
+    const notebookJson: INotebookType[] = []
+    notebooks.forEach((notebook) => {
+      const json = notebookToJson(notebook)
+      if (json != null) {
+        notebookJson.push(json)
+      }
+    })
+
+
+    res.json(gffftToJson(gffft, features, boardJson, calendars, galleries, notebookJson))
   }
 )
 

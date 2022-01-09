@@ -3,7 +3,7 @@ import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit} from "typesaurus"
 import {LoggedInUser} from "../auth"
 import {Board} from "../boards/board_models"
-import {boardToJson, IBoardType} from "../boards/board_types"
+import {boardToJson, IBoardType} from "../boards/board_interfaces"
 import {randomInt} from "../common/utils"
 import {User} from "./user_models"
 

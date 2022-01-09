@@ -182,7 +182,12 @@ export async function getGffft(uid: string, gid: string): Promise<Gffft | null> 
   const gffftRef = ref(userGfffts, gid)
 
   return get(gffftRef).then((snapshot) => {
-    return snapshot == null ? null : snapshot.data
+    if (snapshot == null) {
+      return null
+    }
+    const item = snapshot.data
+    item.id = snapshot.ref.id
+    return item
   })
 }
 
