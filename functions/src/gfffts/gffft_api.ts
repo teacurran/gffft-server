@@ -13,6 +13,10 @@ import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {Gallery} from "../galleries/gallery_models"
 import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data.ts"
+import {Notebook} from "../notebooks/notebook_models"
+import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/notebook_data"
+import {calendarCollection, getOrCreateDefaultCalendar} from "../calendars/notebook_data"
+import {Calendar} from "../calendars/calendar_models"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -81,14 +85,10 @@ const gffftUpdateRequestParams = Joi.object({
   requireApproval: Joi.bool().default(false),
   enableAltHandles: Joi.bool().default(true),
   pagesEnabled: Joi.bool().default(false),
-  pagesWhoCanView: Joi.string().allow(null),
-  pagesWhoCanEdit: Joi.string().allow(null),
+  calendarEnabled: Joi.bool().default(false),
+  notebookEnabled: Joi.bool().default(false),
   boardEnabled: Joi.bool().default(false),
-  boardWhoCanView: Joi.string().allow(null),
-  boardWhoCanPost: Joi.string().allow(null),
   galleryEnabled: Joi.bool().default(false),
-  galleryWhoCanView: Joi.string().allow(null),
-  galleryWhoCanPost: Joi.string().allow(null),
 })
 export interface GffftUpdateRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
@@ -101,15 +101,10 @@ export interface GffftUpdateRequest extends ValidatedRequestSchema {
     allowMembers: boolean,
     requireApproval: boolean,
     enableAltHandles: boolean,
-    pagesEnabled: boolean,
-    pagesWhoCanView?: string,
-    pagesWhoCanEdit?: string,
+    calendarEnabled: boolean,
+    notebookEnabled: boolean,
     boardEnabled: boolean,
-    boardWhoCanView?: string,
-    boardWhoCanPost?: string,
     galleryEnabled: boolean,
-    galleryWhoCanView?: string,
-    galleryWhoCanPost?: string,
   };
 }
 
@@ -157,21 +152,24 @@ router.put(
       features.push(getRefPath(ref(userBoards, board.id)))
     }
 
-    gffft.boardWhoCanPost = item.boardWhoCanPost
-    gffft.boardWhoCanView = item.boardWhoCanView
-
     if (item.galleryEnabled) {
       const gallery: Gallery = await getOrCreateDefaultGallery(iamUser.id, gffft.id)
       const userGalleries = galleryCollection([iamUser.id, gffft.id])
       features.push(getRefPath(ref(userGalleries, gallery.id)))
     }
 
-    gffft.galleryWhoCanPost = item.galleryWhoCanPost
-    gffft.galleryWhoCanView = item.galleryWhoCanView
+    if (item.notebookEnabled) {
+      const notebook: Notebook = await getOrCreateDefaultNotebook(iamUser.id, gffft.id)
+      const userNotebooks = notebookCollection([iamUser.id, gffft.id])
+      features.push(getRefPath(ref(userNotebooks, notebook.id)))
+    }
 
-    gffft.pagesEnabled = item.pagesEnabled
-    gffft.pagesWhoCanEdit = item.pagesWhoCanEdit
-    gffft.pagesWhoCanView = item.pagesWhoCanView
+    if (item.calendarEnabled) {
+      const calendar: Calendar = await getOrCreateDefaultCalendar(iamUser.id, gffft.id)
+      const userCalendars = calendarCollection([iamUser.id, gffft.id])
+      features.push(getRefPath(ref(userCalendars, calendar.id)))
+    }
+
     gffft.tags = item.tags
 
     gffft.features = features
