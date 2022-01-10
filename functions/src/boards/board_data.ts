@@ -1,6 +1,6 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
   ref, Ref, Query, startAfter, order} from "typesaurus"
-import {Board, Thread} from "./board_models"
+import {Board, Thread, ThreadReply} from "./board_models"
 import {User} from "../users/user_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
@@ -10,6 +10,8 @@ const DEFAULT_BOARD_NAME = "board"
 
 export const boardsCollection = subcollection<Board, Gffft, User>("boards", gffftsCollection)
 export const threadsCollection = subcollection<Thread, Board, Gffft, [string, string]>("threads", boardsCollection)
+export const threadRepliesCollection = subcollection<ThreadReply, Thread, Board,
+  [string, string, string]>("replies", threadsCollection)
 
 /**
  * gets or creates the default board for a user

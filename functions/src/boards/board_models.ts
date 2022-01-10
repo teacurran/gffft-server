@@ -8,22 +8,18 @@ export type Board = {
     description?: string
   }
 
-export type ThreadStats = {
+export type Thread = {
+  id?: string
+  subject: string
   firstPost: Ref<User>
   latestPost: Ref<User>
   topReaction: string
-}
-
-export type Thread = {
-  id: string
-  subject: string
-  quickStats: ThreadStats
   createdAt: Date
   updatedAt: Date
 }
 
-export type ThreadPost = {
-  id: string
+export type ThreadReply = {
+  id?: string
   body: string
   author: Ref<User>
   createdAt: Date

@@ -45,7 +45,7 @@ export function threadsToJson(
 
 export function threadToJson(
   thread: Thread): IThread | null {
-  if (thread == null) {
+  if (thread == null || thread.id == null) {
     return null
   }
   const item: IThread = {
