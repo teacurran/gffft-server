@@ -14,11 +14,12 @@ export type Thread = {
   firstPost: Ref<User>
   latestPost: Ref<User>
   topReaction: string
+  postCount: number
   createdAt: Date
   updatedAt: Date
 }
 
-export type ThreadReply = {
+export type ThreadPost = {
   id?: string
   body: string
   author: Ref<User>
@@ -26,3 +27,11 @@ export type ThreadReply = {
   updatedAt: Date
 }
 
+export type ThreadPostCounter = {
+  postCount: number
+}
+
+export type ThreadPostCounterWithAuthor = {
+  postCount: number
+  latestPost: Ref<User>
+}

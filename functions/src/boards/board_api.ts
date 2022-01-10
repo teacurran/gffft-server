@@ -1,7 +1,7 @@
 import express, {Request, Response} from "express"
 
 
-import {getOrCreateDefaultBoard, threadRepliesCollection, threadsCollection} from "./board_data"
+import {getOrCreateDefaultBoard, threadPostsCollection, threadsCollection} from "./board_data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {Board, Thread} from "./board_models"
@@ -34,7 +34,7 @@ const createPostParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
   bid: Joi.string().required(),
-  pid: Joi.string().optional(),
+  pid: Joi.string().optional().allow(null),
   subject: Joi.string().when("pid", {
     is: Joi.exist(),
     then: Joi.string().optional(),
@@ -60,6 +60,7 @@ router.post(
     const uid = req.body.uid
     const gid = req.body.gid
     const bid = req.body.bid
+    console.log(`creating post: uid:${uid} gid:${gid} bid:${bid} subject: ${req.body.subject}`)
 
     // const gffft = await getGffft(uid, gid)
     // const board = await getBoard(uid, gid, bid)
@@ -72,12 +73,14 @@ router.post(
 
     const membershipDoc = await get(ref(gffftMembers, posterUid))
     if (!membershipDoc) {
+      console.log("poster is not a member of this board")
       res.sendStatus(403)
       return
     }
 
     const membership = membershipDoc.data
     if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
+      console.log("poster is not an approved member of this board")
       res.sendStatus(403)
       return
     }
@@ -88,14 +91,15 @@ router.post(
       latestPost: posterRef,
       createdAt: new Date(),
       updatedAt: new Date(),
+      postCount: 0,
     } as Thread
 
     const threadCollection = threadsCollection([uid, gid, bid])
     const threadRef = await add(threadCollection, thread)
 
-    const repliesCollection = threadRepliesCollection(threadRef)
+    const postsCollection = threadPostsCollection(threadRef)
 
-    await add(repliesCollection, {
+    await add(postsCollection, {
       author: posterRef,
       body: req.body.body,
       createdAt: new Date(),

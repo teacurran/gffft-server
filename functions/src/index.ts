@@ -4,10 +4,13 @@ import * as firebaseAdmin from "firebase-admin"
 import {WriteResult} from "@google-cloud/firestore"
 import {addAdjective, addNoun, addVerb} from "./users/user_data"
 import {gffftsStatsCollection} from "./gfffts/gffft_data"
-import {Ref, ref, upset, value} from "typesaurus"
+import {pathToRef, Ref, ref, upset, value} from "typesaurus"
 import {GffftAdminCounter, GffftAnonCounter,
   GffftMemberCounter, GffftOwnerCounter, GffftStats} from "./gfffts/gffft_models"
 import moment from "moment"
+import {threadsCollection} from "./boards/board_data"
+import {ThreadPostCounter, ThreadPostCounterWithAuthor} from "./boards/board_models"
+import {User} from "./users/user_models"
 
 const PROJECTID = "gffft-auth"
 firebaseAdmin.initializeApp({
@@ -92,8 +95,9 @@ export const gffftMemberCounter = functions.firestore
     const gffftId = context.params.gffftId
     const memberId = context.params.memberId
 
-    console.log(`trigger: userId:${userId} 
+    console.log(`gffftMemberCounter trigger: userId:${userId} 
       gffftUd:${gffftId} memberId:${memberId}`)
+
 
     // const userGfffts = gffftsCollection(userId)
     // const gffftRef = ref(userGfffts, gffftId)
@@ -123,4 +127,39 @@ export const gffftMemberCounter = functions.firestore
     return
   })
 
+
+export const threadReplyCounter = functions.firestore
+  .document("users/{uid}/gfffts/{gid}/boards/{bid}/threads/{tid}/posts/{pid}")
+  .onWrite(async (change, context) => {
+    const uid = context.params.uid
+    const gid = context.params.gid
+    const bid = context.params.bid
+    const tid = context.params.tid
+
+    console.log(`threadReplyCounter: userId:${uid} 
+      gffftUd:${gid} threadId:${tid}`)
+
+    const threadCollection = threadsCollection([uid, gid, bid])
+
+    const beforeData = change.before.data()
+    const afterData = change.after.data()
+    console.log(`afterData: ${JSON.stringify(afterData)}`)
+    console.log(`afterData.author: ${JSON.stringify(afterData?.author)}`)
+
+    if (!change.before.exists && afterData != null) {
+      const authorRef = pathToRef<User>(afterData.author.path)
+      return upset<ThreadPostCounterWithAuthor>(ref(threadCollection, tid), {
+        postCount: value("increment", 1),
+        latestPost: authorRef,
+      })
+    } else if (change.before.exists && change.after.exists && beforeData && afterData) {
+      // do nithing for post updates
+    } else if (!change.after.exists && beforeData) {
+      return upset<ThreadPostCounter>(ref(threadCollection, tid), {
+        postCount: value("increment", -1),
+      })
+    }
+
+    return
+  })
 
