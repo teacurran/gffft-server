@@ -3,7 +3,7 @@ import {ICalendarType} from "../calendars/calendar_types"
 import {notEmpty} from "../common/utils"
 import {IGalleryType} from "../galleries/gallery_types"
 import {INotebookType} from "../notebooks/notebook_interfaces"
-import {Gffft} from "./gffft_models"
+import {Gffft, GffftMember} from "./gffft_models"
 
 export interface IGffftId {
   uid: string
@@ -15,9 +15,15 @@ export interface IGffftFeatureRef {
   id: string
 }
 
+export interface IGffftMember {
+  type: string
+  createdAt?: Date
+}
+
 export interface IGffftType {
     uid: string
     gid: string
+    membership?: IGffftMember
     name: string
     description: string
     intro?: string
@@ -117,8 +123,21 @@ export function gffftsToJson(
   }
 }
 
+export function gffftMemberToJson(
+  membership?: GffftMember
+): IGffftMember | undefined {
+  if (!membership) {
+    return undefined
+  }
+  return {
+    type: membership.type,
+    createdAt: membership.createdAt,
+  } as IGffftMember
+}
+
 export function gffftToJson(
   gffft: Gffft,
+  membership: GffftMember | undefined,
   features: IGffftFeatureRef[],
   boards: IBoardType[],
   calendars: ICalendarType[],
@@ -131,6 +150,7 @@ export function gffftToJson(
   const item: IGffftType = {
     uid: gffft.uid,
     gid: gffft.id,
+    membership: gffftMemberToJson(membership),
     name: gffft.name,
     description: gffft.description,
     intro: gffft.intro,

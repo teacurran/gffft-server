@@ -1,6 +1,6 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query,
   startAfter, get, ref, pathToRef} from "typesaurus"
-import {Gffft, GffftMember, GffftStats, TYPE_OWNER} from "./gffft_models"
+import {Gffft, GffftMember, GffftStats, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {usersCollection} from "../users/user_data"
 
@@ -54,12 +54,40 @@ export async function getUniqueFruitCode(): Promise<string> {
   throw new Error("unable to generate unique fruitcode")
 }
 
+export async function createGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember> {
+  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const userRef = ref(usersCollection, memberId)
+  const memberRef = ref(gffftMembers, memberId)
+  return get(memberRef).then(async (snapshot) => {
+    if (snapshot != null) {
+      return snapshot.data
+    } else {
+      const member = {
+        user: userRef,
+        type: TYPE_MEMBER,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as GffftMember
+      await upset(memberRef, member)
+      return member
+    }
+  })
+}
+
+export async function getGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember|undefined> {
+  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const memberRef = ref(gffftMembers, memberId)
+  return get(memberRef).then((snapshot) => {
+    return snapshot == null ? undefined : snapshot.data
+  })
+}
+
 async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
   const gffftMembers = gffftsMembersCollection([userId, gffft.id])
   const userRef = ref(usersCollection, userId)
   const memberRef = ref(gffftMembers, userId)
-  return get(memberRef).then((snapshot) => {
-    if (snapshot == null) {
+  return getGffftMembership(userId, gffft.id, userId).then(async (m) => {
+    if (m == null) {
       const member = {
         user: userRef,
         type: TYPE_OWNER,
@@ -68,15 +96,14 @@ async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
       } as GffftMember
       return upset(memberRef, member)
     } else {
-      const member = snapshot.data
-      if (member.type != TYPE_OWNER) {
-        member.type = TYPE_OWNER
-        member.updatedAt = new Date()
-        return upset(memberRef, member)
+      if (m.type != TYPE_OWNER) {
+        m.type = TYPE_OWNER
+        m.updatedAt = new Date()
+        return upset(memberRef, m)
       }
     }
-    return
   })
+  return
 }
 
 /**

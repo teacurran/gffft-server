@@ -45,7 +45,6 @@ export function threadsToJson(
 
 export function threadToJson(
   thread: Thread): IThread | null {
-  console.log(`threadToJson called: ${JSON.stringify(thread)}`)
   if (thread == null || thread.id == null) {
     return null
   }

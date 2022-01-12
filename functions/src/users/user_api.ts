@@ -12,11 +12,11 @@ import {LoggedInUser, requiredAuthentication} from "../auth"
 import {User} from "./user_models"
 import {getBoard, getBoardByRefString, getOrCreateDefaultBoard, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
-import {getGffft, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
+import {createGffftMembership, getGffft, getGffftMembership, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_types"
+import {gffftMemberToJson, gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_types"
 import {getGalleryByRef} from "../galleries/gallery_data"
 import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
@@ -72,6 +72,7 @@ router.get(
   requiredAuthentication,
   validator.params(getGffftByIdParams),
   async (req: ValidatedRequest<GetGffftByIdRequest>, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
     const gffft = await getGffft(req.params.uid, req.params.gid)
     if (!gffft) {
       res.sendStatus(404)
@@ -149,8 +150,9 @@ router.get(
       }
     })
 
+    const membership = await getGffftMembership(req.params.uid, req.params.gid, iamUser.id)
 
-    res.json(gffftToJson(gffft, features, boardJson, calendars, galleries, notebookJson))
+    res.json(gffftToJson(gffft, membership, features, boardJson, calendars, galleries, notebookJson))
   }
 )
 
@@ -201,6 +203,29 @@ router.get(
     )
   }
 )
+
+const createMemberParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+})
+export interface CreateMemberRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Body]: {
+    uid: string
+    gid: string
+  }
+}
+
+router.post(
+  "/:uid/gfffts/:gid/members",
+  requiredAuthentication,
+  validator.body(createMemberParams),
+  async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
+    const uid = req.body.uid
+    const gid = req.body.gid
+
+    const membership = await createGffftMembership(uid, gid, res.locals.iamUser.id)
+    res.json(gffftMemberToJson(membership))
+  })
 
 
 export default router
