@@ -3,7 +3,7 @@ import {boardToJson, IBoardType} from "../boards/board_interfaces"
 import {Board} from "../boards/board_models"
 import {notEmpty} from "../common/utils"
 import {gffftToJsonMinimal, IGffftMinimalType} from "../gfffts/gffft_interfaces"
-import {HydratedUserBookmark, User} from "./user_models"
+import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
 
 export interface IUserType {
     id: string
@@ -20,7 +20,7 @@ export interface IUserBookmark {
     id: string,
     name: string,
     gid: string,
-    gffft: IGffftMinimalType | null
+    gffft?: IGffftMinimalType | undefined
     createdAt: Date
 }
 
@@ -50,6 +50,20 @@ export function iamUserToJson(
 }
 
 export function bookmarkToJson(
+  item: UserBookmark | undefined
+): IUserBookmark | undefined {
+  if (!item) {
+    return undefined
+  }
+  return {
+    id: item.id,
+    gid: item.gffftRef.id,
+    name: item.name,
+    createdAt: item.createdAt,
+  }
+}
+
+export function hydratedBookmarkToJson(
   item: HydratedUserBookmark
 ): IUserBookmark {
   return {
@@ -64,7 +78,7 @@ export function bookmarkToJson(
 export function bookmarksToJson(
   items: HydratedUserBookmark[]
 ): IBookmarkResults {
-  const itemsJson = items.map((item) => bookmarkToJson(item)).filter(notEmpty)
+  const itemsJson = items.map((item) => hydratedBookmarkToJson(item)).filter(notEmpty)
   return {
     count: items.length,
     items: itemsJson,

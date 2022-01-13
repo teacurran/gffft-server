@@ -17,7 +17,7 @@ export type UserBookmark = {
   }
 
 export interface HydratedUserBookmark extends UserBookmark {
-  gffft: Gffft | null
+  gffft: Gffft | undefined
 }
 
 export type Adjective = {

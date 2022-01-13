@@ -1,7 +1,7 @@
 import {QueryDocumentSnapshot, WriteResult} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit, subcollection, all, ref, upset} from "typesaurus"
-import {itemOrNull} from "../common/data"
+import {itemOrUndefined} from "../common/data"
 import {randomInt} from "../common/utils"
 import {getGffft, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
@@ -73,7 +73,7 @@ export async function getHydratedUserBookmarks(uid: string): Promise<HydratedUse
     const item = snapshot.data
     item.id = snapshot.ref.id
 
-    const gffft = await get<Gffft>(item.gffftRef).then((snapshot) => itemOrNull(snapshot))
+    const gffft = await get<Gffft>(item.gffftRef).then((snapshot) => itemOrUndefined(snapshot))
 
     const hub: HydratedUserBookmark = {
       ...item,
@@ -85,6 +85,16 @@ export async function getHydratedUserBookmarks(uid: string): Promise<HydratedUse
 
   return bookmarks
 }
+
+export async function getBookmark(uid: string, gid: string, memberId: string): Promise<UserBookmark|undefined> {
+  const bc = bookmarksCollection(memberId)
+  const bookmarkRef = ref(bc, gid)
+
+  return get(bookmarkRef).then((snapshot) => {
+    return snapshot == null ? undefined : snapshot.data
+  })
+}
+
 
 export async function createBookmark(uid: string, gid: string, memberId: string): Promise<UserBookmark> {
   const gc = gffftsCollection(uid)

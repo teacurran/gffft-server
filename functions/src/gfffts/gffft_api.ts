@@ -182,7 +182,7 @@ router.get(
   async (req: Request, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
     const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
-    res.json(gffftToJson(gffft, undefined, [], [], [], [], []))
+    res.json(gffftToJson(gffft, undefined, undefined, [], [], [], [], []))
   }
 )
 

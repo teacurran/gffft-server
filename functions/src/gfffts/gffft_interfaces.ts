@@ -3,6 +3,8 @@ import {ICalendarType} from "../calendars/calendar_types"
 import {notEmpty} from "../common/utils"
 import {IGalleryType} from "../galleries/gallery_types"
 import {INotebookType} from "../notebooks/notebook_interfaces"
+import {bookmarkToJson, IUserBookmark} from "../users/user_interfaces"
+import {UserBookmark} from "../users/user_models"
 import {Gffft, GffftMember} from "./gffft_models"
 
 export interface IGffftId {
@@ -24,6 +26,7 @@ export interface IGffftType {
     uid: string
     gid: string
     membership?: IGffftMember
+    bookmark?: IUserBookmark
     name: string
     description: string
     intro?: string
@@ -138,6 +141,7 @@ export function gffftMemberToJson(
 export function gffftToJson(
   gffft: Gffft,
   membership: GffftMember | undefined,
+  bookmark: UserBookmark | undefined,
   features: IGffftFeatureRef[],
   boards: IBoardType[],
   calendars: ICalendarType[],
@@ -151,6 +155,7 @@ export function gffftToJson(
     uid: gffft.uid,
     gid: gffft.id,
     membership: gffftMemberToJson(membership),
+    bookmark: bookmarkToJson(bookmark),
     name: gffft.name,
     description: gffft.description,
     intro: gffft.intro,
@@ -176,10 +181,10 @@ export function gffftToJson(
    * @return {IIAMUserType}
    */
 export function gffftToJsonMinimal(
-  gffft: Gffft | null,
-): IGffftMinimalType | null {
-  if (gffft == null) {
-    return null
+  gffft: Gffft | undefined,
+): IGffftMinimalType | undefined {
+  if (!gffft) {
+    return undefined
   }
   const item: IGffftMinimalType = {
     uid: gffft.uid,

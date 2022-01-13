@@ -1,6 +1,6 @@
 import express, {Request, Response} from "express"
 
-import {createBookmark, getHydratedUserBookmarks, getUser} from "./user_data"
+import {createBookmark, getBookmark, getHydratedUserBookmarks, getUser} from "./user_data"
 
 
 // import {
@@ -165,8 +165,9 @@ router.get(
     })
 
     const membership = await getGffftMembership(req.params.uid, req.params.gid, iamUser.id)
+    const bookmark = await getBookmark(req.params.uid, req.params.gid, iamUser.id)
 
-    res.json(gffftToJson(gffft, membership, features, boardJson, calendars, galleries, notebookJson))
+    res.json(gffftToJson(gffft, membership, bookmark, features, boardJson, calendars, galleries, notebookJson))
   }
 )
 
