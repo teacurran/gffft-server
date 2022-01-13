@@ -29,13 +29,13 @@ export type Gffft = {
     updatedAt?: Date
   }
 
-export interface GffftMemberParams {
+export type GffftMemberParams = {
     uid: string
     gid: string
     mid: string
   }
 
-export interface GffftMember {
+export type GffftMember = {
     user: Ref<User>
     type: string
     createdAt?: Date

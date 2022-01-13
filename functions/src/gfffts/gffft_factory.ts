@@ -1,7 +1,7 @@
 import * as faker from "faker"
 import {Factory} from "fishery"
 import {DeepPartial} from "fishery/dist/types"
-import {IGffftPutType} from "./gffft_types"
+import {IGffftPutType} from "./gffft_interfaces"
 
 
 export const gffftFactory = Factory.define<IGffftPutType>(() => {

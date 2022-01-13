@@ -176,7 +176,7 @@ export function gffftToJson(
    * @return {IIAMUserType}
    */
 export function gffftToJsonMinimal(
-  gffft: Gffft,
+  gffft: Gffft | null,
 ): IGffftMinimalType | null {
   if (gffft == null) {
     return null

@@ -1,6 +1,6 @@
 import express, {Request, Response} from "express"
 
-import {getUser, iamUserToJson} from "./user_data"
+import {createBookmark, getHydratedUserBookmarks, getUser} from "./user_data"
 
 
 // import {
@@ -16,7 +16,7 @@ import {createGffftMembership, getGffft, getGffftMembership, getOrCreateDefaultG
 import {Gffft} from "../gfffts/gffft_models"
 import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {gffftMemberToJson, gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_types"
+import {gffftMemberToJson, gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {getGalleryByRef} from "../galleries/gallery_data"
 import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
@@ -25,6 +25,7 @@ import {getCalendarByRef} from "../calendars/calendar_data"
 import {boardToJson, IBoardType, threadsToJson} from "../boards/board_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
 import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
+import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 // import Joi from "joi"
 
 // const userUpdateRequestParams = Joi.object({
@@ -56,6 +57,19 @@ router.get(
   }
 )
 
+router.get(
+  "/me/bookmarks",
+  requiredAuthentication,
+  async (req: Request, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const userId = iamUser.id
+    const bookmarks = await getHydratedUserBookmarks(userId)
+
+    res.json(bookmarksToJson(bookmarks))
+  }
+)
+
+
 export const getGffftByIdParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
@@ -66,7 +80,6 @@ export interface GetGffftByIdRequest extends ValidatedRequestSchema {
     gid: string;
   };
 }
-
 router.get(
   "/:uid/gfffts/:gid",
   requiredAuthentication,
@@ -135,6 +148,7 @@ router.get(
     }
 
     const boardJson: IBoardType[] = []
+
     boards.forEach((board) => {
       const json = boardToJson(board)
       if (json != null) {
@@ -223,9 +237,25 @@ router.post(
     const uid = req.body.uid
     const gid = req.body.gid
 
-    const membership = await createGffftMembership(uid, gid, res.locals.iamUser.id)
+    const memberId = res.locals.iamUser.id
+
+    const membership = await createGffftMembership(uid, gid, memberId)
+    await createBookmark(uid, gid, memberId)
     res.json(gffftMemberToJson(membership))
   })
 
+router.post(
+  "/me/bookmarks",
+  requiredAuthentication,
+  validator.body(createMemberParams),
+  async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
+    const uid = req.body.uid
+    const gid = req.body.gid
+
+    const memberId = res.locals.iamUser.id
+
+    await createBookmark(uid, gid, memberId)
+    res.sendStatus(204)
+  })
 
 export default router

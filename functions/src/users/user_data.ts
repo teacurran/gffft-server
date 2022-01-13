@@ -1,11 +1,11 @@
 import {QueryDocumentSnapshot, WriteResult} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
-import {collection, get, set, query, where, limit} from "typesaurus"
-import {LoggedInUser} from "../auth"
-import {Board} from "../boards/board_models"
-import {boardToJson, IBoardType} from "../boards/board_interfaces"
+import {collection, get, set, query, where, limit, subcollection, all, ref, upset} from "typesaurus"
+import {itemOrNull} from "../common/data"
 import {randomInt} from "../common/utils"
-import {User} from "./user_models"
+import {getGffft, gffftsCollection} from "../gfffts/gffft_data"
+import {Gffft} from "../gfffts/gffft_models"
+import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
 
 export const COLLECTION_USERS = "users"
 export const COLLECTION_ADJECTIVES = "username_adjectives"
@@ -13,32 +13,8 @@ export const COLLECTION_NOUNS = "username_nouns"
 export const COLLECTION_VERBS = "username_verbs"
 
 export const usersCollection = collection<User>("users")
+export const bookmarksCollection = subcollection<UserBookmark, User>("bookmarks", usersCollection)
 
-export interface IUserType {
-  id: string
-  username: string
-  board: IBoardType | null
-}
-
-/**
- * Serialized iam user to json
- * @param {UserRecord} iamUser user to serialize
- * @param {User} user
- * @param {Board} board
- * @return {IIAMUserType}
- */
-export function iamUserToJson(
-  iamUser: LoggedInUser,
-  user: User,
-  board: Board
-): IUserType {
-  const item: IUserType = {
-    id: iamUser.id,
-    username: user.username,
-    board: boardToJson(board),
-  }
-  return item
-}
 
 /**
  * Gets a user from firestore if already exists
@@ -66,8 +42,76 @@ export async function getUser(userId: string): Promise<User> {
   return user
 }
 
+export const addAdjective = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_ADJECTIVES, value)
+}
+
+export const addNoun = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_NOUNS, value)
+}
+
+export const addVerb = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_VERBS, value)
+}
+
+export async function getUserBookmarks(uid: string): Promise<UserBookmark[]> {
+  const results = await all(bookmarksCollection(uid))
+  const bookmarks: UserBookmark[] = []
+  for (const snapshot of results) {
+    const item = snapshot.data
+    item.id = snapshot.ref.id
+    bookmarks.push(item)
+  }
+  return bookmarks
+}
+
+export async function getHydratedUserBookmarks(uid: string): Promise<HydratedUserBookmark[]> {
+  const results = await all(bookmarksCollection(uid))
+  const bookmarks: HydratedUserBookmark[] = []
+
+  for (const snapshot of results) {
+    const item = snapshot.data
+    item.id = snapshot.ref.id
+
+    const gffft = await get<Gffft>(item.gffftRef).then((snapshot) => itemOrNull(snapshot))
+
+    const hub: HydratedUserBookmark = {
+      ...item,
+      gffft: gffft,
+    }
+    bookmarks.push(hub)
+  }
+  console.log(`got bookmarks:${bookmarks}`)
+
+  return bookmarks
+}
+
+export async function createBookmark(uid: string, gid: string, memberId: string): Promise<UserBookmark> {
+  const gc = gffftsCollection(uid)
+  const gffftRef = ref(gc, gid)
+  const gffft = await getGffft(uid, gid)
+
+  // don't confuse memberId with uid (uid is always gffft creator)
+  const bc = bookmarksCollection(memberId)
+  const bookmarkRef = ref(bc, gid)
+
+  return get(bookmarkRef).then(async (snapshot) => {
+    if (snapshot != null) {
+      return snapshot.data
+    } else {
+      const bookmark = {
+        name: gffft?.name,
+        gffftRef: gffftRef,
+        createdAt: new Date(),
+      } as UserBookmark
+      await upset(bookmarkRef, bookmark)
+      return bookmark
+    }
+  })
+}
+
 /* eslint no-await-in-loop: "off" */
-const getUniqueUsername = async (isNpc: boolean) => {
+async function getUniqueUsername(isNpc: boolean) {
   let counter = 0
   while (counter < 1000) {
     counter++
@@ -96,7 +140,7 @@ const getUniqueUsername = async (isNpc: boolean) => {
   throw new Error("unable to find a unique username")
 }
 
-const getUsername = async () => {
+async function getUsername() {
   const [noun, verb, adjective] = await Promise.all([
     getRandomItem(COLLECTION_NOUNS),
     getRandomItem(COLLECTION_VERBS),
@@ -164,18 +208,6 @@ const getRandomItem = async (collection: string): Promise<QueryDocumentSnapshot<
       }
       return snapshot.docs[0]
     })
-}
-
-export const addAdjective = async (value: string): Promise<WriteResult | string> => {
-  return addToCollection(COLLECTION_ADJECTIVES, value)
-}
-
-export const addNoun = async (value: string): Promise<WriteResult | string> => {
-  return addToCollection(COLLECTION_NOUNS, value)
-}
-
-export const addVerb = async (value: string): Promise<WriteResult | string> => {
-  return addToCollection(COLLECTION_VERBS, value)
 }
 
 const addToCollection = async (collection: string, value: string): Promise<WriteResult | string> => {

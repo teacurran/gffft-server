@@ -2,12 +2,13 @@ import {query, subcollection, where, limit, add, upset, group, order, Query,
   startAfter, get, ref, pathToRef} from "typesaurus"
 import {Gffft, GffftMember, GffftStats, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
+import {itemOrNull} from "../common/data"
 import {usersCollection} from "../users/user_data"
 
 const DEFAULT_GFFFT_KEY = "default"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
 const RARE_FRUITS = [..."🍅🫑🍆🥑"]
-const ULTRA_RARE_FRUITS = ["...🥨🐈💾🍕"]
+const ULTRA_RARE_FRUITS = [..."🥨🐈💾🍕"]
 const FRUIT_CODE_LENGTH = 9
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
@@ -183,9 +184,11 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
 
   return query(gffftsGroup, queries).then((results) => {
     const gfffts: Gffft[] = []
-    results.forEach((item) => {
-      gfffts.push(item.data)
-    })
+    for (const snapshot of results) {
+      const item = snapshot.data
+      item.id = snapshot.ref.id
+      gfffts.push(item)
+    }
     return gfffts
   })
 }
@@ -208,14 +211,7 @@ export async function getGffft(uid: string, gid: string): Promise<Gffft | null> 
   const userGfffts = gffftsCollection(uid)
   const gffftRef = ref(userGfffts, gid)
 
-  return get(gffftRef).then((snapshot) => {
-    if (snapshot == null) {
-      return null
-    }
-    const item = snapshot.data
-    item.id = snapshot.ref.id
-    return item
-  })
+  return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
 }
 
 export async function getGffftByRef(refId: string): Promise<Gffft | null> {

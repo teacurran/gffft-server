@@ -106,12 +106,12 @@ export async function getThreads(uid: string,
 
   const threads: Thread[] = []
   return query(threadCollection, queries).then((results) => {
-    results.forEach((snapshot) => {
+    for (const snapshot of results) {
       const item = snapshot.data
       item.id = snapshot.ref.id
 
       threads.push(item)
-    })
+    }
     return threads
   })
 }

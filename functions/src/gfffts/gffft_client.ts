@@ -1,5 +1,5 @@
 import {Http} from "../common/http"
-import {IGffftFruitCode, IGffftId, IGffftPutType, IGffftType} from "./gffft_types"
+import {IGffftFruitCode, IGffftId, IGffftPutType, IGffftType} from "./gffft_interfaces"
 
 export class GffftClient {
     client: Http
