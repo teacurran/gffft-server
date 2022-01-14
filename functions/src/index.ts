@@ -4,12 +4,12 @@ import * as firebaseAdmin from "firebase-admin"
 import {WriteResult} from "@google-cloud/firestore"
 import {addAdjective, addNoun, addVerb} from "./users/user_data"
 import {gffftsStatsCollection} from "./gfffts/gffft_data"
-import {pathToRef, Ref, ref, upset, value} from "typesaurus"
+import {get, pathToRef, Ref, ref, upset, value} from "typesaurus"
 import {GffftAdminCounter, GffftAnonCounter,
   GffftMemberCounter, GffftOwnerCounter, GffftStats} from "./gfffts/gffft_models"
 import moment from "moment"
-import {threadsCollection} from "./boards/board_data"
-import {ThreadPostCounter, ThreadPostCounterWithAuthor} from "./boards/board_models"
+import {boardsCollection, threadsCollection} from "./boards/board_data"
+import {BoardPostCounter, BoardPostCounterWithAuthor, BoardThreadCounter, BoardThreadPostCounter, BoardThreadPostCounterNoAuthor, ThreadPostCounter, ThreadPostCounterWithAuthor} from "./boards/board_models"
 import {User} from "./users/user_models"
 
 const PROJECTID = "gffft-auth"
@@ -127,6 +127,43 @@ export const gffftMemberCounter = functions.firestore
     return
   })
 
+export const threadCreateCounter = functions.firestore
+  .document("users/{uid}/gfffts/{gid}/boards/{bid}/threads/{tid}")
+  .onWrite(async (change, context) => {
+    const uid = context.params.uid
+    const gid = context.params.gid
+    const bid = context.params.bid
+    const tid = context.params.tid
+
+    console.log(`threadCreateCounter: userId:${uid} gffftUd:${gid} threadId:${tid}`)
+
+    const boards = boardsCollection([uid, gid])
+    const boardRef = ref(boards, bid)
+
+    const beforeData = change.before.data()
+    const afterData = change.after.data()
+
+    if (!change.before.exists && afterData != null) {
+      const authorRef = pathToRef<User>(afterData.author.path)
+      return upset<BoardThreadPostCounter>(boardRef, {
+        threadCount: value("increment", 1),
+        postCount: value("increment", 1),
+        latestPost: authorRef,
+      })
+    } else if (change.before.exists && change.after.exists && beforeData && afterData) {
+      // do nithing for post updates
+    } else if (!change.after.exists && beforeData) {
+      if (beforeData.postCount) {
+        return upset<BoardThreadPostCounterNoAuthor>(boardRef, {
+          threadCount: value("increment", -1),
+          postCount: value("increment", -beforeData.postCount),
+        })
+      }
+    }
+
+    return
+  })
+
 
 export const threadReplyCounter = functions.firestore
   .document("users/{uid}/gfffts/{gid}/boards/{bid}/threads/{tid}/posts/{pid}")
@@ -139,23 +176,30 @@ export const threadReplyCounter = functions.firestore
     console.log(`threadReplyCounter: userId:${uid} 
       gffftUd:${gid} threadId:${tid}`)
 
-    const threadCollection = threadsCollection([uid, gid, bid])
+    const threads = threadsCollection([uid, gid, bid])
+    const boards = boardsCollection([uid, gid])
+    const boardRef = ref(boards, bid)
 
     const beforeData = change.before.data()
     const afterData = change.after.data()
-    console.log(`afterData: ${JSON.stringify(afterData)}`)
-    console.log(`afterData.author: ${JSON.stringify(afterData?.author)}`)
 
     if (!change.before.exists && afterData != null) {
       const authorRef = pathToRef<User>(afterData.author.path)
-      return upset<ThreadPostCounterWithAuthor>(ref(threadCollection, tid), {
+      await upset<ThreadPostCounterWithAuthor>(ref(threads, tid), {
+        postCount: value("increment", 1),
+        latestPost: authorRef,
+      })
+      return upset<BoardPostCounterWithAuthor>(boardRef, {
         postCount: value("increment", 1),
         latestPost: authorRef,
       })
     } else if (change.before.exists && change.after.exists && beforeData && afterData) {
       // do nithing for post updates
     } else if (!change.after.exists && beforeData) {
-      return upset<ThreadPostCounter>(ref(threadCollection, tid), {
+      upset<ThreadPostCounter>(ref(threads, tid), {
+        postCount: value("increment", -1),
+      })
+      return upset<BoardPostCounter>(boardRef, {
         postCount: value("increment", -1),
       })
     }

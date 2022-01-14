@@ -8,6 +8,26 @@ export type Board = {
     description?: string
   }
 
+export type BoardThreadPostCounterNoAuthor = {
+  threadCount: number
+  postCount: number
+}
+
+export type BoardThreadPostCounter = {
+  threadCount: number
+  postCount: number
+  latestPost: Ref<User>
+}
+
+export type BoardPostCounterWithAuthor = {
+  postCount: number
+  latestPost: Ref<User>
+}
+
+export type BoardPostCounter = {
+  postCount: number
+}
+
 export type Thread = {
   id?: string
   subject: string
