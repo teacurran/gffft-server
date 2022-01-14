@@ -1,5 +1,5 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query,
-  startAfter, get, ref, pathToRef} from "typesaurus"
+  startAfter, get, ref, pathToRef, remove} from "typesaurus"
 import {Gffft, GffftMember, GffftStats, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {itemOrNull} from "../common/data"
@@ -73,6 +73,13 @@ export async function createGffftMembership(uid: string, gid: string, memberId: 
       return member
     }
   })
+}
+
+export async function deleteGffftMembership(uid: string, gid: string, memberId: string): Promise<void> {
+  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const memberRef = ref(gffftMembers, memberId)
+
+  return remove(memberRef)
 }
 
 export async function getGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember|undefined> {

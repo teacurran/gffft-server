@@ -1,6 +1,6 @@
 import {QueryDocumentSnapshot, WriteResult} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
-import {collection, get, set, query, where, limit, subcollection, all, ref, upset} from "typesaurus"
+import {collection, get, set, query, where, limit, subcollection, all, ref, upset, remove} from "typesaurus"
 import {itemOrUndefined} from "../common/data"
 import {randomInt} from "../common/utils"
 import {getGffft, gffftsCollection} from "../gfffts/gffft_data"
@@ -118,6 +118,14 @@ export async function createBookmark(uid: string, gid: string, memberId: string)
       return bookmark
     }
   })
+}
+
+export async function deleteBookmark(gid: string, memberId: string): Promise<void> {
+  // don't confuse memberId with uid (uid is always gffft creator)
+  const bc = bookmarksCollection(memberId)
+  const bookmarkRef = ref(bc, gid)
+
+  return remove(bookmarkRef)
 }
 
 /* eslint no-await-in-loop: "off" */

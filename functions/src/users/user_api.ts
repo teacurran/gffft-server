@@ -1,22 +1,15 @@
 import express, {Request, Response} from "express"
-
-import {createBookmark, getBookmark, getHydratedUserBookmarks, getUser} from "./user_data"
-
-
-// import {
-//   ContainerTypes,
-//   createValidator,
-//   ValidatedRequestSchema,
-// } from "express-joi-validation"
+import {createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks, getUser} from "./user_data"
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {User} from "./user_models"
 import {getBoard, getBoardByRefString, getOrCreateDefaultBoard, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
-import {createGffftMembership, getGffft, getGffftMembership, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
+import {createGffftMembership, deleteGffftMembership, getGffft,
+  getGffftMembership, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {gffftMemberToJson, gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
+import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {getGalleryByRef} from "../galleries/gallery_data"
 import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
@@ -231,18 +224,30 @@ export interface CreateMemberRequest extends ValidatedRequestSchema {
 }
 
 router.post(
-  "/:uid/gfffts/:gid/members",
+  "/me/gfffts/membership",
   requiredAuthentication,
   validator.body(createMemberParams),
   async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
     const uid = req.body.uid
     const gid = req.body.gid
-
     const memberId = res.locals.iamUser.id
 
-    const membership = await createGffftMembership(uid, gid, memberId)
+    await createGffftMembership(uid, gid, memberId)
     await createBookmark(uid, gid, memberId)
-    res.json(gffftMemberToJson(membership))
+    res.sendStatus(204)
+  })
+
+router.delete(
+  "/me/gfffts/membership",
+  requiredAuthentication,
+  validator.body(createMemberParams),
+  async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
+    const uid = req.body.uid
+    const gid = req.body.gid
+    const memberId = res.locals.iamUser.id
+
+    await deleteGffftMembership(uid, gid, memberId)
+    res.sendStatus(204)
   })
 
 router.post(
@@ -256,6 +261,19 @@ router.post(
     const memberId = res.locals.iamUser.id
 
     await createBookmark(uid, gid, memberId)
+    res.sendStatus(204)
+  })
+
+router.delete(
+  "/me/bookmarks",
+  requiredAuthentication,
+  validator.body(createMemberParams),
+  async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
+    const gid = req.body.gid
+
+    const memberId = res.locals.iamUser.id
+
+    await deleteBookmark(gid, memberId)
     res.sendStatus(204)
   })
 
