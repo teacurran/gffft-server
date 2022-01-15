@@ -6,7 +6,8 @@
     "dev": "npm run lint && tsc -w",
     "api-dev": "nodemon src/server.ts",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "start": "node lib/server"
   },
   "engines": {
     "node": "14"

@@ -1,4 +1,11 @@
+provider "google" {
+  project = "gffft-auth"
+  region  = "us-central1"
+  zone    = "us-central1-c"
+}
+
 resource "google_cloudbuild_trigger" "deploy-trigger" {
+  project  = "gffft-auth"
   provider = google-beta
 
   name        = "API Deploy"
