@@ -2,15 +2,15 @@ import * as functions from "firebase-functions"
 import * as firebaseAdmin from "firebase-admin"
 
 import {WriteResult} from "@google-cloud/firestore"
-import {addAdjective, addNoun, addVerb} from "./users/user_data"
-import {gffftsStatsCollection} from "./gfffts/gffft_data"
+import {addAdjective, addNoun, addVerb, usersCollection} from "./users/user_data"
+import {gffftsCollection, gffftsStatsCollection} from "./gfffts/gffft_data"
 import {pathToRef, Ref, ref, upset, value} from "typesaurus"
 import {GffftAdminCounter, GffftAnonCounter,
   GffftMemberCounter, GffftOwnerCounter, GffftStats} from "./gfffts/gffft_models"
 import moment from "moment"
 import {boardsCollection, threadsCollection} from "./boards/board_data"
-import {BoardPostCounter, BoardPostCounterWithAuthor, BoardThreadPostCounter, BoardThreadPostCounterNoAuthor,
-  ThreadPostCounter, ThreadPostCounterWithAuthor} from "./boards/board_models"
+import {BoardPostCounterWithAuthor, BoardThreadCounter, BoardThreadPostCounterNoAuthor,
+  ThreadPostCounterWithAuthor} from "./boards/board_models"
 import {User} from "./users/user_models"
 
 const PROJECTID = "gffft-auth"
@@ -97,7 +97,7 @@ export const gffftMemberCounter = functions.firestore
     const memberId = context.params.memberId
 
     console.log(`gffftMemberCounter trigger: userId:${userId} 
-      gffftUd:${gffftId} memberId:${memberId}`)
+      gffftId:${gffftId} memberId:${memberId}`)
 
 
     // const userGfffts = gffftsCollection(userId)
@@ -128,29 +128,26 @@ export const gffftMemberCounter = functions.firestore
     return
   })
 
+// eslint-disable-next-line max-len
+// /users/HlUUDSu2j3BYUUt0uHuTJUsOsrSv/gfffts/oJbbvots5t8AtY7kyI0Y/boards/ZrCjFTcsfEv2OZDqUZJF/threads/mCsIk2PqYOEqqvzgm1UU
 export const threadCreateCounter = functions.firestore
   .document("users/{uid}/gfffts/{gid}/boards/{bid}/threads/{tid}")
   .onWrite(async (change, context) => {
     const uid = context.params.uid
     const gid = context.params.gid
     const bid = context.params.bid
-    const tid = context.params.tid
-
-
-    console.log(`threadCreateCounter: userId:${uid} gffftUd:${gid} threadId:${tid}`)
-
-    const boards = boardsCollection([uid, gid])
-    const boardRef = ref(boards, bid)
 
     const beforeData = change.before.data()
     const afterData = change.after.data()
 
+    const users = usersCollection
+    const gfffts = gffftsCollection(ref(users, uid))
+    const boards = boardsCollection(ref(gfffts, gid))
+    const boardRef = ref(boards, bid)
+
     if (!change.before.exists && afterData != null) {
-      const authorRef = pathToRef<User>(afterData.author.path)
-      return upset<BoardThreadPostCounter>(boardRef, {
+      return upset<BoardThreadCounter>(boardRef, {
         threadCount: value("increment", 1),
-        postCount: value("increment", 1),
-        latestPost: authorRef,
       })
     } else if (change.before.exists && change.after.exists && beforeData && afterData) {
       // do nithing for post updates
@@ -175,15 +172,16 @@ export const threadReplyCounter = functions.firestore
     const bid = context.params.bid
     const tid = context.params.tid
 
-    console.log(`threadReplyCounter: userId:${uid} 
-      gffftUd:${gid} threadId:${tid}`)
-
-    const threads = threadsCollection([uid, gid, bid])
-    const boards = boardsCollection([uid, gid])
-    const boardRef = ref(boards, bid)
+    console.log(`threadReplyCounter: uid:${uid} gid:${gid} bid:${tid} tid:${tid}`)
 
     const beforeData = change.before.data()
     const afterData = change.after.data()
+
+    const users = usersCollection
+    const gfffts = gffftsCollection(ref(users, uid))
+    const boards = boardsCollection(ref(gfffts, gid))
+    const boardRef = ref(boards, bid)
+    const threads = threadsCollection(ref(boards, bid))
 
     if (!change.before.exists && afterData != null) {
       const authorRef = pathToRef<User>(afterData.author.path)
@@ -198,12 +196,15 @@ export const threadReplyCounter = functions.firestore
     } else if (change.before.exists && change.after.exists && beforeData && afterData) {
       // do nithing for post updates
     } else if (!change.after.exists && beforeData) {
-      upset<ThreadPostCounter>(ref(threads, tid), {
-        postCount: value("increment", -1),
-      })
-      return upset<BoardPostCounter>(boardRef, {
-        postCount: value("increment", -1),
-      })
+      // not updating the counts for post deletes right now
+      // it may have conflicts with thread deleting
+      // test out those two scenarios together.
+      // await upset<ThreadPostCounter>(ref(threads, tid), {
+      //   postCount: value("increment", -1),
+      // })
+      // return upset<BoardPostCounter>(boardRef, {
+      //   postCount: value("increment", -1),
+      // })
     }
 
     return

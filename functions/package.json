@@ -2,7 +2,7 @@
   "name": "functions",
   "scripts": {
     "lint": "eslint --fix --ext .js,.ts .",
-    "build": "tsc -p .",
+    "build": "tsc",
     "dev": "npm run lint && tsc -w",
     "api-dev": "nodemon src/server.ts",
     "deploy": "firebase deploy --only functions",

@@ -13,10 +13,8 @@ export type BoardThreadPostCounterNoAuthor = {
   postCount: number
 }
 
-export type BoardThreadPostCounter = {
+export type BoardThreadCounter = {
   threadCount: number
-  postCount: number
-  latestPost: Ref<User>
 }
 
 export type BoardPostCounterWithAuthor = {
