@@ -1,5 +1,5 @@
 import {Http} from "../common/http"
-import {IUserType} from "./user_data"
+import {IUserType} from "./user_interfaces"
 
 export class UserClient {
     client: Http

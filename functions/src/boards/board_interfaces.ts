@@ -1,6 +1,6 @@
 import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
-import {Board, Thread} from "./board_models"
+import {Board, HydratedThread} from "./board_models"
 
 export interface IBoardStats {
   label: string
@@ -25,6 +25,7 @@ export interface IThread {
   updatedAt: Date
   firstPost: IUserRef
   latestPost: IUserRef,
+  postCount: number,
   topReaction?: string
 }
 
@@ -34,7 +35,7 @@ export interface IThreadResults {
 }
 
 export function threadsToJson(
-  items: Thread[]
+  items: HydratedThread[]
 ): IThreadResults {
   const itemsJson = items.map((item) => threadToJson(item)).filter(notEmpty)
   return {
@@ -44,7 +45,7 @@ export function threadsToJson(
 }
 
 export function threadToJson(
-  thread: Thread): IThread | null {
+  thread: HydratedThread): IThread | null {
   if (thread == null || thread.id == null) {
     return null
   }
@@ -53,14 +54,22 @@ export function threadToJson(
     subject: thread.subject,
     createdAt: thread.createdAt,
     updatedAt: thread.updatedAt,
-    firstPost: {
-      id: "stub-id",
-      handle: "Poster Name",
+    firstPost: thread.firstPostUser ? {
+      id: thread.firstPostUser.id,
+      handle: thread.firstPostUser.username,
+    } : {
+      id: "deleted",
+      handle: "deleted",
     },
-    latestPost: {
-      id: "stub-id",
-      handle: "Poster Name",
+    latestPost: thread.latestPostUser ? {
+      id: thread.latestPostUser.id,
+      handle: thread.latestPostUser.username,
+    } : {
+      id: "deleted",
+      handle: "deleted",
     },
+
+    postCount: thread.postCount,
   }
   return item
 }

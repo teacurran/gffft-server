@@ -2,6 +2,7 @@ import {Ref} from "typesaurus"
 import {Gffft} from "../gfffts/gffft_models"
 
 export type User = {
+    id: string
     username: string
     usernameCounter: number
     createdAt?: Date

@@ -4,12 +4,13 @@ import * as firebaseAdmin from "firebase-admin"
 import {WriteResult} from "@google-cloud/firestore"
 import {addAdjective, addNoun, addVerb} from "./users/user_data"
 import {gffftsStatsCollection} from "./gfffts/gffft_data"
-import {get, pathToRef, Ref, ref, upset, value} from "typesaurus"
+import {pathToRef, Ref, ref, upset, value} from "typesaurus"
 import {GffftAdminCounter, GffftAnonCounter,
   GffftMemberCounter, GffftOwnerCounter, GffftStats} from "./gfffts/gffft_models"
 import moment from "moment"
 import {boardsCollection, threadsCollection} from "./boards/board_data"
-import {BoardPostCounter, BoardPostCounterWithAuthor, BoardThreadCounter, BoardThreadPostCounter, BoardThreadPostCounterNoAuthor, ThreadPostCounter, ThreadPostCounterWithAuthor} from "./boards/board_models"
+import {BoardPostCounter, BoardPostCounterWithAuthor, BoardThreadPostCounter, BoardThreadPostCounterNoAuthor,
+  ThreadPostCounter, ThreadPostCounterWithAuthor} from "./boards/board_models"
 import {User} from "./users/user_models"
 
 const PROJECTID = "gffft-auth"
@@ -134,6 +135,7 @@ export const threadCreateCounter = functions.firestore
     const gid = context.params.gid
     const bid = context.params.bid
     const tid = context.params.tid
+
 
     console.log(`threadCreateCounter: userId:${uid} gffftUd:${gid} threadId:${tid}`)
 

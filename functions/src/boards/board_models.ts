@@ -39,6 +39,11 @@ export type Thread = {
   updatedAt: Date
 }
 
+export interface HydratedThread extends Thread {
+  firstPostUser: User | undefined
+  latestPostUser: User | undefined
+}
+
 export type ThreadPost = {
   id?: string
   body: string
