@@ -1,6 +1,6 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
   ref, Ref, Query, startAfter, order} from "typesaurus"
-import {Board, HydratedThread, Thread, ThreadPost} from "./board_models"
+import {Board, HydratedThread, HydratedThreadPost, Thread, ThreadPost} from "./board_models"
 import {User} from "../users/user_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
@@ -102,7 +102,6 @@ export async function getThreads(uid: string,
   } else {
     queries.push(order("updatedAt", "desc"))
   }
-
   queries.push(limit(maxResults))
 
   const threads: HydratedThread[] = []
@@ -118,10 +117,45 @@ export async function getThreads(uid: string,
         ...item,
         firstPostUser: firstPostUser,
         latestPostUser: latestPostUser,
+        posts: undefined,
       })
     }
     return threads
   })
 }
 
+export async function getThread(uid: string,
+  gid: string,
+  bid: string,
+  tid: string,
+  offset?: string,
+  maxResults = 200): Promise<HydratedThreadPost[]> {
+  const tCollection = threadsCollection([uid, gid, bid])
+  const threadRef = ref(tCollection, tid)
+  const pCollection = threadPostsCollection(threadRef)
 
+  const queries: Query<ThreadPost, keyof ThreadPost>[] = []
+  if (offset) {
+    queries.push(order("updatedAt", "desc", [startAfter(offset)]))
+  } else {
+    queries.push(order("updatedAt", "desc"))
+  }
+  queries.push(limit(maxResults))
+
+  const posts: HydratedThreadPost[] = []
+
+  return query(pCollection, queries).then(async (results) => {
+    for (const snapshot of results) {
+      const item = snapshot.data
+      item.id = snapshot.ref.id
+
+      const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
+
+      posts.push({
+        ...item,
+        authorUser: authorUser,
+      })
+    }
+    return posts
+  })
+}

@@ -1,6 +1,6 @@
 import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
-import {Board, HydratedThread} from "./board_models"
+import {Board, HydratedThread, HydratedThreadPost} from "./board_models"
 
 export interface IBoardStats {
   label: string
@@ -31,8 +31,21 @@ export interface IThread {
 
 export interface IThreadResults {
   count: number
-  items: IThread[]
+items: IThread[]
 }
+
+export interface IThreadPost {
+  id: string
+  body: string
+  createdAt: Date
+  author: IUserRef
+}
+
+export interface IThreadPostResults {
+  count: number
+  items: IThreadPost[]
+}
+
 
 export function threadsToJson(
   items: HydratedThread[]
@@ -103,3 +116,32 @@ export function boardToJson(
   return item
 }
 
+export function threadPostsToJson(
+  items: HydratedThreadPost[]
+): IThreadPostResults {
+  const itemsJson = items.map((item) => threadPostToJson(item)).filter(notEmpty)
+  return {
+    count: items.length,
+    items: itemsJson,
+  }
+}
+
+export function threadPostToJson(
+  post: HydratedThreadPost): IThreadPost | null {
+  if (post == null || post.id == null) {
+    return null
+  }
+  const item: IThreadPost = {
+    id: post.id,
+    body: post.body,
+    createdAt: post.createdAt,
+    author: post.authorUser ? {
+      id: post.authorUser.id,
+      handle: post.authorUser.username,
+    } : {
+      id: "deleted",
+      handle: "deleted",
+    },
+  }
+  return item
+}

@@ -2,7 +2,7 @@ import express, {Request, Response} from "express"
 import {createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks, getUser} from "./user_data"
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {User} from "./user_models"
-import {getBoard, getBoardByRefString, getOrCreateDefaultBoard, getThreads} from "../boards/board_data"
+import {getBoard, getBoardByRefString, getOrCreateDefaultBoard, getThread, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {createGffftMembership, deleteGffftMembership, getGffft,
   getGffftMembership, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
@@ -14,7 +14,7 @@ import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
-import {boardToJson, IBoardType, threadsToJson} from "../boards/board_interfaces"
+import {boardToJson, IBoardType, threadPostsToJson, threadsToJson} from "../boards/board_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
 import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
@@ -210,6 +210,58 @@ router.get(
     )
   }
 )
+
+export const getThreadPathParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  bid: Joi.string().required(),
+  tid: Joi.string().required(),
+})
+export const getThreadQueryParams = Joi.object({
+  max: Joi.string().optional(),
+  offset: Joi.string().optional(),
+})
+export interface GetThreadsRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    bid: string
+    tid: string
+  }
+  [ContainerTypes.Query]: {
+    max?: number
+    offset?: string
+  };
+}
+
+router.get(
+  "/:uid/gfffts/:gid/boards/:bid/threads/:tid",
+  requiredAuthentication,
+  validator.params(getThreadPathParams),
+  validator.query(getThreadQueryParams),
+  async (req: ValidatedRequest<GetThreadsRequest>, res: Response) => {
+    const uid = req.params.uid
+    const gid = req.params.gid
+    const bid = req.params.bid
+    const tid = req.params.tid
+
+    // const iamUser: LoggedInUser = res.locals.iamUser
+    // const gffft = await getGffft(uid, gid)
+    const board = await getBoard(uid, gid, bid)
+
+    if (!board) {
+      res.sendStatus(404)
+      return
+    }
+
+    getThread(uid, gid, bid, tid, req.query.offset, req.query.max).then(
+      (items) => {
+        res.json(threadPostsToJson(items))
+      }
+    )
+  }
+)
+
 
 const createMemberParams = Joi.object({
   uid: Joi.string().required(),

@@ -40,6 +40,7 @@ export type Thread = {
 export interface HydratedThread extends Thread {
   firstPostUser: User | undefined
   latestPostUser: User | undefined
+  posts: HydratedThreadPost[] | undefined
 }
 
 export type ThreadPost = {
@@ -48,6 +49,10 @@ export type ThreadPost = {
   author: Ref<User>
   createdAt: Date
   updatedAt: Date
+}
+
+export interface HydratedThreadPost extends ThreadPost {
+  authorUser: User | undefined
 }
 
 export type ThreadPostCounter = {
