@@ -6,7 +6,6 @@ import {getGffft, getGfffts, getOrCreateDefaultGffft,
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {Gffft, TYPE_OWNER} from "./gffft_models"
 import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_interfaces"
-import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, getRefPath, ref, upset} from "typesaurus"
 import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
@@ -17,6 +16,7 @@ import {Notebook} from "../notebooks/notebook_models"
 import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/notebook_data"
 import {Calendar} from "../calendars/calendar_models"
 import {calendarCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
+import * as Joi from "@hapi/joi"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {

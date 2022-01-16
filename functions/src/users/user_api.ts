@@ -7,7 +7,6 @@ import {Board} from "../boards/board_models"
 import {createGffftMembership, deleteGffftMembership, getGffft,
   getGffftMembership, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
-import Joi from "joi"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {getGalleryByRef} from "../galleries/gallery_data"
@@ -19,7 +18,7 @@ import {boardToJson, IBoardType, threadsToJson} from "../boards/board_interfaces
 import {getNotebookByRef} from "../notebooks/notebook_data"
 import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
-// import Joi from "joi"
+import * as Joi from "@hapi/joi"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
