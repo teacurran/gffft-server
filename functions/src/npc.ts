@@ -1,7 +1,6 @@
 import * as firebaseAdmin from "firebase-admin"
 import {GffftClient} from "./gfffts/gffft_client"
 import {createGffft} from "./gfffts/gffft_factory"
-import {createNpc} from "./npcs/data"
 import {UserClient} from "./users/user_client"
 
 const PROJECTID = "gffft-auth"
@@ -11,7 +10,7 @@ firebaseAdmin.initializeApp({
 
 const isProduction = process.env.NODE_ENV === "production"
 
-const baseUrl = isProduction ? "https://us-central1-gffft-auth.cloudfunctions.net/api" : "http://localhost:3000/api"
+const baseUrl = isProduction ? "https://gffft-auth.appspot.com/api" : "http://localhost:3000/api"
 
 async function runNpc(npcId: string, userId: string) {
   const token = `npc-${npcId}-${userId}`
@@ -38,8 +37,8 @@ async function runNpc(npcId: string, userId: string) {
 
 (async () => {
   const npcId = "user_activity_bot"
+  // await createNpc(npcId)
 
-  await createNpc(npcId)
   for (let count = 1000; count < 1100; count++) {
     console.log(`running runner for npc# ${count}`)
     await runNpc(npcId, `NPC.${count}`)

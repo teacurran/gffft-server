@@ -4,3 +4,6 @@ running npc:
 FIRESTORE_EMULATOR_HOST="localhost:8080" npx ts-node src/npc.ts
 ```
 
+```
+NODE_ENV=production npx ts-node src/npc.ts
+```
