@@ -9,6 +9,12 @@ export type User = {
     updatedAt?: Date
   }
 
+export type UsernameChange = {
+    username: string
+    usernameCounter: number
+    updatedAt?: Date
+  }
+
 export type UserBookmark = {
     id: string
     gffftRef: Ref<Gffft>

@@ -129,7 +129,7 @@ export async function deleteBookmark(gid: string, memberId: string): Promise<voi
 }
 
 /* eslint no-await-in-loop: "off" */
-async function getUniqueUsername(isNpc: boolean) {
+export async function getUniqueUsername(isNpc: boolean): Promise<string> {
   let counter = 0
   while (counter < 1000) {
     counter++

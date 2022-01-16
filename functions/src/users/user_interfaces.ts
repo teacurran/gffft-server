@@ -1,6 +1,4 @@
 import {LoggedInUser} from "../auth"
-import {boardToJson, IBoardType} from "../boards/board_interfaces"
-import {Board} from "../boards/board_models"
 import {notEmpty} from "../common/utils"
 import {gffftToJsonMinimal, IGffftMinimalType} from "../gfffts/gffft_interfaces"
 import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
@@ -8,7 +6,6 @@ import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
 export interface IUserType {
     id: string
     username: string
-    board: IBoardType | null
 }
 
 export interface IUserRef {
@@ -38,13 +35,11 @@ export interface IBookmarkResults {
  */
 export function iamUserToJson(
   iamUser: LoggedInUser,
-  user: User,
-  board: Board
+  user: User
 ): IUserType {
   const item: IUserType = {
     id: iamUser.id,
     username: user.username,
-    board: boardToJson(board),
   }
   return item
 }

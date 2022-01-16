@@ -1,12 +1,13 @@
 import express, {Request, Response} from "express"
-import {createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks, getUser} from "./user_data"
+import {createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks,
+  getUniqueUsername,
+  getUser, usersCollection} from "./user_data"
 import {LoggedInUser, requiredAuthentication} from "../auth"
-import {User} from "./user_models"
-import {getBoard, getBoardByRefString, getOrCreateDefaultBoard, getThread, getThreads} from "../boards/board_data"
+import {User, UsernameChange} from "./user_models"
+import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {createGffftMembership, deleteGffftMembership, getGffft,
-  getGffftMembership, getOrCreateDefaultGffft} from "../gfffts/gffft_data"
-import {Gffft} from "../gfffts/gffft_models"
+  getGffftMembership} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {getGalleryByRef} from "../galleries/gallery_data"
@@ -19,6 +20,7 @@ import {getNotebookByRef} from "../notebooks/notebook_data"
 import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import * as Joi from "@hapi/joi"
+import {upset, value} from "typesaurus"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -42,10 +44,8 @@ router.get(
     const iamUser: LoggedInUser = res.locals.iamUser
     const userId = iamUser.id
     const user: User = await getUser(userId)
-    const gffft: Gffft = await getOrCreateDefaultGffft(userId)
-    const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
 
-    res.json(iamUserToJson(iamUser, user, board))
+    res.json(iamUserToJson(iamUser, user))
   }
 )
 
@@ -328,4 +328,26 @@ router.delete(
     res.sendStatus(204)
   })
 
+router.post(
+  "/me/change-username",
+  requiredAuthentication,
+  async (req: Request, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const userId = iamUser.id
+    const user: User = await getUser(userId)
+    user.username = await getUniqueUsername(false)
+
+    user.updatedAt = new Date()
+    await upset<UsernameChange>(usersCollection, userId, {
+      username: user.username,
+      usernameCounter: value("increment", 1),
+      updatedAt: new Date(),
+    })
+
+    res.json(iamUserToJson(iamUser, user))
+  }
+)
+
+
 export default router
+
