@@ -26,12 +26,13 @@ export interface IThread {
   firstPost: IUserRef
   latestPost: IUserRef,
   postCount: number,
-  topReaction?: string
+  topReaction?: string,
+  posts: IThreadPost[]
 }
 
 export interface IThreadResults {
   count: number
-items: IThread[]
+  items: IThread[]
 }
 
 export interface IThreadPost {
@@ -81,8 +82,8 @@ export function threadToJson(
       id: "deleted",
       handle: "deleted",
     },
-
     postCount: thread.postCount,
+    posts: threadPostsToJson(thread.posts),
   }
   return item
 }
@@ -118,12 +119,8 @@ export function boardToJson(
 
 export function threadPostsToJson(
   items: HydratedThreadPost[]
-): IThreadPostResults {
-  const itemsJson = items.map((item) => threadPostToJson(item)).filter(notEmpty)
-  return {
-    count: items.length,
-    items: itemsJson,
-  }
+): IThreadPost[] {
+  return items.map((item) => threadPostToJson(item)).filter(notEmpty)
 }
 
 export function threadPostToJson(

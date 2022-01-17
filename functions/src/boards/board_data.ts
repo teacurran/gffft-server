@@ -1,5 +1,5 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
-  ref, Ref, Query, startAfter, order} from "typesaurus"
+  ref, Ref, Query, startAfter, order, Doc} from "typesaurus"
 import {Board, HydratedThread, HydratedThreadPost, Thread, ThreadPost} from "./board_models"
 import {User} from "../users/user_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
@@ -89,6 +89,39 @@ export async function updateBoard(userId: string, gffftId: string, board: Board)
   return upset<Board>(userBoards, board.id, board)
 }
 
+export async function hydrateThread(snapshot: Doc<Thread> | null): Promise<HydratedThread | null> {
+  if (snapshot == null) {
+    return null
+  }
+  const item = snapshot.data
+  item.id = snapshot.ref.id
+
+  const firstPostUser = await get<User>(item.firstPost).then((snapshot) => itemOrUndefined(snapshot))
+  const latestPostUser = await get<User>(item.firstPost).then((snapshot) => itemOrUndefined(snapshot))
+
+  return {
+    ...item,
+    firstPostUser: firstPostUser,
+    latestPostUser: latestPostUser,
+    posts: [],
+  }
+}
+
+export async function hydrateThreadPost(snapshot: Doc<ThreadPost> | null): Promise<HydratedThreadPost | null> {
+  if (snapshot == null) {
+    return null
+  }
+  const item = snapshot.data
+  item.id = snapshot.ref.id
+
+  const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
+
+  return {
+    ...item,
+    authorUser: authorUser,
+  }
+}
+
 export async function getThreads(uid: string,
   gid: string,
   bid:string,
@@ -107,18 +140,10 @@ export async function getThreads(uid: string,
   const threads: HydratedThread[] = []
   return query(threadCollection, queries).then(async (results) => {
     for (const snapshot of results) {
-      const item = snapshot.data
-      item.id = snapshot.ref.id
-
-      const firstPostUser = await get<User>(item.firstPost).then((snapshot) => itemOrUndefined(snapshot))
-      const latestPostUser = await get<User>(item.firstPost).then((snapshot) => itemOrUndefined(snapshot))
-
-      threads.push({
-        ...item,
-        firstPostUser: firstPostUser,
-        latestPostUser: latestPostUser,
-        posts: undefined,
-      })
+      const hydratedThread = await hydrateThread(snapshot)
+      if (hydratedThread != null) {
+        threads.push(hydratedThread)
+      }
     }
     return threads
   })
@@ -129,33 +154,37 @@ export async function getThread(uid: string,
   bid: string,
   tid: string,
   offset?: string,
-  maxResults = 200): Promise<HydratedThreadPost[]> {
+  maxResults = 200): Promise<HydratedThread | null> {
   const tCollection = threadsCollection([uid, gid, bid])
   const threadRef = ref(tCollection, tid)
   const pCollection = threadPostsCollection(threadRef)
 
+  const thread = await get(threadRef)
+  const hydratedThread = await hydrateThread(thread)
+
+  if (hydratedThread == null) {
+    return null
+  }
+
   const queries: Query<ThreadPost, keyof ThreadPost>[] = []
   if (offset) {
-    queries.push(order("updatedAt", "desc", [startAfter(offset)]))
+    queries.push(order("createdAt", "desc", [startAfter(offset)]))
   } else {
-    queries.push(order("updatedAt", "desc"))
+    queries.push(order("createdAt", "desc"))
   }
   queries.push(limit(maxResults))
 
+  const results = await query(pCollection, queries)
+
   const posts: HydratedThreadPost[] = []
-
-  return query(pCollection, queries).then(async (results) => {
-    for (const snapshot of results) {
-      const item = snapshot.data
-      item.id = snapshot.ref.id
-
-      const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
-
-      posts.push({
-        ...item,
-        authorUser: authorUser,
-      })
+  for (const snapshot of results) {
+    const hydratedThreadPost = await hydrateThreadPost(snapshot)
+    if (hydratedThreadPost != null) {
+      posts.push(hydratedThreadPost)
     }
-    return posts
-  })
+  }
+
+  hydratedThread.posts = posts
+
+  return hydratedThread
 }

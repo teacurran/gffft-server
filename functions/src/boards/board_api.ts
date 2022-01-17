@@ -103,7 +103,6 @@ router.post(
       author: posterRef,
       body: req.body.body,
       createdAt: new Date(),
-      updatedAt: new Date(),
     })
 
     res.sendStatus(204)

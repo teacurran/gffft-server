@@ -15,7 +15,7 @@ import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
-import {boardToJson, IBoardType, threadPostsToJson, threadsToJson} from "../boards/board_interfaces"
+import {boardToJson, IBoardType, threadsToJson, threadToJson} from "../boards/board_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
 import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
@@ -255,8 +255,12 @@ router.get(
     }
 
     getThread(uid, gid, bid, tid, req.query.offset, req.query.max).then(
-      (items) => {
-        res.json(threadPostsToJson(items))
+      (thread) => {
+        if (thread == null) {
+          res.sendStatus(404)
+          return
+        }
+        res.json(threadToJson(thread))
       }
     )
   }
