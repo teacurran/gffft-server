@@ -9,7 +9,7 @@ import {boardToJson} from "./board_interfaces"
 import {getOrCreateDefaultGffft, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {Gffft, TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {add, get, ref} from "typesaurus"
+import {add, get, Ref, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
 import * as Joi from "@hapi/joi"
 
@@ -34,10 +34,10 @@ const createPostParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
   bid: Joi.string().required(),
-  pid: Joi.string().optional().allow(null),
-  subject: Joi.string().when("pid", {
+  tid: Joi.string().optional().allow(null),
+  subject: Joi.string().when("tid", {
     is: Joi.exist(),
-    then: Joi.string().optional(),
+    then: Joi.string().optional().allow(null),
     otherwise: Joi.string().required(),
   }),
   body: Joi.string().required()})
@@ -46,7 +46,7 @@ export interface CreatePostRequest extends ValidatedRequestSchema {
     uid: string
     gid: string
     bid: string
-    pid?: string
+    tid?: string
     subject?: string
     body: string
   }
@@ -60,7 +60,8 @@ router.post(
     const uid = req.body.uid
     const gid = req.body.gid
     const bid = req.body.bid
-    console.log(`creating post: uid:${uid} gid:${gid} bid:${bid} subject: ${req.body.subject}`)
+    const tid = req.body.tid
+    console.log(`creating post: uid:${uid} gid:${gid} bid:${bid} tid:${tid} subject: ${req.body.subject}`)
 
     // const gffft = await getGffft(uid, gid)
     // const board = await getBoard(uid, gid, bid)
@@ -85,17 +86,35 @@ router.post(
       return
     }
 
-    const thread = {
-      subject: req.body.subject,
-      firstPost: posterRef,
-      latestPost: posterRef,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      postCount: 0,
-    } as Thread
+    const threads = threadsCollection([uid, gid, bid])
 
-    const threadCollection = threadsCollection([uid, gid, bid])
-    const threadRef = await add(threadCollection, thread)
+    let threadRef: Ref<Thread>
+
+    // are we replying to an existing thread
+    if (tid) {
+      threadRef = ref(threads, tid)
+      const thread = await get(threadRef)
+
+      // make sure the existing thread exists
+      if (thread == null) {
+        // todo, send more desriptive errors
+        res.sendStatus(404)
+        return
+      }
+
+      // todo: check for things like thread being locked, permissions, etc...
+    } else {
+      const thread = {
+        subject: req.body.subject,
+        firstPost: posterRef,
+        latestPost: posterRef,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        postCount: 0,
+      } as Thread
+
+      threadRef = await add(threads, thread)
+    }
 
     const postsCollection = threadPostsCollection(threadRef)
 

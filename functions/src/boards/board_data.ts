@@ -168,9 +168,9 @@ export async function getThread(uid: string,
 
   const queries: Query<ThreadPost, keyof ThreadPost>[] = []
   if (offset) {
-    queries.push(order("createdAt", "desc", [startAfter(offset)]))
+    queries.push(order("createdAt", "asc", [startAfter(offset)]))
   } else {
-    queries.push(order("createdAt", "desc"))
+    queries.push(order("createdAt", "asc"))
   }
   queries.push(limit(maxResults))
 
