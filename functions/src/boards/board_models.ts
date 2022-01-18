@@ -6,6 +6,8 @@ export type Board = {
     key?: string
     name?: string
     description?: string
+    threadCount: number
+    postCount: number
   }
 
 export type BoardThreadPostCounterNoAuthor = {

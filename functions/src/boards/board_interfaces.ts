@@ -6,7 +6,6 @@ export interface IBoardStats {
   label: string
   threads: number
   posts: number
-  members: number
   firstActivity: Date | null
   updatedAt: Date | null
 }
@@ -107,9 +106,8 @@ export function boardToJson(
     description: board.description,
     stats: {
       label: "total",
-      threads: 693,
-      posts: 98087,
-      members: 324,
+      threads: board.threadCount,
+      posts: board.postCount,
       firstActivity: new Date(),
       updatedAt: new Date(),
     },
