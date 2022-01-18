@@ -2,19 +2,14 @@ import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
 import {Board, HydratedThread, HydratedThreadPost} from "./board_models"
 
-export interface IBoardStats {
-  label: string
-  threads: number
-  posts: number
-  firstActivity: Date | null
-  updatedAt: Date | null
-}
-
 export interface IBoardType {
     id: string
     name?: string
     description?: string
-    stats: IBoardStats
+    threads: number
+    posts: number
+    firstActivity: Date | null
+    updatedAt: Date | null
   }
 
 export interface IThread {
@@ -104,13 +99,10 @@ export function boardToJson(
     id: board.id,
     name: board.name,
     description: board.description,
-    stats: {
-      label: "total",
-      threads: board.threadCount,
-      posts: board.postCount,
-      firstActivity: new Date(),
-      updatedAt: new Date(),
-    },
+    threads: board.threadCount,
+    posts: board.postCount,
+    firstActivity: new Date(),
+    updatedAt: new Date(),
   }
   return item
 }
