@@ -36,6 +36,8 @@ export async function getOrCreateDefaultGallery(userId: string, gffftId: string)
   if (gallery == null) {
     gallery = {
       key: DEFAULT_BOARD_KEY,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     } as Gallery
     const result = await add<Gallery>(userGalleries, gallery)
     gallery.id = result.id
