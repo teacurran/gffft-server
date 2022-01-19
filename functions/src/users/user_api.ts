@@ -10,7 +10,7 @@ import {createGffftMembership, deleteGffftMembership, getGffft,
   getGffftMembership} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
-import {getGalleryByRef} from "../galleries/gallery_data"
+import {getGallery, getGalleryByRefString, getGalleryItems, hydrateGallery} from "../galleries/gallery_data"
 import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
@@ -21,6 +21,7 @@ import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import * as Joi from "@hapi/joi"
 import {upset, value} from "typesaurus"
+import {galleryToJson} from "../galleries/gallery_interfaces"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -116,7 +117,7 @@ router.get(
             })
           }
         } else if (feature.indexOf("/galleries/") != -1) {
-          const gallery = await getGalleryByRef(feature)
+          const gallery = await getGalleryByRefString(feature)
           if (gallery) {
             galleries.push(gallery)
             features.push({
@@ -183,7 +184,6 @@ export interface GetBoardThreadsRequest extends ValidatedRequestSchema {
     offset?: string
   };
 }
-
 router.get(
   "/:uid/gfffts/:gid/boards/:bid/threads",
   requiredAuthentication,
@@ -349,6 +349,54 @@ router.post(
     })
 
     res.json(iamUserToJson(iamUser, user))
+  }
+)
+
+export const getGalleryPathParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  mid: Joi.string().required(),
+})
+export const getGalleryQueryParams = Joi.object({
+  max: Joi.string().optional(),
+  offset: Joi.string().optional(),
+})
+export interface GetGalleryRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    mid: string
+  }
+  [ContainerTypes.Query]: {
+    max?: number
+    offset?: string
+  };
+}
+router.get(
+  "/:uid/gfffts/:gid/galleries/:mid",
+  requiredAuthentication,
+  validator.params(getGalleryPathParams),
+  validator.query(getGalleryQueryParams),
+  async (req: ValidatedRequest<GetGalleryRequest>, res: Response) => {
+    const uid = req.params.uid
+    const gid = req.params.gid
+    const mid = req.params.mid
+
+    const gallery = await getGallery(uid, gid, mid)
+
+    if (!gallery) {
+      res.sendStatus(404)
+      return
+    }
+
+    const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max)
+
+    const hydratedGallery = await hydrateGallery(gallery, items)
+
+    if (hydratedGallery) {
+      return galleryToJson(hydratedGallery)
+    }
+    return 200
   }
 )
 
