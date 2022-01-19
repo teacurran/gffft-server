@@ -392,11 +392,12 @@ router.get(
     const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max)
 
     const hydratedGallery = await hydrateGallery(gallery, items)
-
-    if (hydratedGallery) {
-      return galleryToJson(hydratedGallery)
+    if (hydratedGallery == null) {
+      res.sendStatus(404)
+      return
     }
-    return 200
+
+    res.json(galleryToJson(hydratedGallery))
   }
 )
 

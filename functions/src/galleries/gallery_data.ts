@@ -45,8 +45,10 @@ export async function getOrCreateDefaultGallery(userId: string, gffftId: string)
 }
 
 export async function getGallery(uid: string, gid: string, mid: string): Promise<Gallery | null> {
+  console.log(`getting gallery: uid:${uid} gid:${gid} mid:${mid}`)
   const galleries = galleryCollection([uid, gid])
   const itemRef = ref(galleries, mid)
+  console.log(`itemRef: ${JSON.stringify(itemRef)}`)
   return getGalleryByRef(itemRef)
 }
 
@@ -114,7 +116,9 @@ export async function hydrateGallery(gallery: Gallery,
     return null
   }
 
-  const latestPostUser = await get<User>(gallery.latestPost).then((snapshot) => itemOrUndefined(snapshot))
+  const latestPostUser = gallery.latestPost ?
+    await get<User>(gallery.latestPost).then((snapshot) => itemOrUndefined(snapshot)) :
+    undefined
 
   return {
     ...gallery,
