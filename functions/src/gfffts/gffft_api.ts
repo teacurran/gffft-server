@@ -114,6 +114,49 @@ router.get(
   }
 )
 
+const gffftPatchRequestParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  name: Joi.string().optional(),
+  description: Joi.string().optional(),
+  intro: Joi.string().allow(null),
+  tags: Joi.array().items(Joi.string()).optional(),
+})
+export interface GffftPatchRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Body]: {
+    uid: string
+    gid: string
+    name?: string;
+    description?: string;
+    intro?: string,
+    tags?: string[],
+  };
+}
+router.patch(
+  "/",
+  requiredAuthentication,
+  validator.body(gffftPatchRequestParams),
+  async (
+    req: ValidatedRequest<GffftPatchRequest>,
+    res: Response,
+  ) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    const uid = req.body.uid
+    const gid = req.body.gid
+
+    const gffft = await getGffft(uid, gid)
+    if (gffft != null) {
+      gffft.name = req.body.name ?? ""
+
+      updateGffft(iamUser.id, gffft.id, gffft).then(() => {
+        res.sendStatus(204)
+      })
+    }
+  }
+)
+
+
 router.put(
   "/",
   requiredAuthentication,
@@ -170,7 +213,7 @@ router.put(
     gffft.createdAt = gffft.createdAt ?? new Date()
     gffft.updatedAt = new Date()
 
-    updateGffft(iamUser.id, gffft).then(() => {
+    updateGffft(iamUser.id, gffft.id, gffft).then(() => {
       res.sendStatus(204)
     })
   }
@@ -267,4 +310,5 @@ router.put(
 )
 
 export default router
+
 

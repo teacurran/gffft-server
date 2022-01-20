@@ -133,14 +133,14 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
       // below this are hacks to upgrade data as I've changed my mind about it.
       if (!gffft.fruitCode) {
         gffft.fruitCode = await getUniqueFruitCode()
-        await updateGffft(userId, gffft)
+        await updateGffft(userId, gffft.id, gffft)
       } else if (gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
         gffft.fruitCode = await getUniqueFruitCode()
-        await updateGffft(userId, gffft)
+        await updateGffft(userId, gffft.id, gffft)
       }
       if (!gffft.uid) {
         gffft.uid = userId
-        await updateGffft(userId, gffft)
+        await updateGffft(userId, gffft.id, gffft)
       }
       await ensureOwnership(gffft, userId)
       return gffft
@@ -200,17 +200,14 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
   })
 }
 
-/**
- * @param {userId} userId user to look up
- * @param {gffft} gffft being saved
- * @return {IIAMUserType}
- */
-export async function updateGffft(userId: string, gffft: Gffft): Promise<void> {
-  console.log(`updating gffft: ${gffft.id}, userId: ${userId}`)
-  const userGfffts = gffftsCollection(userId)
+export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promise<void> {
+  console.log(`updating gffft, uid:${uid} gid:${gid}`)
+  const userGfffts = gffftsCollection(uid)
+  const gffftRef = ref(userGfffts, gid)
+
   gffft.nameLower = gffft.name ? gffft.name.toLowerCase() : ""
 
-  return upset<Gffft>(userGfffts, gffft.id, gffft)
+  return upset<Gffft>(gffftRef, gffft)
 }
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
