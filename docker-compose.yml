@@ -23,8 +23,7 @@ services:
       - "9199:9199"
       - "5000:5000"
       - "8080:8080"
-    command: firebase emulators:start --project gffft-auth --import /app/data & tsc
-      --watch
+    command: firebase emulators:start --project gffft-auth --import /app/data
 
   api:
     image: gffft-api

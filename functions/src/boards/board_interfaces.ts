@@ -99,8 +99,8 @@ export function boardToJson(
     id: board.id,
     name: board.name,
     description: board.description,
-    threads: board.threadCount,
-    posts: board.postCount,
+    threads: board.threadCount ? board.threadCount : 0,
+    posts: board.postCount ? board.postCount : 0,
     firstActivity: new Date(),
     updatedAt: new Date(),
   }
