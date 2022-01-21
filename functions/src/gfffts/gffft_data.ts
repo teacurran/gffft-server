@@ -142,7 +142,7 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
         gffft.uid = userId
         await updateGffft(userId, gffft.id, gffft)
       }
-      await ensureOwnership(gffft, userId)
+      // await ensureOwnership(gffft, userId)
       return gffft
     }
     return null
@@ -211,6 +211,9 @@ export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promi
 }
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
+  if (gid == "default") {
+    return getOrCreateDefaultGffft(uid)
+  }
   console.log(`looking for gffft:${gid} uid:${uid}`)
   const userGfffts = gffftsCollection(uid)
   const gffftRef = ref(userGfffts, gid)

@@ -79,7 +79,14 @@ router.get(
   validator.params(getGffftByIdParams),
   async (req: ValidatedRequest<GetGffftByIdRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
-    const gffft = await getGffft(req.params.uid, req.params.gid)
+
+    let uid = req.params.uid
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
+
+    const gffft = await getGffft(uid, req.params.gid)
     if (!gffft) {
       res.sendStatus(404)
       return
