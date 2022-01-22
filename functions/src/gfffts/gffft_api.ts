@@ -143,12 +143,20 @@ router.patch(
   ) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    const uid = req.body.uid
+    let uid = req.body.uid
+    if (uid == "me") {
+      uid = iamUser.id
+    }
     const gid = req.body.gid
 
     const gffft = await getGffft(uid, gid)
     if (gffft != null) {
-      gffft.name = req.body.name ?? ""
+      if (req.body.name != undefined) {
+        gffft.name = req.body.name
+      }
+      if (req.body.intro != undefined) {
+        gffft.intro = req.body.intro
+      }
 
       updateGffft(iamUser.id, gffft.id, gffft).then(() => {
         res.sendStatus(204)
