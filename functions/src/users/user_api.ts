@@ -46,7 +46,7 @@ router.get(
     const userId = iamUser.id
     const user: User = await getUser(userId)
 
-    res.json(iamUserToJson(iamUser, user))
+    res.json(iamUserToJson(user))
   }
 )
 
@@ -98,7 +98,6 @@ router.get(
     const calendars: Calendar[] = []
     const galleries: Gallery[] = []
     const notebooks: Notebook[] = []
-
     const features: IGffftFeatureRef[] = []
 
     if (gffft.features) {
@@ -168,8 +167,9 @@ router.get(
 
     const membership = await getGffftMembership(uid, gid, iamUser.id)
     const bookmark = await getBookmark(uid, gid, iamUser.id)
+    const user = await getUser(iamUser.id)
 
-    res.json(gffftToJson(gffft, membership, bookmark, features, boardJson, calendars, galleries, notebookJson))
+    res.json(gffftToJson(gffft, user, membership, bookmark, features, boardJson, calendars, galleries, notebookJson))
   }
 )
 
@@ -357,7 +357,7 @@ router.post(
       updatedAt: new Date(),
     })
 
-    res.json(iamUserToJson(iamUser, user))
+    res.json(iamUserToJson(user))
   }
 )
 

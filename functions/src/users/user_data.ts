@@ -1,7 +1,7 @@
 import {QueryDocumentSnapshot, WriteResult} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
 import {collection, get, set, query, where, limit, subcollection, all, ref, upset, remove} from "typesaurus"
-import {itemOrUndefined} from "../common/data"
+import {itemOrNull, itemOrUndefined} from "../common/data"
 import {randomInt} from "../common/utils"
 import {getGffft, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
@@ -22,12 +22,7 @@ export const bookmarksCollection = subcollection<UserBookmark, User>("bookmarks"
  * @return {IIAMUserType}
  */
 export async function getUser(userId: string): Promise<User> {
-  let user = await get(usersCollection, userId).then((snapshot) => {
-    if (snapshot != null) {
-      return snapshot.data
-    }
-    return null
-  })
+  let user = await get(usersCollection, userId).then((snapshot) => itemOrNull(snapshot))
   if (user == null) {
     user = {} as User
   }

@@ -1,4 +1,3 @@
-import {LoggedInUser} from "../auth"
 import {notEmpty} from "../common/utils"
 import {gffftToJsonMinimal, IGffftMinimalType} from "../gfffts/gffft_interfaces"
 import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
@@ -28,17 +27,15 @@ export interface IBookmarkResults {
 
 /**
  * Serialized iam user to json
- * @param {UserRecord} iamUser user to serialize
  * @param {User} user
  * @param {Board} board
  * @return {IIAMUserType}
  */
 export function iamUserToJson(
-  iamUser: LoggedInUser,
   user: User
 ): IUserType {
   const item: IUserType = {
-    id: iamUser.id,
+    id: user.id,
     username: user.username,
   }
   return item

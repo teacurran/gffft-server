@@ -17,6 +17,7 @@ import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/noteb
 import {Calendar} from "../calendars/calendar_models"
 import {calendarCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
 import * as Joi from "@hapi/joi"
+import {getUser} from "../users/user_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -225,7 +226,8 @@ router.get(
   async (req: Request, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
     const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
-    res.json(gffftToJson(gffft, undefined, undefined, [], [], [], [], []))
+    const user = await getUser(iamUser.id)
+    res.json(gffftToJson(gffft, user, undefined, undefined, [], [], [], [], []))
   }
 )
 

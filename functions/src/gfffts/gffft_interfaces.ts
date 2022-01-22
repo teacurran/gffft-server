@@ -3,8 +3,8 @@ import {ICalendarType} from "../calendars/calendar_types"
 import {notEmpty} from "../common/utils"
 import {IGalleryType} from "../galleries/gallery_types"
 import {INotebookType} from "../notebooks/notebook_interfaces"
-import {bookmarkToJson, IUserBookmark} from "../users/user_interfaces"
-import {UserBookmark} from "../users/user_models"
+import {bookmarkToJson, iamUserToJson, IUserBookmark, IUserType} from "../users/user_interfaces"
+import {User, UserBookmark} from "../users/user_models"
 import {Gffft, GffftMember} from "./gffft_models"
 
 export interface IGffftId {
@@ -25,6 +25,7 @@ export interface IGffftMember {
 export interface IGffftType {
     uid: string
     gid: string
+    me?: IUserType
     membership?: IGffftMember
     bookmark?: IUserBookmark
     name: string
@@ -140,6 +141,7 @@ export function gffftMemberToJson(
 
 export function gffftToJson(
   gffft: Gffft,
+  me: User | undefined,
   membership: GffftMember | undefined,
   bookmark: UserBookmark | undefined,
   features: IGffftFeatureRef[],
@@ -171,6 +173,9 @@ export function gffftToJson(
     notebooks: notebooks,
     createdAt: gffft.createdAt,
     updatedAt: gffft.updatedAt,
+  }
+  if (me) {
+    item.me = iamUserToJson(me)
   }
   return item
 }
