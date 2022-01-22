@@ -6,6 +6,7 @@ import {itemOrNull} from "../common/data"
 import {usersCollection} from "../users/user_data"
 
 const DEFAULT_GFFFT_KEY = "default"
+const DEFAULT_GFFFT_INTRO = "{default-intro}"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
 const RARE_FRUITS = [..."🍅🫑🍆🥑"]
 const ULTRA_RARE_FRUITS = [..."🥨🐈💾🍕"]
@@ -153,6 +154,7 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
       key: DEFAULT_GFFFT_KEY,
       fruitCode: await getUniqueFruitCode(),
       uid: userId,
+      intro: DEFAULT_GFFFT_INTRO,
     } as Gffft
     const result = await add<Gffft>(userGfffts, gffft)
     gffft.id = result.id

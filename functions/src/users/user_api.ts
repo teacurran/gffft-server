@@ -81,16 +81,18 @@ router.get(
     const iamUser: LoggedInUser = res.locals.iamUser
 
     let uid = req.params.uid
+    let gid = req.params.gid
 
     if (uid == "me") {
       uid = iamUser.id
     }
 
-    const gffft = await getGffft(uid, req.params.gid)
+    const gffft = await getGffft(uid, gid)
     if (!gffft) {
       res.sendStatus(404)
       return
     }
+    gid = gffft.id
 
     const boards: Board[] = []
     const calendars: Calendar[] = []
@@ -164,8 +166,8 @@ router.get(
       }
     })
 
-    const membership = await getGffftMembership(req.params.uid, req.params.gid, iamUser.id)
-    const bookmark = await getBookmark(req.params.uid, req.params.gid, iamUser.id)
+    const membership = await getGffftMembership(uid, gid, iamUser.id)
+    const bookmark = await getBookmark(uid, gid, iamUser.id)
 
     res.json(gffftToJson(gffft, membership, bookmark, features, boardJson, calendars, galleries, notebookJson))
   }
