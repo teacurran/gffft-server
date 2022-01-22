@@ -199,9 +199,23 @@ router.get(
   validator.params(getBoardThreadsPathParams),
   validator.query(getBoardThreadsQueryParams),
   async (req: ValidatedRequest<GetBoardThreadsRequest>, res: Response) => {
-    const uid = req.params.uid
-    const gid = req.params.gid
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
     const bid = req.params.bid
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
+
+    // make sure the gffft exists
+    const gffft = await getGffft(uid, gid)
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
 
     // const iamUser: LoggedInUser = res.locals.iamUser
     // const gffft = await getGffft(uid, gid)
