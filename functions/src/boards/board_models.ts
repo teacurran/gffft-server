@@ -8,6 +8,8 @@ export type Board = {
     description?: string
     threadCount?: number
     postCount?: number
+    whoCanView?: string
+    whoCanPost?: string
   }
 
 export type BoardThreadPostCounterNoAuthor = {

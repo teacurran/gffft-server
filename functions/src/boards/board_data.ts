@@ -9,6 +9,9 @@ import {itemOrUndefined} from "../common/data"
 const DEFAULT_BOARD_KEY = "default"
 const DEFAULT_BOARD_NAME = "board"
 
+export const WHO_OWNER = "owner"
+export const WHO_PUBLIC = "public"
+
 export const boardsCollection = subcollection<Board, Gffft, User>("boards", gffftsCollection)
 export const threadsCollection = subcollection<Thread, Board, Gffft, [string, string]>("threads", boardsCollection)
 export const threadPostsCollection = subcollection<ThreadPost, Thread, Board,

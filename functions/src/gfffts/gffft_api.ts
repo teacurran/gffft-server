@@ -122,6 +122,9 @@ const gffftPatchRequestParams = Joi.object({
   description: Joi.string().optional(),
   intro: Joi.string().allow(null),
   tags: Joi.array().items(Joi.string()).optional(),
+  enabled: Joi.boolean().optional(),
+  allowMembers: Joi.boolean().optional(),
+  boardEnabled: Joi.boolean().optional(),
 })
 export interface GffftPatchRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
@@ -131,6 +134,9 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     description?: string;
     intro?: string,
     tags?: string[],
+    enabled?: boolean,
+    allowMembers?: boolean,
+    boardEnabled?: boolean,
   };
 }
 router.patch(
@@ -143,19 +149,50 @@ router.patch(
   ) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    let uid = req.body.uid
+    const body = req.body
+
+    let uid = body.uid
     if (uid == "me") {
       uid = iamUser.id
     }
-    const gid = req.body.gid
+    let gid = body.gid
 
     const gffft = await getGffft(uid, gid)
+
+    // todo, make sure user has permissions to edit.
+    // currently only enforced in the front end
+
     if (gffft != null) {
-      if (req.body.name != undefined) {
-        gffft.name = req.body.name
+      gid = gffft.id
+      if (body.name != undefined) {
+        gffft.name = body.name
       }
-      if (req.body.intro != undefined) {
-        gffft.intro = req.body.intro
+      if (body.intro != undefined) {
+        gffft.intro = body.intro
+      }
+      if (body.enabled != undefined) {
+        gffft.enabled = body.enabled
+      }
+      if (body.allowMembers != undefined) {
+        gffft.allowMembers = body.allowMembers
+      }
+      if (body.boardEnabled != undefined) {
+        console.log(`got board enable:${body.boardEnabled}`)
+        const features: string[] = gffft.features ?? []
+
+        const board: Board = await getOrCreateDefaultBoard(uid, gid)
+        const userBoards = boardsCollection([uid, gid])
+        const boardRef = getRefPath(ref(userBoards, board.id))
+
+        const boardIndex = features.indexOf(boardRef, 0)
+        if (boardIndex > -1) {
+          features.splice(boardIndex, 1)
+        }
+        if (body.boardEnabled) {
+          features.push(boardRef)
+        }
+
+        gffft.features = features
       }
 
       updateGffft(iamUser.id, gffft.id, gffft).then(() => {

@@ -20,8 +20,6 @@ export type Gffft = {
     pagesWhoCanView?: string
     pagesWhoCanEdit?: string
     boardEnabled: boolean
-    boardWhoCanView?: string
-    boardWhoCanPost?: string
     galleryEnabled: boolean
     galleryWhoCanView?: string
     galleryWhoCanPost?: string
