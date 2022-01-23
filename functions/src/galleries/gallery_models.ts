@@ -8,6 +8,8 @@ export type Gallery = {
     description?: string
     photoCount: number
     videoCount: number
+    whoCanView?: string
+    whoCanPost?: string
     latestPost: Ref<User>
     createdAt: Date
     updatedAt: Date

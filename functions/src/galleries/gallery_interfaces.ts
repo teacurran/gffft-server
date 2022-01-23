@@ -1,6 +1,7 @@
+import {WHO_OWNER} from "../boards/board_data"
 import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
-import {HydratedGallery, HydratedGalleryItem} from "./gallery_models"
+import {Gallery, HydratedGallery, HydratedGalleryItem} from "./gallery_models"
 
 export interface IGalleryItem {
     id: string
@@ -18,12 +19,29 @@ export interface IGallery {
     latestPost?: IUserRef
     createdAt: Date
     updatedAt: Date
-    count: number
-    items: IGalleryItem[]
+    count?: number
+    whoCanView: string
+    whoCanPost: string
+    items?: IGalleryItem[]
+}
+
+export function galleryToJson(
+  gallery: Gallery
+): IGallery {
+  return {
+    id: gallery.id,
+    name: gallery.name,
+    photoCount: gallery.photoCount,
+    videoCount: gallery.videoCount,
+    createdAt: gallery.createdAt,
+    updatedAt: gallery.updatedAt,
+    whoCanView: gallery.whoCanView ?? WHO_OWNER,
+    whoCanPost: gallery.whoCanPost ?? WHO_OWNER,
+  }
 }
 
 
-export function galleryToJson(
+export function galleryToJsonWithItems(
   gallery: HydratedGallery
 ): IGallery {
   const itemsJson = gallery.items?.map((item) => galleryItemToJson(item)).filter(notEmpty)
@@ -36,6 +54,8 @@ export function galleryToJson(
     updatedAt: gallery.updatedAt,
     count: gallery.items?.length ?? 0,
     items: itemsJson ?? [],
+    whoCanView: gallery.whoCanView ?? WHO_OWNER,
+    whoCanPost: gallery.whoCanPost ?? WHO_OWNER,
   }
 }
 

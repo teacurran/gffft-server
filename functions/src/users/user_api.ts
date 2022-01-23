@@ -22,6 +22,7 @@ import * as Joi from "@hapi/joi"
 import {upset, value} from "typesaurus"
 import {galleryToJson} from "../galleries/gallery_interfaces"
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
+import {IGalleryType} from "../galleries/gallery_types"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -150,7 +151,6 @@ router.get(
     }
 
     const boardJson: IBoardType[] = []
-
     boards.forEach((board) => {
       const json = boardToJson(board)
       if (json != null) {
@@ -166,11 +166,19 @@ router.get(
       }
     })
 
+    const galleryJson: IGalleryType[] = []
+    galleries.forEach((gallery) => {
+      const json = galleryToJson(gallery)
+      if (json != null) {
+        galleryJson.push(json)
+      }
+    })
+
     const membership = await getGffftMembership(uid, gid, iamUser.id)
     const bookmark = await getBookmark(uid, gid, iamUser.id)
     const user = await getUser(iamUser.id)
 
-    res.json(gffftToJson(gffft, user, membership, bookmark, features, boardJson, calendars, galleries, notebookJson))
+    res.json(gffftToJson(gffft, user, membership, bookmark, features, boardJson, calendars, galleryJson, notebookJson))
   }
 )
 
