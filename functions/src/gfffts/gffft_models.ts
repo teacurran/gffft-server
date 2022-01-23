@@ -7,6 +7,8 @@ export type Gffft = {
     key: string
     name: string
     fruitCode?: string
+    rareFruits?: number
+    ultraRareFruits?: number
     nameLower: string
     description: string
     intro?: string

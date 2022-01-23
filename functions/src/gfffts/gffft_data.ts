@@ -21,18 +21,22 @@ function randBelow(high: number): number {
   return Math.floor(Math.random() * high)
 }
 
-export async function getUniqueFruitCode(): Promise<string> {
+export async function getUniqueFruitCode(): Promise<[string, number, number]> {
   let fruitCode = ""
+  let rareFruitEncountered = 0
+  let ultraRareFruitEncountered = 0
 
   // limit loop to prevent overflow
   for (let i = 0; i < 1000; i++) {
     fruitCode = ""
     for (let fc = 0; fc < FRUIT_CODE_LENGTH; fc++) {
-      if (randBelow(1000000) == 999999) {
+      if (randBelow(1000000) >= 999990) {
         console.log("ULTRA RARE FRUIT GENERATED!")
+        ultraRareFruitEncountered++
         fruitCode += ULTRA_RARE_FRUITS[randBelow(ULTRA_RARE_FRUITS.length)]
-      } else if (randBelow(1000) == 999) {
+      } else if (randBelow(1000) >= 990) {
         console.log("RARE FRUIT GENERATED!")
+        rareFruitEncountered++
         fruitCode += RARE_FRUITS[randBelow(RARE_FRUITS.length)]
       } else {
         fruitCode += FRUITS[randBelow(FRUITS.length)]
@@ -50,7 +54,7 @@ export async function getUniqueFruitCode(): Promise<string> {
     })
 
     if (!fruitCodeExists) {
-      return fruitCode
+      return [fruitCode, rareFruitEncountered, ultraRareFruitEncountered]
     }
   }
   throw new Error("unable to generate unique fruitcode")
@@ -133,10 +137,14 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
 
       // below this are hacks to upgrade data as I've changed my mind about it.
       if (!gffft.fruitCode) {
-        gffft.fruitCode = await getUniqueFruitCode()
+        [gffft.fruitCode,
+          gffft.rareFruits,
+          gffft.ultraRareFruits] = await getUniqueFruitCode()
         await updateGffft(userId, gffft.id, gffft)
       } else if (gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
-        gffft.fruitCode = await getUniqueFruitCode()
+        [gffft.fruitCode,
+          gffft.rareFruits,
+          gffft.ultraRareFruits] = await getUniqueFruitCode()
         await updateGffft(userId, gffft.id, gffft)
       }
       if (!gffft.uid) {
@@ -152,13 +160,15 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   if (gffft == null) {
     gffft = {
       key: DEFAULT_GFFFT_KEY,
-      fruitCode: await getUniqueFruitCode(),
       uid: userId,
       name: DEFAULT_STRING,
       intro: DEFAULT_STRING,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as Gffft
+    [gffft.fruitCode,
+      gffft.rareFruits,
+      gffft.ultraRareFruits] = await getUniqueFruitCode()
     const result = await add<Gffft>(userGfffts, gffft)
     gffft.id = result.id
   }

@@ -247,7 +247,9 @@ router.patch(
       }
 
       if (body.fruitCodeReset === true) {
-        gffft.fruitCode = await getUniqueFruitCode()
+        [gffft.fruitCode,
+          gffft.rareFruits,
+          gffft.ultraRareFruits] = await getUniqueFruitCode()
       }
 
       gffft.features = features
@@ -405,7 +407,10 @@ router.put(
     })
 
     if (isOwner) {
-      gffft.fruitCode = await getUniqueFruitCode()
+      [gffft.fruitCode,
+        gffft.rareFruits,
+        gffft.ultraRareFruits] = await getUniqueFruitCode()
+
       await upset(gffftRef, gffft)
     }
 
