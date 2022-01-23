@@ -15,7 +15,7 @@ import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery
 import {Notebook} from "../notebooks/notebook_models"
 import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/notebook_data"
 import {Calendar} from "../calendars/calendar_models"
-import {calendarCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
+import {calendarsCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
 import * as Joi from "@hapi/joi"
 import {getUser} from "../users/user_data"
 
@@ -125,6 +125,8 @@ const gffftPatchRequestParams = Joi.object({
   enabled: Joi.boolean().optional(),
   allowMembers: Joi.boolean().optional(),
   boardEnabled: Joi.boolean().optional(),
+  calendarEnabled: Joi.boolean().optional(),
+  galleryEnabled: Joi.boolean().optional(),
 })
 export interface GffftPatchRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
@@ -137,6 +139,8 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     enabled?: boolean,
     allowMembers?: boolean,
     boardEnabled?: boolean,
+    calendarEnabled?: boolean,
+    galleryEnabled?: boolean,
   };
 }
 router.patch(
@@ -176,24 +180,54 @@ router.patch(
       if (body.allowMembers != undefined) {
         gffft.allowMembers = body.allowMembers
       }
+
+      const features: string[] = gffft.features ?? []
       if (body.boardEnabled != undefined) {
         console.log(`got board enable:${body.boardEnabled}`)
-        const features: string[] = gffft.features ?? []
 
         const board: Board = await getOrCreateDefaultBoard(uid, gid)
         const userBoards = boardsCollection([uid, gid])
-        const boardRef = getRefPath(ref(userBoards, board.id))
+        const itemRef = getRefPath(ref(userBoards, board.id))
 
-        const boardIndex = features.indexOf(boardRef, 0)
-        if (boardIndex > -1) {
-          features.splice(boardIndex, 1)
+        const itemIndex = features.indexOf(itemRef, 0)
+        if (itemIndex > -1) {
+          features.splice(itemIndex, 1)
         }
         if (body.boardEnabled) {
-          features.push(boardRef)
+          features.push(itemRef)
         }
-
-        gffft.features = features
       }
+      if (body.calendarEnabled != undefined) {
+        console.log(`got calendar enable:${body.calendarEnabled}`)
+        const calendar: Calendar = await getOrCreateDefaultCalendar(uid, gid)
+        const calendars = calendarsCollection([uid, gid])
+        const itemRef = getRefPath(ref(calendars, calendar.id))
+
+        const itemIndex = features.indexOf(itemRef, 0)
+        if (itemIndex > -1) {
+          features.splice(itemIndex, 1)
+        }
+        if (body.calendarEnabled) {
+          features.push(itemRef)
+        }
+      }
+      if (body.galleryEnabled != undefined) {
+        console.log(`got gallery enable:${body.galleryEnabled}`)
+        const gallery: Gallery = await getOrCreateDefaultGallery(uid, gid)
+        const galleries = galleryCollection([uid, gid])
+        const itemRef = getRefPath(ref(galleries, gallery.id))
+
+        const itemIndex = features.indexOf(itemRef, 0)
+        if (itemIndex > -1) {
+          features.splice(itemIndex, 1)
+        }
+        if (body.galleryEnabled) {
+          features.push(itemRef)
+        }
+      }
+
+      gffft.features = features
+
 
       updateGffft(iamUser.id, gffft.id, gffft).then(() => {
         res.sendStatus(204)
@@ -249,7 +283,7 @@ router.put(
 
     if (item.calendarEnabled) {
       const calendar: Calendar = await getOrCreateDefaultCalendar(iamUser.id, gffft.id)
-      const userCalendars = calendarCollection([iamUser.id, gffft.id])
+      const userCalendars = calendarsCollection([iamUser.id, gffft.id])
       features.push(getRefPath(ref(userCalendars, calendar.id)))
     }
 

@@ -8,7 +8,7 @@ import {pathToRef, Ref, ref, upset, value} from "typesaurus"
 import {GffftAdminCounter, GffftAnonCounter,
   GffftMemberCounter, GffftOwnerCounter, GffftStats} from "./gfffts/gffft_models"
 import moment from "moment"
-import {boardsCollection, threadsCollection} from "./boards/board_data"
+import {boardsCollection, threadPostsCollection, threadsCollection} from "./boards/board_data"
 import {BoardPostCounterWithAuthor, BoardThreadCounter, BoardThreadPostCounterNoAuthor,
   ThreadPostCounterWithAuthor} from "./boards/board_models"
 import {User} from "./users/user_models"
@@ -148,6 +148,7 @@ export const threadCreateCounter = functions.firestore
     if (!change.before.exists && afterData != null) {
       return upset<BoardThreadCounter>(boardRef, {
         threadCount: value("increment", 1),
+        updatedAt: afterData.updatedAt,
       })
     } else if (change.before.exists && change.after.exists && beforeData && afterData) {
       // do nithing for post updates
@@ -188,6 +189,7 @@ export const threadReplyCounter = functions.firestore
       await upset<ThreadPostCounterWithAuthor>(ref(threads, tid), {
         postCount: value("increment", 1),
         latestPost: authorRef,
+        updatedAt: afterData.updatedAt,
       })
       return upset<BoardPostCounterWithAuthor>(boardRef, {
         postCount: value("increment", 1),

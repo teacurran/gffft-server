@@ -7,7 +7,7 @@ import {gffftsCollection} from "../gfffts/gffft_data"
 const DEFAULT_CALENDAR_KEY = "default"
 const DEFAULT_CALENDAR_NAME = "calendar"
 
-export const calendarCollection = subcollection<Calendar, Gffft, User>("calendars", gffftsCollection)
+export const calendarsCollection = subcollection<Calendar, Gffft, User>("calendars", gffftsCollection)
 
 /**
  * gets or creates the default calendar for a user
@@ -16,7 +16,7 @@ export const calendarCollection = subcollection<Calendar, Gffft, User>("calendar
  * @return {IIAMUserType}
  */
 export async function getOrCreateDefaultCalendar(userId: string, gffftId: string): Promise<Calendar> {
-  const userGalleries = calendarCollection([userId, gffftId])
+  const userGalleries = calendarsCollection([userId, gffftId])
 
   let calendar = await query(userGalleries, [
     where("key", "==", DEFAULT_CALENDAR_KEY),
