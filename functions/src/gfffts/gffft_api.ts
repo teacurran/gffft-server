@@ -80,6 +80,7 @@ const gffftUpdateRequestParams = Joi.object({
   notebookEnabled: Joi.bool().default(false),
   boardEnabled: Joi.bool().default(false),
   galleryEnabled: Joi.bool().default(false),
+  fruitCodeReset: Joi.bool().default(false),
 })
 export interface GffftUpdateRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
@@ -96,6 +97,7 @@ export interface GffftUpdateRequest extends ValidatedRequestSchema {
     notebookEnabled: boolean,
     boardEnabled: boolean,
     galleryEnabled: boolean,
+    fruitCodeReset: boolean,
   };
 }
 
@@ -128,6 +130,7 @@ const gffftPatchRequestParams = Joi.object({
   calendarEnabled: Joi.boolean().optional(),
   galleryEnabled: Joi.boolean().optional(),
   notebookEnabled: Joi.boolean().optional(),
+  fruitCodeReset: Joi.boolean().optional(),
 })
 export interface GffftPatchRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
@@ -143,6 +146,7 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     calendarEnabled?: boolean,
     galleryEnabled?: boolean,
     notebookEnabled?: boolean,
+    fruitCodeReset?: boolean,
   };
 }
 router.patch(
@@ -240,6 +244,10 @@ router.patch(
         if (body.notebookEnabled) {
           features.push(itemRef)
         }
+      }
+
+      if (body.fruitCodeReset === true) {
+        gffft.fruitCode = await getUniqueFruitCode()
       }
 
       gffft.features = features
