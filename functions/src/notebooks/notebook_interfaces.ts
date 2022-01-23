@@ -1,18 +1,14 @@
+import {WHO_OWNER} from "../boards/board_data"
 import {Notebook} from "./notebook_models"
-
-export interface INotebookStats {
-  label: string,
-  pages: number,
-  members: number,
-  firstActivity: Date | null,
-  updatedAt: Date | null
-}
 
 export interface INotebookType {
     id?: string
     name?: string
     description?: string,
-    stats: INotebookStats,
+    pages: number,
+    updatedAt: Date | null
+    whoCanView: string
+    whoCanPost: string
   }
 
 export function notebookToJson(
@@ -25,13 +21,10 @@ export function notebookToJson(
     id: notebook.id,
     name: notebook.name,
     description: notebook.description,
-    stats: {
-      label: "today",
-      pages: 17,
-      members: 2,
-      firstActivity: new Date(),
-      updatedAt: new Date(),
-    },
+    pages: 17,
+    updatedAt: notebook.updatedAt ?? new Date(),
+    whoCanView: notebook.whoCanView ?? WHO_OWNER,
+    whoCanPost: notebook.whoCanPost ?? WHO_OWNER,
   }
   return item
 }

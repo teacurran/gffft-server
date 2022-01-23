@@ -29,6 +29,7 @@ export interface IGffftType {
     membership?: IGffftMember
     bookmark?: IUserBookmark
     name: string
+    fruitCode: string[]
     description: string
     intro?: string
     tags?: string[]
@@ -158,6 +159,7 @@ export function gffftToJson(
     membership: gffftMemberToJson(membership),
     bookmark: bookmarkToJson(bookmark),
     name: gffft.name,
+    fruitCode: gffft.fruitCode ? [...gffft.fruitCode] : [],
     description: gffft.description,
     intro: gffft.intro,
     tags: gffft.tags,
@@ -173,6 +175,7 @@ export function gffftToJson(
     createdAt: gffft.createdAt,
     updatedAt: gffft.updatedAt,
   }
+
   if (me) {
     item.me = iamUserToJson(me)
   }

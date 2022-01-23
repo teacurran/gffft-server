@@ -127,6 +127,7 @@ const gffftPatchRequestParams = Joi.object({
   boardEnabled: Joi.boolean().optional(),
   calendarEnabled: Joi.boolean().optional(),
   galleryEnabled: Joi.boolean().optional(),
+  notebookEnabled: Joi.boolean().optional(),
 })
 export interface GffftPatchRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
@@ -141,6 +142,7 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     boardEnabled?: boolean,
     calendarEnabled?: boolean,
     galleryEnabled?: boolean,
+    notebookEnabled?: boolean,
   };
 }
 router.patch(
@@ -225,9 +227,22 @@ router.patch(
           features.push(itemRef)
         }
       }
+      if (body.notebookEnabled != undefined) {
+        console.log(`got notebook enable:${body.notebookEnabled}`)
+        const notebook: Notebook = await getOrCreateDefaultNotebook(iamUser.id, gffft.id)
+        const userNotebooks = notebookCollection([iamUser.id, gffft.id])
+        const itemRef = getRefPath(ref(userNotebooks, notebook.id))
+
+        const itemIndex = features.indexOf(itemRef, 0)
+        if (itemIndex > -1) {
+          features.splice(itemIndex, 1)
+        }
+        if (body.notebookEnabled) {
+          features.push(itemRef)
+        }
+      }
 
       gffft.features = features
-
 
       updateGffft(iamUser.id, gffft.id, gffft).then(() => {
         res.sendStatus(204)
