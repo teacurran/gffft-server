@@ -1,6 +1,6 @@
 import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
-import {WHO_OWNER, WHO_PUBLIC} from "./board_data"
+import {WHO_OWNER} from "./board_data"
 import {Board, HydratedThread, HydratedThreadPost} from "./board_models"
 
 export interface IBoardType {
@@ -104,9 +104,9 @@ export function boardToJson(
     description: board.description,
     threads: board.threadCount ? board.threadCount : 0,
     posts: board.postCount ? board.postCount : 0,
-    firstActivity: new Date(),
-    updatedAt: new Date(),
-    whoCanView: board.whoCanView ?? WHO_PUBLIC,
+    firstActivity: board.createdAt ?? new Date(),
+    updatedAt: board.updatedAt ?? new Date(),
+    whoCanView: board.whoCanView ?? WHO_OWNER,
     whoCanPost: board.whoCanPost ?? WHO_OWNER,
   }
   return item

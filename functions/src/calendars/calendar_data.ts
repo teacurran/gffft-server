@@ -40,6 +40,8 @@ export async function getOrCreateDefaultCalendar(userId: string, gffftId: string
   if (calendar == null) {
     calendar = {
       key: DEFAULT_CALENDAR_KEY,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     } as Calendar
     const result = await add<Calendar>(userGalleries, calendar)
     calendar.id = result.id

@@ -156,6 +156,8 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
       uid: userId,
       name: DEFAULT_STRING,
       intro: DEFAULT_STRING,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     } as Gffft
     const result = await add<Gffft>(userGfffts, gffft)
     gffft.id = result.id

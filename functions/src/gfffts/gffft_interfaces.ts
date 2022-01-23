@@ -1,5 +1,5 @@
 import {IBoardType} from "../boards/board_interfaces"
-import {ICalendarType} from "../calendars/calendar_types"
+import {ICalendarType} from "../calendars/calendar_interfaces"
 import {notEmpty} from "../common/utils"
 import {IGalleryType} from "../galleries/gallery_types"
 import {INotebookType} from "../notebooks/notebook_interfaces"
@@ -67,9 +67,8 @@ export interface IGffftMinimalType {
     description: string
     allowMembers: boolean
     requireApproval: boolean
-    pagesEnabled: boolean
-    boardEnabled: boolean
-    galleryEnabled: boolean
+    createdAt: Date
+    updatedAt: Date
   }
 
 export interface IGffftFruitCode {
@@ -198,9 +197,8 @@ export function gffftToJsonMinimal(
     description: gffft.description,
     allowMembers: gffft.allowMembers,
     requireApproval: gffft.requireApproval,
-    pagesEnabled: gffft.pagesEnabled,
-    boardEnabled: gffft.boardEnabled,
-    galleryEnabled: gffft.galleryEnabled,
+    createdAt: gffft.createdAt ?? new Date(),
+    updatedAt: gffft.updatedAt ?? new Date(),
   }
   return item
 }

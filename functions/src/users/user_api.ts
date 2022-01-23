@@ -11,7 +11,6 @@ import {createGffftMembership, deleteGffftMembership, getGffft,
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {getGallery, getGalleryByRefString, getGalleryItems, hydrateGallery} from "../galleries/gallery_data"
-import {Calendar} from "../calendars/calendar_models"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
@@ -22,6 +21,7 @@ import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import * as Joi from "@hapi/joi"
 import {upset, value} from "typesaurus"
 import {galleryToJson} from "../galleries/gallery_interfaces"
+import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -95,7 +95,7 @@ router.get(
     gid = gffft.id
 
     const boards: Board[] = []
-    const calendars: Calendar[] = []
+    const calendars: ICalendarType[] = []
     const galleries: Gallery[] = []
     const notebooks: Notebook[] = []
     const features: IGffftFeatureRef[] = []
@@ -117,11 +117,12 @@ router.get(
           }
         } else if (feature.indexOf("/calendars/") != -1) {
           const calendar = await getCalendarByRef(feature)
-          if (calendar) {
-            calendars.push(calendar)
+          const calendarJson = calendarToJson(calendar)
+          if (calendarJson != null) {
+            calendars.push(calendarJson)
             features.push({
               type: "calendar",
-              id: calendar.id,
+              id: calendarJson.id,
             })
           }
         } else if (feature.indexOf("/galleries/") != -1) {

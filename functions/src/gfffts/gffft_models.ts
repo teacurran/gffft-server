@@ -16,13 +16,6 @@ export type Gffft = {
     allowMembers: boolean
     requireApproval: boolean
     enableAltHandles: boolean
-    pagesEnabled: boolean
-    pagesWhoCanView?: string
-    pagesWhoCanEdit?: string
-    boardEnabled: boolean
-    galleryEnabled: boolean
-    galleryWhoCanView?: string
-    galleryWhoCanPost?: string
     createdAt?: Date
     updatedAt?: Date
   }

@@ -10,6 +10,9 @@ export type Board = {
     postCount?: number
     whoCanView?: string
     whoCanPost?: string
+    latestPost?: Ref<User>
+    createdAt: Date
+    updatedAt: Date
   }
 
 export type BoardThreadPostCounterNoAuthor = {
