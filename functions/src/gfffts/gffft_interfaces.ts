@@ -30,6 +30,8 @@ export interface IGffftType {
     bookmark?: IUserBookmark
     name: string
     fruitCode: string[]
+    rareFruits: number
+    ultraRareFruits: number
     description: string
     intro?: string
     tags?: string[]
@@ -160,6 +162,8 @@ export function gffftToJson(
     bookmark: bookmarkToJson(bookmark),
     name: gffft.name,
     fruitCode: gffft.fruitCode ? [...gffft.fruitCode] : [],
+    rareFruits: gffft.rareFruits ?? 0,
+    ultraRareFruits: gffft.ultraRareFruits ?? 0,
     description: gffft.description,
     intro: gffft.intro,
     tags: gffft.tags,
