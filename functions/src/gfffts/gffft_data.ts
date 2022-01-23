@@ -9,7 +9,7 @@ const DEFAULT_GFFFT_KEY = "default"
 const DEFAULT_STRING = "{default}"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
 const RARE_FRUITS = [..."🍅🫑🍆🥑"]
-const ULTRA_RARE_FRUITS = [..."🥨🐈💾🍕"]
+const ULTRA_RARE_FRUITS = [..."🥨🐈💾🍕🧀"]
 const FRUIT_CODE_LENGTH = 9
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
