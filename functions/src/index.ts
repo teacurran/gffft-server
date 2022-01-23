@@ -8,7 +8,7 @@ import {pathToRef, Ref, ref, upset, value} from "typesaurus"
 import {GffftAdminCounter, GffftAnonCounter,
   GffftMemberCounter, GffftOwnerCounter, GffftStats} from "./gfffts/gffft_models"
 import moment from "moment"
-import {boardsCollection, threadPostsCollection, threadsCollection} from "./boards/board_data"
+import {boardsCollection, threadsCollection} from "./boards/board_data"
 import {BoardPostCounterWithAuthor, BoardThreadCounter, BoardThreadPostCounterNoAuthor,
   ThreadPostCounterWithAuthor} from "./boards/board_models"
 import {User} from "./users/user_models"
