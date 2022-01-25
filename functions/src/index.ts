@@ -175,8 +175,8 @@ export const threadReplyCounter = functions.firestore
 
     console.log(`threadReplyCounter: uid:${uid} gid:${gid} bid:${tid} tid:${tid}`)
 
-    const beforeData = change.before.data()
-    const afterData = change.after.data()
+    const oldPost = change.before.data()
+    const newPost = change.after.data()
 
     const users = usersCollection
     const gfffts = gffftsCollection(ref(users, uid))
@@ -184,20 +184,20 @@ export const threadReplyCounter = functions.firestore
     const boardRef = ref(boards, bid)
     const threads = threadsCollection(ref(boards, bid))
 
-    if (!change.before.exists && afterData != null) {
-      const authorRef = pathToRef<User>(afterData.author.path)
+    if (!change.before.exists && newPost != null) {
+      const authorRef = pathToRef<User>(newPost.author.path)
       await upset<ThreadPostCounterWithAuthor>(ref(threads, tid), {
         postCount: value("increment", 1),
         latestPost: authorRef,
-        updatedAt: afterData.updatedAt,
+        updatedAt: newPost.createdAt ? new Date(newPost.createdAt) : new Date(),
       })
       return upset<BoardPostCounterWithAuthor>(boardRef, {
         postCount: value("increment", 1),
         latestPost: authorRef,
       })
-    } else if (change.before.exists && change.after.exists && beforeData && afterData) {
+    } else if (change.before.exists && change.after.exists && oldPost && newPost) {
       // do nithing for post updates
-    } else if (!change.after.exists && beforeData) {
+    } else if (!change.after.exists && oldPost) {
       // not updating the counts for post deletes right now
       // it may have conflicts with thread deleting
       // test out those two scenarios together.
