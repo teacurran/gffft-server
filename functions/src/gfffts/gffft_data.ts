@@ -185,9 +185,15 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
 
   if (q) {
     console.log(`using query search: ${q}`)
+
+    let qFiltered = q.replace("\n", "")
+    if (qFiltered.indexOf("!")) {
+      qFiltered = qFiltered.substring(0, qFiltered.indexOf("!"))
+    }
+
     // this is a real basic prefix search
     // will probalby upgrade to an external full text later
-    const qLower = q.toLowerCase()
+    const qLower = qFiltered.toLowerCase()
     queries.push(where("nameLower", ">=", qLower))
     queries.push(where("nameLower", "<=", qLower+ "\uf8ff"))
     if (offset) {
