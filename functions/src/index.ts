@@ -189,7 +189,7 @@ export const threadReplyCounter = functions.firestore
       await upset<ThreadPostCounterWithAuthor>(ref(threads, tid), {
         postCount: value("increment", 1),
         latestPost: authorRef,
-        updatedAt: newPost.createdAt ? new Date(newPost.createdAt) : new Date(),
+        updatedAt: newPost.createdAt ? newPost.createdAt.toDate() : new Date(),
       })
       return upset<BoardPostCounterWithAuthor>(boardRef, {
         postCount: value("increment", 1),
