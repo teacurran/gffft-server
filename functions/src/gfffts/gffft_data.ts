@@ -186,14 +186,21 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
   if (q) {
     console.log(`using query search: ${q}`)
 
-    let qFiltered = q.replace("\n", "")
-    if (qFiltered.indexOf("!")) {
-      qFiltered = qFiltered.substring(0, qFiltered.indexOf("!"))
+    const qFiltered = q.replace(/(\r\n|\n|\r)/gm, "")
+    console.log(`searching for: ${qFiltered}`)
+    let maybeFruit: string | null = null
+    if (qFiltered.indexOf("!") > -1) {
+      maybeFruit = qFiltered.substring(qFiltered.indexOf("!"))
+    } else {
+      maybeFruit = q
     }
+    console.log(`maybe fruit: ${maybeFruit}`)
 
     // this is a real basic prefix search
     // will probalby upgrade to an external full text later
     const qLower = qFiltered.toLowerCase()
+
+    console.log(`searching for: ${qLower}`)
     queries.push(where("nameLower", ">=", qLower))
     queries.push(where("nameLower", "<=", qLower+ "\uf8ff"))
     if (offset) {
