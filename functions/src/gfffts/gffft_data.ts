@@ -183,18 +183,17 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
     where("enabled", "==", true),
   ]
 
+  let maybeFruit: string | null = null
   if (q) {
     console.log(`using query search: ${q}`)
 
-    const qFiltered = q.replace(/(\r\n|\n|\r)/gm, "")
-    console.log(`searching for: ${qFiltered}`)
-    let maybeFruit: string | null = null
+    let qFiltered = decodeURI(q)
+    qFiltered = qFiltered.replace(/(\r\n|\n|\r)/gm, "")
     if (qFiltered.indexOf("!") > -1) {
-      maybeFruit = qFiltered.substring(qFiltered.indexOf("!"))
+      maybeFruit = qFiltered.substring(qFiltered.indexOf("!") + 1).trim()
     } else {
-      maybeFruit = q
+      maybeFruit = qFiltered.trim()
     }
-    console.log(`maybe fruit: ${maybeFruit}`)
 
     // this is a real basic prefix search
     // will probalby upgrade to an external full text later
@@ -212,6 +211,19 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
       queries.push(order("nameLower", "asc", [startAfter(offset)]))
     } else {
       queries.push(order("nameLower", "asc"))
+    }
+  }
+
+  // try searching by fruit first, see if we get results.
+  if (maybeFruit != null) {
+    console.log(`looking for maybe fruit: ${maybeFruit}`)
+    const fruitResults = await query(gffftsGroup, [
+      where("fruitCode", "==", maybeFruit),
+    ])
+    if (fruitResults != null && fruitResults.length > 0) {
+      const gffft = fruitResults[0].data
+      console.log(`found by fruit: ${gffft.id}`)
+      return [gffft]
     }
   }
 
