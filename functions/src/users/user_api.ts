@@ -272,10 +272,25 @@ router.get(
   validator.params(getThreadPathParams),
   validator.query(getThreadQueryParams),
   async (req: ValidatedRequest<GetThreadsRequest>, res: Response) => {
-    const uid = req.params.uid
-    const gid = req.params.gid
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
     const bid = req.params.bid
     const tid = req.params.tid
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
+
+    // make sure the gffft exists
+    const gffft = await getGffft(uid, gid)
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
 
     // const iamUser: LoggedInUser = res.locals.iamUser
     // const gffft = await getGffft(uid, gid)
@@ -410,9 +425,15 @@ router.get(
   validator.params(getGalleryPathParams),
   validator.query(getGalleryQueryParams),
   async (req: ValidatedRequest<GetGalleryRequest>, res: Response) => {
-    const uid = req.params.uid
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid = req.params.uid
     const gid = req.params.gid
     const mid = req.params.mid
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
 
     const gallery = await getGallery(uid, gid, mid)
 
