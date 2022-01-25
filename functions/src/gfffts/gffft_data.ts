@@ -228,6 +228,7 @@ export async function getGfffts(userId: string, offset?: string, maxResults = 20
     console.log(`looking for maybe fruit: ${maybeFruit}`)
     const fruitResults = await query(gffftsGroup, [
       where("fruitCode", "==", maybeFruit),
+      limit(1),
     ])
     if (fruitResults != null && fruitResults.length > 0) {
       const gffft = fruitResults[0].data
