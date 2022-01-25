@@ -138,19 +138,19 @@ export const threadCreateCounter = functions.firestore
     const bid = context.params.bid
 
     const beforeData = change.before.data()
-    const afterData = change.after.data()
+    const newThread = change.after.data()
 
     const users = usersCollection
     const gfffts = gffftsCollection(ref(users, uid))
     const boards = boardsCollection(ref(gfffts, gid))
     const boardRef = ref(boards, bid)
 
-    if (!change.before.exists && afterData != null) {
+    if (!change.before.exists && newThread != null) {
       return upset<BoardThreadCounter>(boardRef, {
         threadCount: value("increment", 1),
-        updatedAt: afterData.updatedAt,
+        updatedAt: newThread.createdAt ? newThread.createdAt.toDate() : new Date(),
       })
-    } else if (change.before.exists && change.after.exists && beforeData && afterData) {
+    } else if (change.before.exists && change.after.exists && beforeData && newThread) {
       // do nithing for post updates
     } else if (!change.after.exists && beforeData) {
       if (beforeData.postCount) {
@@ -194,6 +194,7 @@ export const threadReplyCounter = functions.firestore
       return upset<BoardPostCounterWithAuthor>(boardRef, {
         postCount: value("increment", 1),
         latestPost: authorRef,
+        updatedAt: newPost.createdAt ? newPost.createdAt.toDate() : new Date(),
       })
     } else if (change.before.exists && change.after.exists && oldPost && newPost) {
       // do nithing for post updates

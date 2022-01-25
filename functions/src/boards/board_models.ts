@@ -28,6 +28,7 @@ export type BoardThreadCounter = {
 export type BoardPostCounterWithAuthor = {
   postCount: number
   latestPost: Ref<User>
+  updatedAt: Date
 }
 
 export type BoardPostCounter = {
