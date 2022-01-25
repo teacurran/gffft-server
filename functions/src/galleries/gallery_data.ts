@@ -47,7 +47,11 @@ export async function getOrCreateDefaultGallery(userId: string, gffftId: string)
 }
 
 export async function getGallery(uid: string, gid: string, mid: string): Promise<Gallery | null> {
-  console.log(`getting gallery: uid:${uid} gid:${gid} mid:${mid}`)
+  if (gid == "default") {
+    return getOrCreateDefaultGallery(uid, gid)
+  }
+
+  console.log(`looking for gallery: uid:${uid} gid:${gid} mid:${mid}`)
   const galleries = galleryCollection([uid, gid])
   const itemRef = ref(galleries, mid)
   console.log(`itemRef: ${JSON.stringify(itemRef)}`)
