@@ -63,8 +63,8 @@ export function threadToJson(
   const item: IThread = {
     id: thread.id,
     subject: thread.subject,
-    createdAt: thread.createdAt,
-    updatedAt: thread.updatedAt,
+    createdAt: thread.createdAt ?? new Date(),
+    updatedAt: thread.updatedAt ?? new Date(),
     firstPost: thread.firstPostUser ? {
       id: thread.firstPostUser.id,
       handle: thread.firstPostUser.username,
