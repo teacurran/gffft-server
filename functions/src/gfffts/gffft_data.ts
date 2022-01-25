@@ -9,8 +9,10 @@ const DEFAULT_GFFFT_KEY = "default"
 const DEFAULT_STRING = "{default}"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
 const RARE_FRUITS = [..."🍅🫑🍆🥑"]
-const ULTRA_RARE_FRUITS = [..."🥨🐈💾🍕🧀"]
+const ULTRA_RARE_FRUITS = [..."🥨🐈💾🧀"]
+const PI_DAY_FRUITS = [..."🥧🍕𝜋"]
 const FRUIT_CODE_LENGTH = 9
+
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
@@ -26,11 +28,18 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
   let rareFruitEncountered = 0
   let ultraRareFruitEncountered = 0
 
+  const todaysDate = new Date()
+  const isPiDay = (todaysDate.getMonth() == 3 && todaysDate.getDay() == 14)
+
   // limit loop to prevent overflow
   for (let i = 0; i < 1000; i++) {
     fruitCode = ""
     for (let fc = 0; fc < FRUIT_CODE_LENGTH; fc++) {
-      if (randBelow(1000000) >= 999990) {
+      if (isPiDay && randBelow(10000) == 9999) {
+        console.log("Pi Day ULTRA RARE FRUIT GENERATED!")
+        ultraRareFruitEncountered++
+        fruitCode += PI_DAY_FRUITS[randBelow(PI_DAY_FRUITS.length)]
+      } else if (randBelow(1000000) >= 999990) {
         console.log("ULTRA RARE FRUIT GENERATED!")
         ultraRareFruitEncountered++
         fruitCode += ULTRA_RARE_FRUITS[randBelow(ULTRA_RARE_FRUITS.length)]
