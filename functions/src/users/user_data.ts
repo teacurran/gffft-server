@@ -34,6 +34,10 @@ export async function getUser(userId: string): Promise<User> {
     await set<User>(usersCollection, userId, user)
   }
 
+  if (!user.id) {
+    user.id = userId
+  }
+
   return user
 }
 
