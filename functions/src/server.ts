@@ -12,9 +12,8 @@ import users from "./users/user_api"
 const PORT = process.env.PORT || 3000
 
 async function start() {
-  const PROJECTID = "gffft-auth"
   firebaseAdmin.initializeApp({
-    projectId: PROJECTID,
+    projectId: "gffft-auth",
     storageBucket: "gffft-auth.appspot.com",
   })
 

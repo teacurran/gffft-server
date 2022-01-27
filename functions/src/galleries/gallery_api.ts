@@ -14,7 +14,17 @@ import * as firebaseAdmin from "firebase-admin"
 // eslint-disable-next-line new-cap
 const router = express.Router()
 const validator = createValidator()
-const multerStorage = multer.memoryStorage()
+
+const multerStorage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, "/tmp/")
+  },
+  filename: function(req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
+    cb(null, `${file.fieldname}-${uniqueSuffix}`)
+  },
+})
+
 const upload = multer({storage: multerStorage})
 
 const createItemParams = Joi.object({
@@ -100,20 +110,26 @@ router.post(
 
     console.log(`creating gallery item: uid:${uid} gid:${gid} bid:${mid} description: ${description}`)
 
-    const file = req.file
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const files = (req as any).files
 
-    if (file != null) {
-      const type = file.originalname.split(".")[1]
-      const fileName = `${uuid()}.${type}`
-
-      const filePath = `${uid}/${gid}/${mid}/${fileName}`
-
-      const fileRef = await firebaseAdmin.storage().bucket().upload(file.path, {destination: filePath})
-      console.log(`file response: ${JSON.stringify(fileRef)}`)
-
-      res.sendStatus(204)
+    if (files == undefined) {
+      console.log("files is empty")
+      res.sendStatus(500)
+      return
     }
 
+    console.log(`files is: ${JSON.stringify(files)}`)
+
+    const file = files[0]
+
+    const type = file.originalname.split(".")[1]
+    const fileName = `${uuid()}.${type}`
+
+    const filePath = `users/${uid}/gfffts/${gid}/galleries/${mid}/items/${fileName}`
+
+    const fileRef = await firebaseAdmin.storage().bucket().upload(file.path, {destination: filePath})
+    console.log(`file response: ${JSON.stringify(fileRef)}`)
 
     res.sendStatus(204)
   }
