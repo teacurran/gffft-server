@@ -8,7 +8,7 @@
     "api-dev": "nodemon src/server.ts",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "start": "node -r lib/tracing lib/server"
+    "start": "node -r ./lib/tracing lib/server"
   },
   "engines": {
     "node": "14"
