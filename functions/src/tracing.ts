@@ -20,7 +20,7 @@ const traceExporter = new OTLPTraceExporter({
 
 const sdk = new NodeSDK({
   resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: "<YOUR_SERVICE_NAME>",
+    [SemanticResourceAttributes.SERVICE_NAME]: "api",
   }),
   traceExporter,
   instrumentations: [getNodeAutoInstrumentations()],
