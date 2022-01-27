@@ -20,7 +20,7 @@ import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import * as Joi from "@hapi/joi"
 import {upset, value} from "typesaurus"
-import {galleryToJson} from "../galleries/gallery_interfaces"
+import {galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {IGalleryType} from "../galleries/gallery_types"
 
@@ -428,12 +428,20 @@ router.get(
     const iamUser: LoggedInUser = res.locals.iamUser
 
     let uid = req.params.uid
-    const gid = req.params.gid
+    let gid = req.params.gid
     const mid = req.params.mid
 
     if (uid == "me") {
       uid = iamUser.id
     }
+
+    // make sure the gffft exists
+    const gffft = await getGffft(uid, gid)
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
 
     const gallery = await getGallery(uid, gid, mid)
 
@@ -450,7 +458,7 @@ router.get(
       return
     }
 
-    res.json(galleryToJson(hydratedGallery))
+    res.json(galleryToJsonWithItems(hydratedGallery))
   }
 )
 
