@@ -5,11 +5,15 @@ import {LoggedInUser, requiredAuthentication} from "../auth"
 import {getGffft, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {get, ref} from "typesaurus"
+import {get, ref, upset} from "typesaurus"
 import * as Joi from "@hapi/joi"
 import multer from "multer"
 import {v4 as uuid} from "uuid"
 import * as firebaseAdmin from "firebase-admin"
+import {galleryItemsCollection, hydrateGalleryItem} from "./gallery_data"
+import {GalleryItem} from "./gallery_models"
+import {usersCollection} from "../users/user_data"
+import {galleryItemToJson} from "./gallery_interfaces"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -92,7 +96,7 @@ router.post(
 
     // is this poster a member of the gffft?
     const posterUid = res.locals.iamUser.id
-    // const posterRef = ref(usersCollection, posterUid)
+    const posterRef = ref(usersCollection, posterUid)
 
     const membershipDoc = await get(ref(gffftMembers, posterUid))
     if (!membershipDoc) {
@@ -122,16 +126,33 @@ router.post(
     console.log(`files is: ${JSON.stringify(files)}`)
 
     const file = files[0]
-
     const type = file.originalname.split(".")[1]
-    const fileName = `${uuid()}.${type}`
+    const itemId = uuid()
+
+    const fileName = `${itemId}.${type}`
 
     const filePath = `users/${uid}/gfffts/${gid}/galleries/${mid}/items/${fileName}`
 
-    const fileRef = await firebaseAdmin.storage().bucket().upload(file.path, {destination: filePath})
-    console.log(`file response: ${JSON.stringify(fileRef)}`)
+    await firebaseAdmin.storage().bucket().upload(file.path, {destination: filePath})
 
-    res.sendStatus(204)
+    const itemsCollection = galleryItemsCollection([uid, gid, mid])
+    const itemRef = ref(itemsCollection, itemId)
+    const item = {
+      author: posterRef,
+      createdAt: new Date(),
+      item: fileName,
+    } as GalleryItem
+    await upset(itemRef, item)
+
+    item.id = itemId
+
+    const hgi = await hydrateGalleryItem(item)
+    if (hgi == null) {
+      console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
+      res.sendStatus(404)
+      return
+    }
+    res.json(galleryItemToJson(hgi))
   }
 )
 

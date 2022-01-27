@@ -101,12 +101,20 @@ export async function getGalleryItems(uid: string,
   })
 }
 
-export async function hydrateGalleryItem(snapshot: Doc<GalleryItem> | null): Promise<HydratedGalleryItem | null> {
+export async function hydrateGalleryItem(snapshot: Doc<GalleryItem> |
+    GalleryItem |
+    null): Promise<HydratedGalleryItem | null> {
+  let item: GalleryItem
+
   if (snapshot == null) {
     return null
   }
-  const item = snapshot.data
-  item.id = snapshot.ref.id
+  if ((snapshot as Doc<GalleryItem>).data) {
+    item = (snapshot as Doc<GalleryItem>).data
+    item.id = (snapshot as Doc<GalleryItem>).ref.id
+  } else {
+    item = (snapshot as GalleryItem)
+  }
 
   const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
 
