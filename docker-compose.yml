@@ -19,10 +19,11 @@ services:
       - ./functions:/app
       - ./firebase-emulator/data:/app/data
     ports:
-      - "9099:9099"
-      - "9199:9199"
+      - "4000:4000"
       - "5000:5000"
       - "8080:8080"
+      - "9099:9099"
+      - "9199:9199"
     command: firebase emulators:start --project gffft-auth --import /app/data
 
   api:
@@ -37,6 +38,7 @@ services:
       NODE_ENV: dockerCompose
       FIREBASE_AUTH_EMULATOR_HOST: "firebase-emulator:9099"
       FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
+      FIREBASE_STORAGE_EMULATOR_HOST: "firebase-emulator:9199"
 
     ports:
       - "3000:3000"

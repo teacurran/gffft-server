@@ -5,6 +5,7 @@ import cors from "cors"
 import jsdocSwagger from "express-jsdoc-swagger"
 import openApiOptions from "./openapi/openapi_api"
 import boards from "./boards/board_api"
+import galleries from "./galleries/gallery_api"
 import gfffts from "./gfffts/gffft_api"
 import users from "./users/user_api"
 
@@ -14,7 +15,9 @@ async function start() {
   const PROJECTID = "gffft-auth"
   firebaseAdmin.initializeApp({
     projectId: PROJECTID,
+    storageBucket: "gffft-auth.appspot.com",
   })
+
 
   const app = express()
 
@@ -33,6 +36,7 @@ async function start() {
   jsdocSwagger(app)(openApiOptions)
 
   api.use("/users", users)
+  api.use("/galleries", galleries)
   api.use("/gfffts", gfffts)
   api.use("/boards", boards)
 

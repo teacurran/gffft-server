@@ -90,19 +90,18 @@ async function updateCounter(ref: Ref<GffftStats>, type: string, changeValue: nu
 }
 
 export const gffftMemberCounter = functions.firestore
-  .document("users/{userId}/gfffts/{gffftId}/members/{memberId}")
+  .document("users/{uid}/gfffts/{gid}/members/{mid}")
   .onWrite(async (change, context) => {
-    const userId = context.params.userId
-    const gffftId = context.params.gffftId
-    const memberId = context.params.memberId
+    const uid = context.params.uid
+    const gid = context.params.gid
+    const mid = context.params.mid
 
-    console.log(`gffftMemberCounter trigger: userId:${userId} 
-      gffftId:${gffftId} memberId:${memberId}`)
-
+    console.log(`gffftMemberCounter trigger: userId:${uid} 
+      gffftId:${gid} memberId:${mid}`)
 
     // const userGfffts = gffftsCollection(userId)
     // const gffftRef = ref(userGfffts, gffftId)
-    const gffftStats = gffftsStatsCollection([userId, gffftId])
+    const gffftStats = gffftsStatsCollection([uid, gid])
     const totalsRef = ref(gffftStats, "totals")
     const todayRef = ref(gffftStats, moment().format("YYYY-MM-DD"))
 
