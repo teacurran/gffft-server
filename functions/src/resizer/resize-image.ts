@@ -149,7 +149,7 @@ export const modifyImage = async ({
       contentType: imageContentType,
       metadata: objectMetadata.metadata || {},
     }
-    metadata.metadata.resizedImage = true
+    metadata.metadata.resizedImage = "true"
 
     if (config.cacheControlHeader) {
       metadata.cacheControl = config.cacheControlHeader

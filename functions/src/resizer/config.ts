@@ -54,11 +54,11 @@ export interface IConfig {
   includePathList: string[] | undefined
   excludePathList: string[] | undefined
   deleteOriginalFile: deleteImage
-  imageTypes: string
+  imageTypes: string[] | undefined
 }
 
 export function getConfig(): IConfig {
-  const config = functions.config().resize
+  const config = functions.config().env.resize
 
   return {
     bucket: config.bucket,
@@ -68,7 +68,7 @@ export function getConfig(): IConfig {
     includePathList: paramToArray(config.includePathList),
     excludePathList: undefined,
     deleteOriginalFile: deleteImage.never,
-    imageTypes: config.imageType,
+    imageTypes: paramToArray(config.imageType),
   }
 }
 
