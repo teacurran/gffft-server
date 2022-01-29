@@ -33,9 +33,6 @@ import sharp from "sharp"
 
 sharp.cache(false)
 
-// Initialize the Firebase Admin SDK
-admin.initializeApp()
-
 logs.init()
 
 /**
@@ -169,7 +166,7 @@ export const generateResizedImage = functions.storage.object().onFinalize(
         }
         logs.complete()
       }
-    } catch (err: unknown) {
+    } catch (err) {
       if (err instanceof Error) {
         logs.error(err)
       }

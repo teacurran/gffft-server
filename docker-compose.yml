@@ -13,11 +13,14 @@ services:
 
   firebase-emulator:
     image: gffft-firebase-emulator
-    build: ./firebase-emulator
+    build:
+      context: ./
+      dockerfile: ./firebase-emulator/Dockerfile
     volumes:
       # - ./firebase-emulator:/app
       - ./functions:/app
       - ./firebase-emulator/data:/app/data
+      - /app/node_modules
     ports:
       - "4000:4000"
       - "5000:5000"
@@ -33,6 +36,7 @@ services:
       dockerfile: ../functions/Dockerfile
     volumes:
       - ./functions:/app
+      - /app/node_modules
     environment:
       SERVICE: local
       NODE_ENV: dockerCompose
