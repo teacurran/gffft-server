@@ -3,12 +3,14 @@
   "scripts": {
     "lint": "eslint --cache \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --cache --fix \"src/**/*.{js,jsx,ts,tsx}\"",
-    "build": "tsc",
+    "build": "npm run env-local && tsc",
     "dev": "npm run lint && tsc -w",
     "api-dev": "nodemon src/server.ts",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "npm run env && firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "start": "node -r ./lib/tracing lib/server"
+    "start": "node -r ./lib/tracing lib/server",
+    "env": "test -f env.json && firebase functions:config:unset env && firebase functions:config:set env=\"$(cat env.json)\" || echo \"Please add the file env.json before deploy.\"",
+    "env-local": "firebase functions:config:get > .runtimeconfig.json"
   },
   "engines": {
     "node": "14"

@@ -15,7 +15,8 @@
  */
 
 import {logger} from "firebase-functions"
-import config from "./config"
+import {getConfig} from "./config"
+const config = getConfig()
 
 export const complete = () => {
   logger.log("Completed execution of extension")

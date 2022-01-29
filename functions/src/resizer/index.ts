@@ -20,13 +20,14 @@ import * as functions from "firebase-functions"
 import mkdirp from "mkdirp"
 import * as os from "os"
 import * as path from "path"
+import {logger} from "firebase-functions"
 
 import {
   ResizedImageResult,
   modifyImage,
   supportedContentTypes,
 } from "./resize-image"
-import config, {deleteImage} from "./config"
+import {getConfig, deleteImage} from "./config"
 import * as logs from "./logs"
 import {extractFileNameWithoutExtension, startsWithArray} from "./util"
 import sharp from "sharp"
@@ -34,6 +35,7 @@ import sharp from "sharp"
 sharp.cache(false)
 
 logs.init()
+const config = getConfig()
 
 /**
  * When an image is uploaded in the Storage bucket, we generate a resized image automatically using
@@ -113,7 +115,14 @@ export const generateResizedImage = functions.storage.object().onFinalize(
       // Download file from bucket.
       remoteFile = bucket.file(filePath)
       logs.imageDownloading(filePath)
-      await remoteFile.download({destination: originalFile})
+      if (process.env.FUNCTIONS_EMULATOR) {
+        // emulator does not support createReadStream()
+        // turning off validation should make the file downlaod work
+        await remoteFile.download({destination: originalFile, validation: false})
+      } else {
+        await remoteFile.download({destination: originalFile})
+      }
+
       logs.imageDownloaded(filePath, originalFile)
 
       // Get a unique list of image types
@@ -126,7 +135,10 @@ export const generateResizedImage = functions.storage.object().onFinalize(
 
       imageTypes.forEach((format) => {
         imageSizes.forEach((size) => {
-          if (originalFile != undefined) {
+          if (originalFile == undefined) {
+            logger.info("original file is undefined, skipping. format:${format} size:${size}")
+          } else {
+            logger.info("original found, generating format:${format} size:${size}")
             tasks.push(
               modifyImage({
                 bucket,

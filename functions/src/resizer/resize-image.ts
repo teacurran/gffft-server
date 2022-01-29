@@ -6,9 +6,11 @@ import {Bucket} from "@google-cloud/storage"
 import {ObjectMetadata} from "firebase-functions/lib/providers/storage"
 import {uuid} from "uuidv4"
 
-import config from "./config"
 import * as logs from "./logs"
 import sharp from "sharp"
+
+import {getConfig} from "./config"
+const config = getConfig()
 
 export interface ResizedImageResult {
   size: string;
@@ -148,6 +150,7 @@ export const modifyImage = async ({
       metadata: objectMetadata.metadata || {},
     }
     metadata.metadata.resizedImage = true
+
     if (config.cacheControlHeader) {
       metadata.cacheControl = config.cacheControlHeader
     } else {

@@ -14,41 +14,61 @@
  * limitations under the License.
  */
 
+import * as functions from "firebase-functions"
+
 export enum deleteImage {
   always = 0,
   never,
   onSuccess,
 }
 
-function deleteOriginalFile(deleteType: string | undefined) {
-  switch (deleteType) {
-  case "true":
-    return deleteImage.always
-  case "false":
-    return deleteImage.never
-  default:
-    return deleteImage.onSuccess
-  }
-}
+// function deleteOriginalFile(deleteType: string | undefined) {
+//   switch (deleteType) {
+//   case "true":
+//     return deleteImage.always
+//   case "false":
+//     return deleteImage.never
+//   case "onsuccess":
+//     return deleteImage.onSuccess
+//   default:
+//     return deleteImage.never
+//   }
+// }
 
-function paramToArray(param: string | undefined) {
+function paramToArray(param: string | undefined): string[] | undefined {
   return typeof param === "string" ? param.split(",") : undefined
 }
 
-function getImageSizes() {
-  if (process.env.IMG_SIZES) {
-    return process.env.IMG_SIZES.split(",")
+function getImageSizes(param: string | undefined): string[] {
+  if (param) {
+    return param.split(",")
   }
-  return "100x100"
+  return ["200x200"]
 }
 
-export default {
-  bucket: process.env.IMG_BUCKET,
-  cacheControlHeader: process.env.CACHE_CONTROL_HEADER,
-  imageSizes: getImageSizes(),
-  resizedImagesPath: process.env.RESIZED_IMAGES_PATH,
-  includePathList: paramToArray(process.env.INCLUDE_PATH_LIST),
-  excludePathList: paramToArray(process.env.EXCLUDE_PATH_LIST),
-  deleteOriginalFile: deleteOriginalFile(process.env.DELETE_ORIGINAL_FILE),
-  imageTypes: paramToArray(process.env.IMAGE_TYPE),
+export interface IConfig {
+  bucket: string
+  cacheControlHeader: string
+  imageSizes: string[]
+  resizedImagesPath: string
+  includePathList: string[] | undefined
+  excludePathList: string[] | undefined
+  deleteOriginalFile: deleteImage
+  imageTypes: string
 }
+
+export function getConfig(): IConfig {
+  const config = functions.config().resize
+
+  return {
+    bucket: config.bucket,
+    cacheControlHeader: config.cache,
+    imageSizes: getImageSizes(config.sizes),
+    resizedImagesPath: config.resizedImagePath,
+    includePathList: paramToArray(config.includePathList),
+    excludePathList: undefined,
+    deleteOriginalFile: deleteImage.never,
+    imageTypes: config.imageType,
+  }
+}
+
