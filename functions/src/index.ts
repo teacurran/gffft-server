@@ -212,3 +212,4 @@ export const threadReplyCounter = functions.firestore
     return
   })
 
+export * from "./resizer/index"

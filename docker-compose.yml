@@ -40,6 +40,12 @@ services:
       FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
       FIREBASE_STORAGE_EMULATOR_HOST: "firebase-emulator:9199"
       GCLOUD_PROJECT: "gffft-auth"
+      IMG_BUCKET: gffft-auth.appspot.com
+      CACHE_CONTROL_HEADER: max-age=86400
+      IMG_SIZES: 320x320,640x640,1024x1024
+      RESIZED_IMAGES_PATH: thumbnails
+      INCLUDE_PATH_LIST: /users
+      IMAGE_TYPE: webp
 
     ports:
       - "3000:3000"

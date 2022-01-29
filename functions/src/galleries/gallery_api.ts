@@ -8,7 +8,7 @@ import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchem
 import {get, ref, upset} from "typesaurus"
 import * as Joi from "@hapi/joi"
 import multer from "multer"
-import {v4 as uuid} from "uuid"
+import {uuid} from "uuidv4"
 import * as firebaseAdmin from "firebase-admin"
 import {galleryItemsCollection, hydrateGalleryItem} from "./gallery_data"
 import {GalleryItem} from "./gallery_models"
