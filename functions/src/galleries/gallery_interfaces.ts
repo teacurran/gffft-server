@@ -6,7 +6,9 @@ import {Gallery, HydratedGallery, HydratedGalleryItem} from "./gallery_models"
 export interface IGalleryItem {
     id: string
     author: IUserRef
-    item: string
+    fileName: string
+    path: string
+    thumbnail: boolean
     createdAt: Date
 }
 
@@ -73,7 +75,9 @@ export function galleryItemToJson(
       id: "deleted",
       handle: "deleted",
     },
-    item: gi.item,
+    fileName: gi.fileName ?? "",
+    path: gi.path ?? "",
+    thumbnail: gi.thumbnail ?? false,
     createdAt: gi.createdAt,
   }
   return item

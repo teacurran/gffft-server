@@ -70,9 +70,9 @@ router.post(
   async (req: ValidatedRequest<CreateItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    let uid = req.body.uid
-    let gid = req.body.gid
-    const mid = req.body.mid
+    let uid: string = req.body.uid
+    let gid: string = req.body.gid
+    const mid: string = req.body.mid
     const description = req.body.description
 
     if (uid == "me") {
@@ -131,16 +131,31 @@ router.post(
 
     const fileName = `${itemId}.${type}`
 
-    const filePath = `users/${uid}/gfffts/${gid}/galleries/${mid}/items/${fileName}`
+    const filePath = `users/${posterUid}/gfffts/${gid}/galleries/${mid}/items`
+    const fullFilePath = `${filePath}/${fileName}`
 
-    await firebaseAdmin.storage().bucket().upload(file.path, {destination: filePath})
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const md: { [key: string]: any } = {
+      metadata: {},
+    }
+    md.metadata.uid = uid
+    md.metadata.gid = gid
+    md.metadata.mid = mid
+
+    await firebaseAdmin.storage()
+      .bucket("gffft-auth.appspot.com").upload(file.path, {
+        destination: fullFilePath,
+        metadata: md,
+      })
+
 
     const itemsCollection = galleryItemsCollection([uid, gid, mid])
     const itemRef = ref(itemsCollection, itemId)
     const item = {
       author: posterRef,
       createdAt: new Date(),
-      item: fileName,
+      fileName: fileName,
+      path: filePath,
     } as GalleryItem
     await upset(itemRef, item)
 

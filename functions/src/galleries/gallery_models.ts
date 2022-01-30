@@ -23,7 +23,9 @@ export interface HydratedGallery extends Gallery {
 export type GalleryItem = {
   id: string
   author: Ref<User>
-  item: string
+  fileName: string
+  path: string
+  thumbnail: boolean
   createdAt: Date
 }
 
