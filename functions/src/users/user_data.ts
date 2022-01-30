@@ -135,7 +135,7 @@ export async function getUniqueUsername(isNpc: boolean): Promise<string> {
 
     // get a new username
     const generatedUsername = await getUsername()
-    const npcPrefix = isNpc ? "npc-" : ""
+    const npcPrefix = isNpc ? "bot-" : ""
     const username = `${npcPrefix}${generatedUsername}`
 
     // check to see if someone already has this username
@@ -216,6 +216,7 @@ const getRandomItem = async (collection: string): Promise<QueryDocumentSnapshot<
   return firestore
     .collection(collection)
     .orderBy("random", "asc")
+    .offset(Math.floor(Math.random() * 500))
     .limit(1)
     .get().then((snapshot) => {
       if (snapshot.empty) {
