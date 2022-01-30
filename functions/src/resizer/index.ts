@@ -136,9 +136,9 @@ export const generateResizedImage = functions.storage.object().onFinalize(
       imageTypes.forEach((format) => {
         imageSizes.forEach((size) => {
           if (originalFile == undefined) {
-            logger.info("original file is undefined, skipping. format:${format} size:${size}")
+            logger.info(`original file is undefined, skipping. format:${format} size:${size}`)
           } else {
-            logger.info("original found, generating format:${format} size:${size}")
+            logger.info(`original found, generating format:${format} size:${size}`)
             tasks.push(
               modifyImage({
                 bucket,

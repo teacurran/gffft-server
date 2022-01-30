@@ -1,12 +1,12 @@
 {
   "env": {
     "resize": {
-      "includePathList": "/users",
-      "resizedImagePath": "thumbnails",
-      "bucket": "gffft-auth.appspot.com",
-      "sizes": "320x320,640x640,1024x1024",
       "imageType": "webp",
-      "cache": "max-age=86400"
+      "resizedImagePath": "thumbnails",
+      "sizes": "320x320,640x640,1024x1024",
+      "bucket": "gffft-auth.appspot.com",
+      "cache": "max-age=86400",
+      "includePathList": "/users"
     }
   }
 }

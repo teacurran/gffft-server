@@ -99,9 +99,9 @@ export const gffftMemberCounter = functions.firestore
     console.log(`gffftMemberCounter trigger: userId:${uid} 
       gffftId:${gid} memberId:${mid}`)
 
-    // const userGfffts = gffftsCollection(userId)
-    // const gffftRef = ref(userGfffts, gffftId)
-    const gffftStats = gffftsStatsCollection([uid, gid])
+    const userGfffts = gffftsCollection(uid)
+    const gffftRef = ref(userGfffts, gid)
+    const gffftStats = gffftsStatsCollection(gffftRef)
     const totalsRef = ref(gffftStats, "totals")
     const todayRef = ref(gffftStats, moment().format("YYYY-MM-DD"))
 
