@@ -30,7 +30,7 @@ export function resize(file: string, size: string): Promise<Buffer> {
   const sharpObj = sharp(file, {failOnError: false})
     .rotate()
     .resize(parseInt(width, 10), parseInt(height, 10), {
-      fit: "inside",
+      fit: "cover",
       withoutEnlargement: true,
     })
 
