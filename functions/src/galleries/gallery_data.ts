@@ -5,6 +5,7 @@ import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {itemOrUndefined} from "../common/data"
+import {usersCollection} from "../users/user_data"
 
 const DEFAULT_BOARD_KEY = "default"
 
@@ -14,14 +15,15 @@ export const galleryItemsCollection = subcollection<GalleryItem, Gallery,
 
 /**
  * gets or creates the default gallery for a user
- * @param {string} userId
- * @param {string} gffftId
+ * @param {string} uid
+ * @param {string} gid
  * @return {IIAMUserType}
  */
-export async function getOrCreateDefaultGallery(userId: string, gffftId: string): Promise<Gallery> {
-  const userGalleries = galleryCollection([userId, gffftId])
+export async function getOrCreateDefaultGallery(uid: string, gid: string): Promise<Gallery> {
+  const gfffts = gffftsCollection(ref(usersCollection, uid))
+  const galleries = galleryCollection(ref(gfffts, gid))
 
-  let gallery = await query(userGalleries, [
+  let gallery = await query(galleries, [
     where("key", "==", DEFAULT_BOARD_KEY),
     limit(1),
   ]).then((results) => {
@@ -39,7 +41,7 @@ export async function getOrCreateDefaultGallery(userId: string, gffftId: string)
       createdAt: new Date(),
       updatedAt: new Date(),
     } as Gallery
-    const result = await add<Gallery>(userGalleries, gallery)
+    const result = await add<Gallery>(galleries, gallery)
     gallery.id = result.id
   }
 

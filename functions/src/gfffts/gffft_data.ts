@@ -1,9 +1,12 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query,
-  startAfter, get, ref, pathToRef, remove} from "typesaurus"
+  startAfter, get, ref, pathToRef, remove, getRefPath} from "typesaurus"
 import {Gffft, GffftMember, GffftStats, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {itemOrNull} from "../common/data"
 import {usersCollection} from "../users/user_data"
+import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
+import {Board} from "../boards/board_models"
+import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 
 const DEFAULT_GFFFT_KEY = "default"
 const DEFAULT_STRING = "{default}"
@@ -180,6 +183,22 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
       gffft.ultraRareFruits] = await getUniqueFruitCode()
     const result = await add<Gffft>(userGfffts, gffft)
     gffft.id = result.id
+
+    const features: string[] = []
+    const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
+    const userBoards = boardsCollection([userId, gffft.id])
+    const itemRef = getRefPath(ref(userBoards, board.id))
+    features.push(itemRef)
+
+    const gallery: Board = await getOrCreateDefaultGallery(userId, gffft.id)
+    const gfffts = gffftsCollection(ref(usersCollection, userId))
+    const galleries = galleryCollection(ref(gfffts, gffft.id))
+    const galleryRef = getRefPath(ref(galleries, gallery.id))
+    features.push(galleryRef)
+
+    gffft.features = features
+
+    updateGffft(userId, gffft.id, gffft)
   }
 
   await ensureOwnership(gffft, userId)
