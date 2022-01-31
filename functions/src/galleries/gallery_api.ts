@@ -2,7 +2,7 @@ import express, {Response} from "express"
 
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
-import {getGffft, gffftsMembersCollection} from "../gfffts/gffft_data"
+import {getGffft, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, ref, upset} from "typesaurus"
@@ -10,7 +10,7 @@ import * as Joi from "@hapi/joi"
 import multer from "multer"
 import {uuid} from "uuidv4"
 import * as firebaseAdmin from "firebase-admin"
-import {galleryItemsCollection, hydrateGalleryItem} from "./gallery_data"
+import {galleryCollection, galleryItemsCollection, hydrateGalleryItem} from "./gallery_data"
 import {GalleryItem} from "./gallery_models"
 import {usersCollection} from "../users/user_data"
 import {galleryItemToJson} from "./gallery_interfaces"
@@ -149,8 +149,14 @@ router.post(
         metadata: md,
       })
 
-    const itemsCollection = galleryItemsCollection([uid, gid, mid])
-    const itemRef = ref(itemsCollection, itemId)
+    // todo: figure out why this is no longer working, it was previously.
+    // const itemsCollection = galleryItemsCollection([uid, gid, mid])
+
+    const gfffts = gffftsCollection(ref(usersCollection, uid))
+    const galleries = galleryCollection(ref(gfffts, gid))
+    const galleryRef = ref(galleries, mid)
+    const galleryItems = galleryItemsCollection(galleryRef)
+    const itemRef = ref(galleryItems, itemId)
     const item = {
       author: posterRef,
       createdAt: new Date(),
