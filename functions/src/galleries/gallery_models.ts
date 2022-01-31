@@ -27,6 +27,7 @@ export type GalleryItem = {
   path: string
   thumbnail: boolean
   createdAt: Date
+  urls?: Array<string>
 }
 
 export interface HydratedGalleryItem extends GalleryItem {
@@ -35,4 +36,5 @@ export interface HydratedGalleryItem extends GalleryItem {
 
 export type GalleryItemThumbnail = {
   thumbnail: boolean
+  urls: Array<string>
 }

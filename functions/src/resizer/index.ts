@@ -182,6 +182,14 @@ export const generateResizedImage = functions.storage.object().onFinalize(
           }
         }
 
+        const urls: Array<string> = []
+        for (let index = 0; index < results.length; index++) {
+          const item = results[index]
+          if (item.url) {
+            urls.push(item.url)
+          }
+        }
+
         const metadata = objectMetadata.metadata ?? {}
         const uid = metadata.uid
         const gid = metadata.gid
@@ -196,6 +204,7 @@ export const generateResizedImage = functions.storage.object().onFinalize(
           const itemRef = ref(itemsCollection, iid)
           const item = {
             thumbnail: true,
+            urls: urls,
           } as GalleryItemThumbnail
           await upset<GalleryItemThumbnail>(itemRef, item)
         } else {

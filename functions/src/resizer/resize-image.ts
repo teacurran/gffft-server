@@ -15,6 +15,7 @@ const config = getConfig()
 export interface ResizedImageResult {
   size: string;
   success: boolean;
+  url?: string;
 }
 
 export function resize(file: string, size: string): Promise<Buffer> {
@@ -27,10 +28,12 @@ export function resize(file: string, size: string): Promise<Buffer> {
     throw new Error("height and width are not delimited by a ',' or a 'x'")
   }
 
+  const fit = (parseInt(height, 10) < 1024) ? "cover" : "contain"
+
   const sharpObj = sharp(file, {failOnError: false})
     .rotate()
     .resize(parseInt(width, 10), parseInt(height, 10), {
-      fit: "cover",
+      fit: fit,
       withoutEnlargement: true,
     })
 
@@ -181,13 +184,17 @@ export const modifyImage = async ({
 
     // Uploading the modified image.
     logs.imageUploading(modifiedFilePath)
-    await bucket.upload(modifiedFile, {
+    const uploadResponse = await bucket.upload(modifiedFile, {
       destination: modifiedFilePath,
       metadata,
     })
+    await uploadResponse[0].makePublic()
+    const publicUrl = uploadResponse[0].publicUrl()
     logs.imageUploaded(modifiedFile)
 
-    return {size, success: true}
+    logs.imageUploaded(`got puclicUrl:${publicUrl}`)
+
+    return {size, success: true, url: publicUrl}
   } catch (err) {
     if (err instanceof Error) {
       logs.error(err)
