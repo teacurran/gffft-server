@@ -3,7 +3,8 @@
   "scripts": {
     "lint": "eslint --cache \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --cache --fix \"src/**/*.{js,jsx,ts,tsx}\"",
-    "build": "npm run env-local && tsc",
+    "build": "tsc",
+    "build-local": "npm run env-local && tsc",
     "dev": "npm run lint && tsc -w",
     "api-dev": "nodemon src/server.ts",
     "deploy": "npm run env && firebase deploy --only functions",
