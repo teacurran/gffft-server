@@ -82,7 +82,10 @@ export async function getGalleryItems(uid: string,
   mid:string,
   offset?: string,
   maxResults = 200): Promise<HydratedGalleryItem[]> {
-  const galleryItems = galleryItemsCollection([uid, gid, mid])
+  const gfffts = gffftsCollection(ref(usersCollection, uid))
+  const galleries = galleryCollection(ref(gfffts, gid))
+  const galleryRef = ref(galleries, mid)
+  const galleryItems = galleryItemsCollection(galleryRef)
 
   const queries: Query<GalleryItem, keyof GalleryItem>[] = []
   if (offset) {
