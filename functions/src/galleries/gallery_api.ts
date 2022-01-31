@@ -141,13 +141,13 @@ router.post(
     md.metadata.uid = uid
     md.metadata.gid = gid
     md.metadata.mid = mid
+    md.metadata.iid = itemId
 
     await firebaseAdmin.storage()
       .bucket("gffft-auth.appspot.com").upload(file.path, {
         destination: fullFilePath,
         metadata: md,
       })
-
 
     const itemsCollection = galleryItemsCollection([uid, gid, mid])
     const itemRef = ref(itemsCollection, itemId)

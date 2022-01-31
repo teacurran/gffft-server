@@ -31,6 +31,11 @@ import {getConfig, deleteImage} from "./config"
 import * as logs from "./logs"
 import {extractFileNameWithoutExtension, startsWithArray} from "./util"
 import sharp from "sharp"
+import {galleryCollection, galleryItemsCollection} from "../galleries/gallery_data"
+import {ref, upset} from "typesaurus"
+import {GalleryItemThumbnail} from "../galleries/gallery_models"
+import {gffftsCollection} from "../gfffts/gffft_data"
+import {usersCollection} from "../users/user_data"
 
 sharp.cache(false)
 
@@ -176,6 +181,27 @@ export const generateResizedImage = functions.storage.object().onFinalize(
             }
           }
         }
+
+        const metadata = objectMetadata.metadata ?? {}
+        const uid = metadata.uid
+        const gid = metadata.gid
+        const mid = metadata.mid
+        const iid = metadata.iid
+        if (uid && gid && mid && iid) {
+          logger.info(`marking complete: uid:${uid} gid:${gid} mid:${mid} iid:${iid}`)
+
+          const gfffts = gffftsCollection(ref(usersCollection, uid))
+          const galleries = galleryCollection(ref(gfffts, gid))
+          const itemsCollection = galleryItemsCollection(ref(galleries, mid))
+          const itemRef = ref(itemsCollection, iid)
+          const item = {
+            thumbnail: true,
+          } as GalleryItemThumbnail
+          await upset<GalleryItemThumbnail>(itemRef, item)
+        } else {
+          logger.warn(`something missing: uid:${uid} gid:${gid} mid:${mid} iid:${iid}`)
+        }
+
         logs.complete()
       }
     } catch (err) {
