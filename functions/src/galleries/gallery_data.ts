@@ -54,7 +54,8 @@ export async function getGallery(uid: string, gid: string, mid: string): Promise
   }
 
   console.log(`looking for gallery: uid:${uid} gid:${gid} mid:${mid}`)
-  const galleries = galleryCollection([uid, gid])
+  const gfffts = gffftsCollection(ref(usersCollection, uid))
+  const galleries = galleryCollection(ref(gfffts, gid))
   const itemRef = ref(galleries, mid)
   console.log(`itemRef: ${JSON.stringify(itemRef)}`)
   return getGalleryByRef(itemRef)
