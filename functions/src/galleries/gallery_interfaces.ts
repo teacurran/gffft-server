@@ -80,11 +80,11 @@ export function galleryItemToJson(
     for (let i=0; i<gi.urls.length; i++) {
       const url = gi.urls[i].replace("http://0.0.0.0", "http://127.0.0.1")
       if (url.indexOf("320x320") > -1) {
-        urls.set("320x320", url)
+        urls.set("320", url)
       } else if (url.indexOf("640x640") > -1) {
-        urls.set("640x640", url)
+        urls.set("640", url)
       } else if (url.indexOf("1024x1024") > -1) {
-        urls.set("1024x1024", url)
+        urls.set("1024", url)
       } else {
         console.log(`not sure what to do with size: ${url}`)
       }
