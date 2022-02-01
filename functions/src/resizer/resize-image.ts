@@ -72,6 +72,7 @@ export function convertType(buffer: Buffer, format: string): Promise<Buffer> {
  * Supported file types
  */
 export const supportedContentTypes = [
+  "image/gif",
   "image/jpeg",
   "image/png",
   "image/tiff",
@@ -79,6 +80,7 @@ export const supportedContentTypes = [
 ]
 
 export const supportedImageContentTypeMap = new Map<string, string>([
+  ["gif", "image/gif"],
   ["jpg", "image/jpeg"],
   ["jpeg", "image/jpeg"],
   ["png", "image/png"],
