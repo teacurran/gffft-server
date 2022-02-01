@@ -18,7 +18,7 @@ export interface ResizedImageResult {
   url?: string;
 }
 
-export function resize(file: string, size: string): Promise<Buffer> {
+export function resize(file: string, size: string, animated: boolean): Promise<Buffer> {
   let height; let width
   if (size.indexOf(",") !== -1) {
     [width, height] = size.split(",")
@@ -30,7 +30,7 @@ export function resize(file: string, size: string): Promise<Buffer> {
 
   const fit = (parseInt(height, 10) < 1024) ? "cover" : "contain"
 
-  const sharpObj = sharp(file, {failOnError: false})
+  const sharpObj = sharp(file, {failOnError: false, animated: animated})
     .rotate()
     .resize(parseInt(width, 10), parseInt(height, 10), {
       fit: fit,
@@ -40,7 +40,7 @@ export function resize(file: string, size: string): Promise<Buffer> {
   return sharpObj.toBuffer()
 }
 
-export function convertType(buffer: Buffer, format: string): Promise<Buffer> {
+export function convertType(buffer: Buffer, format: string, animated: boolean): Promise<Buffer> {
   if (format === "jpg" || format === "jpeg") {
     return sharp(buffer)
       .jpeg()
@@ -54,7 +54,7 @@ export function convertType(buffer: Buffer, format: string): Promise<Buffer> {
   }
 
   if (format === "webp") {
-    return sharp(buffer)
+    return sharp(buffer, {animated: animated})
       .webp()
       .toBuffer()
   }
@@ -123,6 +123,12 @@ export const modifyImage = async ({
     }
   }
 
+  let isAnimated = false
+  if (contentType === "image/gif") {
+    isAnimated = true
+  }
+
+
   const modifiedExtensionName =
     fileExtension && shouldFormatImage ? `.${format}` : fileExtension
 
@@ -170,14 +176,14 @@ export const modifyImage = async ({
 
     // Generate a resized image buffer using Sharp.
     logs.imageResizing(modifiedFile, size)
-    let modifiedImageBuffer = await resize(originalFile, size)
+    let modifiedImageBuffer = await resize(originalFile, size, isAnimated)
     logs.imageResized(modifiedFile)
 
     // Generate a converted image type buffer using Sharp.
 
     if (shouldFormatImage) {
       logs.imageConverting(fileExtension, format)
-      modifiedImageBuffer = await convertType(modifiedImageBuffer, format)
+      modifiedImageBuffer = await convertType(modifiedImageBuffer, format, isAnimated)
       logs.imageConverted(format)
     }
 
