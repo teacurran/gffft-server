@@ -153,6 +153,7 @@ export const modifyImage = async ({
     modifiedFile = path.join(os.tmpdir(), modifiedFileName)
 
     // Cloud Storage files.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const metadata: { [key: string]: any } = {
       contentDisposition: objectMetadata.contentDisposition,
       contentEncoding: objectMetadata.contentEncoding,
