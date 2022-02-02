@@ -1,4 +1,4 @@
-import express from "express"
+import express, {Request, Response} from "express"
 import bodyParser = require("body-parser");
 import * as firebaseAdmin from "firebase-admin"
 import cors from "cors"
@@ -40,6 +40,10 @@ async function start() {
   api.use("/boards", boards)
 
   app.use("/api", api)
+
+  app.get("/_ah/warmup", (req: Request, res: Response) => {
+    res.sendStatus(204)
+  })
 
   app.listen(PORT, () => {
     console.info(`Server listening on port: ${PORT}`)
