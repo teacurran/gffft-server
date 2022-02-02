@@ -108,10 +108,8 @@ const validator = createValidator()
 router.get(
   "/",
   validator.query(gffftListRequestParams),
-  requiredAuthentication,
   async (req: ValidatedRequest<GffftListRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
-    getGfffts(iamUser.id, req.query.offset, req.query.max, req.query.q).then((items) => {
+    getGfffts(req.query.offset, req.query.max, req.query.q).then((items) => {
       res.json(gffftsToJson(items))
     })
   }

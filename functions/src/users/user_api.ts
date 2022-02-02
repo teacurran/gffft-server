@@ -2,8 +2,8 @@ import express, {Request, Response} from "express"
 import {createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks,
   getUniqueUsername,
   getUser, usersCollection} from "./user_data"
-import {LoggedInUser, requiredAuthentication} from "../auth"
-import {User, UsernameChange} from "./user_models"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
+import {User, UserBookmark, UsernameChange} from "./user_models"
 import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {createGffftMembership, deleteGffftMembership, getGffft,
@@ -23,6 +23,7 @@ import {upset, value} from "typesaurus"
 import {galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {IGalleryType} from "../galleries/gallery_types"
+import {GffftMember} from "../gfffts/gffft_models"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -76,16 +77,21 @@ export interface GetGffftByIdRequest extends ValidatedRequestSchema {
 }
 router.get(
   "/:uid/gfffts/:gid",
-  requiredAuthentication,
+  optionalAuthentication,
   validator.params(getGffftByIdParams),
   async (req: ValidatedRequest<GetGffftByIdRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
+    const iamUser: LoggedInUser | null = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
 
     if (uid == "me") {
-      uid = iamUser.id
+      if (iamUser == null) {
+        res.status(403).send("Unauthorized: Token expired")
+        return
+      } else {
+        uid = iamUser.id
+      }
     }
 
     const gffft = await getGffft(uid, gid)
@@ -174,9 +180,15 @@ router.get(
       }
     })
 
-    const membership = await getGffftMembership(uid, gid, iamUser.id)
-    const bookmark = await getBookmark(uid, gid, iamUser.id)
-    const user = await getUser(iamUser.id)
+
+    let membership: GffftMember | undefined
+    let bookmark: UserBookmark | undefined
+    let user: User | undefined
+    if (iamUser != null) {
+      membership = await getGffftMembership(uid, gid, iamUser.id)
+      bookmark = await getBookmark(uid, gid, iamUser.id)
+      user = await getUser(iamUser.id)
+    }
 
     res.json(gffftToJson(gffft, user, membership, bookmark, features, boardJson, calendars, galleryJson, notebookJson))
   }

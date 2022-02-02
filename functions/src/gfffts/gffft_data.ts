@@ -206,7 +206,7 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   return gffft
 }
 
-export async function getGfffts(userId: string, offset?: string, maxResults = 20, q?: string): Promise<Gffft[]> {
+export async function getGfffts(offset?: string, maxResults = 20, q?: string): Promise<Gffft[]> {
   const queries: Query<Gffft, keyof Gffft>[] = [
     where("enabled", "==", true),
   ]
