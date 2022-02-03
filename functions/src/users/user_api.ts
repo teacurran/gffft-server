@@ -216,18 +216,20 @@ export interface GetBoardThreadsRequest extends ValidatedRequestSchema {
 }
 router.get(
   "/:uid/gfffts/:gid/boards/:bid/threads",
-  requiredAuthentication,
+  optionalAuthentication,
   validator.params(getBoardThreadsPathParams),
   validator.query(getBoardThreadsQueryParams),
   async (req: ValidatedRequest<GetBoardThreadsRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
+    const iamUser: LoggedInUser | undefined = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
     const bid = req.params.bid
 
     if (uid == "me") {
-      uid = iamUser.id
+      if (iamUser) {
+        uid = iamUser.id
+      }
     }
 
     // make sure the gffft exists
