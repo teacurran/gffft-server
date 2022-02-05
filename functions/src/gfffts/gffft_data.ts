@@ -72,23 +72,67 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
   throw new Error("unable to generate unique fruitcode")
 }
 
-export async function createGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember> {
+export async function checkGffftHandle(uid: string,
+  gid: string,
+  memberId: string,
+  handle: string): Promise<boolean> {
+  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const memberRef = ref(gffftMembers, memberId)
+
+  const membership = await query(gffftMembers, [
+    where("handle", "==", handle),
+    limit(1),
+  ]).then((results) => {
+    if (results.length > 0) {
+      return results[0].data
+    }
+    return null
+  })
+
+  if (membership) {
+    if (getRefPath(membership.user) == getRefPath(memberRef)) {
+      return true
+    }
+    return false
+  }
+
+  return true
+}
+
+export async function createGffftMembership(uid: string,
+  gid: string,
+  memberId: string,
+  handle: string | null): Promise<GffftMember> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const userRef = ref(usersCollection, memberId)
   const memberRef = ref(gffftMembers, memberId)
+
   return get(memberRef).then(async (snapshot) => {
+    let needsUpdate = false
+    let member: GffftMember
     if (snapshot != null) {
-      return snapshot.data
+      member = snapshot.data
     } else {
-      const member = {
+      member = {
         user: userRef,
+        handle: handle,
         type: TYPE_MEMBER,
         createdAt: new Date(),
         updatedAt: new Date(),
       } as GffftMember
-      await upset(memberRef, member)
-      return member
+      needsUpdate = true
     }
+
+    if (member.handle != handle) {
+      member.handle = handle ? handle : undefined
+      member.updatedAt = new Date()
+      needsUpdate = true
+    }
+
+    if (needsUpdate) {
+      await upset(memberRef, member)
+    }
+    return member
   })
 }
 

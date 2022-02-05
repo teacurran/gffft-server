@@ -6,7 +6,7 @@ import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../a
 import {User, UserBookmark, UsernameChange} from "./user_models"
 import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
-import {createGffftMembership, deleteGffftMembership, getGffft,
+import {checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
   getGffftMembership} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
@@ -331,11 +331,13 @@ router.get(
 const createMemberParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
+  handle: Joi.string().optional().allow(null),
 })
 export interface CreateMemberRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     uid: string
     gid: string
+    handle: string
   }
 }
 
@@ -346,9 +348,14 @@ router.post(
   async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
     const uid = req.body.uid
     const gid = req.body.gid
+    const handle = req.body.handle
     const memberId = res.locals.iamUser.id
 
-    await createGffftMembership(uid, gid, memberId)
+    if (!checkGffftHandle(uid, gid, memberId, handle)) {
+      res.status(400).send("handle exists")
+    }
+
+    await createGffftMembership(uid, gid, memberId, handle)
     await createBookmark(uid, gid, memberId)
     res.sendStatus(204)
   })
