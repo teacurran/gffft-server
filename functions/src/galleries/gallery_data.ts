@@ -77,6 +77,19 @@ export async function getGalleryByRefString(refId: string): Promise<Gallery | nu
   return getGalleryByRef(itemRef)
 }
 
+export async function getGalleryItem(uid: string,
+  gid: string,
+  mid:string,
+  iid:string): Promise<HydratedGalleryItem|null> {
+  const gfffts = gffftsCollection(ref(usersCollection, uid))
+  const galleries = galleryCollection(ref(gfffts, gid))
+  const galleryRef = ref(galleries, mid)
+  const galleryItems = galleryItemsCollection(galleryRef)
+
+  const item = await get(galleryItems, iid)
+  return hydrateGalleryItem(item)
+}
+
 export async function getGalleryItems(uid: string,
   gid: string,
   mid:string,

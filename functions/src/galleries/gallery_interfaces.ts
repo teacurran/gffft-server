@@ -70,7 +70,7 @@ export function galleryToJsonWithItems(
 }
 
 export function galleryItemToJson(
-  gi: HydratedGalleryItem): IGalleryItem | null {
+  gi: HydratedGalleryItem | null): IGalleryItem | null {
   if (gi == null || gi.id == null) {
     return null
   }

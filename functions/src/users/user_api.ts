@@ -10,7 +10,7 @@ import {checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft
   getGffftMembership} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
-import {getGallery, getGalleryByRefString, getGalleryItems, hydrateGallery} from "../galleries/gallery_data"
+import {getGallery, getGalleryByRefString, getGalleryItem, getGalleryItems, hydrateGallery} from "../galleries/gallery_data"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
@@ -20,7 +20,7 @@ import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import * as Joi from "@hapi/joi"
 import {upset, value} from "typesaurus"
-import {galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
+import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {IGalleryType} from "../galleries/gallery_types"
 import {GffftMember} from "../gfffts/gffft_models"
@@ -480,6 +480,60 @@ router.get(
     }
 
     res.json(galleryToJsonWithItems(hydratedGallery))
+  }
+)
+
+export const getGalleryItemPathParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  mid: Joi.string().required(),
+  iid: Joi.string().required(),
+})
+export interface GetGalleryItemRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    mid: string
+    iid: string
+  }
+  [ContainerTypes.Query]: {
+    max?: number
+    offset?: string
+  };
+}
+router.get(
+  "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
+  requiredAuthentication,
+  validator.params(getGalleryItemPathParams),
+  async (req: ValidatedRequest<GetGalleryItemRequest>, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
+    const mid = req.params.mid
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
+
+    // make sure the gffft exists
+    const gffft = await getGffft(uid, gid)
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+    const gallery = await getGallery(uid, gid, mid)
+
+    if (!gallery) {
+      res.sendStatus(404)
+      return
+    }
+
+    const item = await getGalleryItem(uid, gid, mid, req.params.iid)
+
+    res.json(galleryItemToJson(item))
   }
 )
 
