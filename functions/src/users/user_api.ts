@@ -10,7 +10,8 @@ import {checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft
   getGffftMembership} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
-import {getGallery, getGalleryByRefString, getGalleryItem, getGalleryItems, hydrateGallery} from "../galleries/gallery_data"
+import {getGallery, getGalleryByRefString, getGalleryItem,
+  getGalleryItems, hydrateGallery} from "../galleries/gallery_data"
 import {Gallery} from "../galleries/gallery_models"
 import {Notebook} from "../notebooks/notebook_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
