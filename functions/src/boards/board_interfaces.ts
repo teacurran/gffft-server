@@ -67,14 +67,14 @@ export function threadToJson(
     updatedAt: thread.updatedAt ?? new Date(),
     firstPost: thread.firstPostUser ? {
       id: thread.firstPostUser.id,
-      handle: thread.firstPostUser.username,
+      handle: thread.firstPostUser.handle ?? thread.firstPostUser.username,
     } : {
       id: "deleted",
       handle: "deleted",
     },
     latestPost: thread.latestPostUser ? {
       id: thread.latestPostUser.id,
-      handle: thread.latestPostUser.username,
+      handle: thread.latestPostUser.handle ?? thread.latestPostUser.username,
     } : {
       id: "deleted",
       handle: "deleted",
@@ -129,7 +129,7 @@ export function threadPostToJson(
     createdAt: post.createdAt,
     author: post.authorUser ? {
       id: post.authorUser.id,
-      handle: post.authorUser.username,
+      handle: post.authorUser.handle ?? post.authorUser.username,
     } : {
       id: "deleted",
       handle: "deleted",

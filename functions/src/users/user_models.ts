@@ -9,6 +9,10 @@ export type User = {
     updatedAt?: Date
   }
 
+export interface HydratedUser extends User {
+  handle: string | undefined
+}
+
 export type UsernameChange = {
     username: string
     usernameCounter: number

@@ -1,5 +1,5 @@
 import {Ref} from "typesaurus"
-import {User} from "../users/user_models"
+import {HydratedUser, User} from "../users/user_models"
 
 export type Board = {
     id: string
@@ -10,7 +10,7 @@ export type Board = {
     postCount?: number
     whoCanView?: string
     whoCanPost?: string
-    latestPost?: Ref<User>
+    latestPost?: Ref<HydratedUser>
     createdAt: Date
     updatedAt: Date
   }
@@ -47,8 +47,8 @@ export type Thread = {
 }
 
 export interface HydratedThread extends Thread {
-  firstPostUser: User | undefined
-  latestPostUser: User | undefined
+  firstPostUser: HydratedUser | undefined
+  latestPostUser: HydratedUser | undefined
   posts: HydratedThreadPost[]
 }
 
@@ -60,7 +60,7 @@ export type ThreadPost = {
 }
 
 export interface HydratedThreadPost extends ThreadPost {
-  authorUser: User | undefined
+  authorUser: HydratedUser | undefined
 }
 
 export type ThreadPostCounter = {

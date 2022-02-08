@@ -1,10 +1,10 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
   ref, Ref, Query, startAfter, order, Doc} from "typesaurus"
 import {Board, HydratedThread, HydratedThreadPost, Thread, ThreadPost} from "./board_models"
-import {User} from "../users/user_models"
-import {gffftsCollection} from "../gfffts/gffft_data"
+import {HydratedUser, User} from "../users/user_models"
+import {getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
-import {itemOrUndefined} from "../common/data"
+import {itemOrNull} from "../common/data"
 
 const DEFAULT_BOARD_KEY = "default"
 const DEFAULT_BOARD_NAME = "board"
@@ -92,36 +92,57 @@ export async function updateBoard(userId: string, gffftId: string, board: Board)
   return upset<Board>(userBoards, board.id, board)
 }
 
-export async function hydrateThread(snapshot: Doc<Thread> | null): Promise<HydratedThread | null> {
+async function hydrateUser(uid: string,
+  gid: string, user: User): Promise<HydratedUser | Promise<HydratedUser | null> | null> {
+  const gffftMembership = await getGffftMembership(uid, gid, user.id)
+
+  return {
+    ...user,
+    handle: gffftMembership ? gffftMembership.handle : undefined,
+  }
+}
+
+export async function getGffftUser(uid: string, gid: string, userRef: Ref<User>): Promise<HydratedUser | null> {
+  const user = await get<User>(userRef).then((snapshot) => itemOrNull(snapshot))
+  if (user == null) {
+    return null
+  }
+  return hydrateUser(uid, gid, user)
+}
+
+export async function hydrateThread(uid: string, gid: string,
+  snapshot: Doc<Thread> | null): Promise<HydratedThread | null> {
   if (snapshot == null) {
     return null
   }
   const item = snapshot.data
   item.id = snapshot.ref.id
 
-  const firstPostUser = await get<User>(item.firstPost).then((snapshot) => itemOrUndefined(snapshot))
-  const latestPostUser = await get<User>(item.firstPost).then((snapshot) => itemOrUndefined(snapshot))
+  const firstPostUser = await getGffftUser(uid, gid, item.firstPost)
+  const latestPostUser = await getGffftUser(uid, gid, item.latestPost)
 
   return {
     ...item,
-    firstPostUser: firstPostUser,
-    latestPostUser: latestPostUser,
+    firstPostUser: firstPostUser ?? undefined,
+    latestPostUser: latestPostUser ?? undefined,
     posts: [],
   }
 }
 
-export async function hydrateThreadPost(snapshot: Doc<ThreadPost> | null): Promise<HydratedThreadPost | null> {
+export async function hydrateThreadPost(uid: string, gid: string,
+  snapshot: Doc<ThreadPost> | null): Promise<HydratedThreadPost | null> {
   if (snapshot == null) {
     return null
   }
   const item = snapshot.data
   item.id = snapshot.ref.id
 
-  const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
+  const authorUser = await getGffftUser(uid, gid, item.author)
+
 
   return {
     ...item,
-    authorUser: authorUser,
+    authorUser: authorUser ?? undefined,
   }
 }
 
@@ -143,7 +164,7 @@ export async function getThreads(uid: string,
   const threads: HydratedThread[] = []
   return query(threadCollection, queries).then(async (results) => {
     for (const snapshot of results) {
-      const hydratedThread = await hydrateThread(snapshot)
+      const hydratedThread = await hydrateThread(uid, gid, snapshot)
       if (hydratedThread != null) {
         threads.push(hydratedThread)
       }
@@ -163,7 +184,7 @@ export async function getThread(uid: string,
   const pCollection = threadPostsCollection(threadRef)
 
   const thread = await get(threadRef)
-  const hydratedThread = await hydrateThread(thread)
+  const hydratedThread = await hydrateThread(uid, gid, thread)
 
   if (hydratedThread == null) {
     return null
@@ -181,7 +202,7 @@ export async function getThread(uid: string,
 
   const posts: HydratedThreadPost[] = []
   for (const snapshot of results) {
-    const hydratedThreadPost = await hydrateThreadPost(snapshot)
+    const hydratedThreadPost = await hydrateThreadPost(uid, gid, snapshot)
     if (hydratedThreadPost != null) {
       posts.push(hydratedThreadPost)
     }
@@ -191,3 +212,4 @@ export async function getThread(uid: string,
 
   return hydratedThread
 }
+
