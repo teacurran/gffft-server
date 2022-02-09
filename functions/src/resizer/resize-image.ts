@@ -28,7 +28,7 @@ export function resize(file: string, size: string, animated: boolean): Promise<B
     throw new Error("height and width are not delimited by a ',' or a 'x'")
   }
 
-  const fit = (parseInt(height, 10) < 1024) ? "cover" : "contain"
+  const fit = (parseInt(height, 10) < 1024) ? "cover" : "inside"
 
   const sharpObj = sharp(file, {failOnError: false, animated: animated})
     .rotate()
