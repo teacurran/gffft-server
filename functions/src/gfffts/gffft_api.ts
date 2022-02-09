@@ -18,6 +18,7 @@ import {Calendar} from "../calendars/calendar_models"
 import {calendarsCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
 import * as Joi from "@hapi/joi"
 import {getUser} from "../users/user_data"
+import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -128,6 +129,7 @@ const gffftPatchRequestParams = Joi.object({
   calendarEnabled: Joi.boolean().optional(),
   galleryEnabled: Joi.boolean().optional(),
   notebookEnabled: Joi.boolean().optional(),
+  linkSetEnabled: Joi.boolean().optional(),
   fruitCodeReset: Joi.boolean().optional(),
 })
 export interface GffftPatchRequest extends ValidatedRequestSchema {
@@ -144,6 +146,7 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     calendarEnabled?: boolean,
     galleryEnabled?: boolean,
     notebookEnabled?: boolean,
+    linkSetEnabled?: boolean,
     fruitCodeReset?: boolean,
   };
 }
@@ -243,6 +246,21 @@ router.patch(
           features.push(itemRef)
         }
       }
+      if (body.linkSetEnabled != undefined) {
+        console.log(`got link-set enable:${body.linkSetEnabled}`)
+
+        const linkSet = await getOrCreateDefaultLinkSet(iamUser.id, gffft.id)
+        const linkSets = linkSetCollection([iamUser.id, gffft.id])
+        const itemRef = getRefPath(ref(linkSets, linkSet.id))
+
+        const itemIndex = features.indexOf(itemRef, 0)
+        if (itemIndex > -1) {
+          features.splice(itemIndex, 1)
+        }
+        if (body.linkSetEnabled) {
+          features.push(itemRef)
+        }
+      }
 
       if (body.fruitCodeReset === true) {
         [gffft.fruitCode,
@@ -329,7 +347,7 @@ router.get(
     const iamUser: LoggedInUser = res.locals.iamUser
     const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
     const user = await getUser(iamUser.id)
-    res.json(gffftToJson(gffft, user, undefined, undefined, [], [], [], [], []))
+    res.json(gffftToJson(gffft, user, undefined, undefined, [], [], [], [], [], []))
   }
 )
 

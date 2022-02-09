@@ -2,6 +2,7 @@ import {IBoardType} from "../boards/board_interfaces"
 import {ICalendarType} from "../calendars/calendar_interfaces"
 import {notEmpty} from "../common/utils"
 import {IGalleryType} from "../galleries/gallery_types"
+import {ILinkSet} from "../link-sets/link_set_interfaces"
 import {INotebookType} from "../notebooks/notebook_interfaces"
 import {bookmarkToJson, iamUserToJson, IUserBookmark, IUserType} from "../users/user_interfaces"
 import {User, UserBookmark} from "../users/user_models"
@@ -44,6 +45,7 @@ export interface IGffftType {
     calendars: ICalendarType[]
     galleries: IGalleryType[]
     notebooks: INotebookType[]
+    linkSets: ILinkSet[]
     createdAt?: Date
     updatedAt?: Date
   }
@@ -151,6 +153,7 @@ export function gffftToJson(
   calendars: ICalendarType[],
   galleries: IGalleryType[],
   notebooks: INotebookType[],
+  linkSets: ILinkSet[],
 ): IGffftType | null {
   if (gffft == null || gffft.uid == null || gffft.id == null) {
     return null
@@ -176,6 +179,7 @@ export function gffftToJson(
     calendars: calendars,
     galleries: galleries,
     notebooks: notebooks,
+    linkSets: linkSets,
     createdAt: gffft.createdAt,
     updatedAt: gffft.updatedAt,
   }

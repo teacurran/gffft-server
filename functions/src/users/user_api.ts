@@ -25,8 +25,9 @@ import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galle
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {IGalleryType} from "../galleries/gallery_types"
 import {GffftMember} from "../gfffts/gffft_models"
-import {getLinkSet, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
-import {linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
+import {getLinkSet, getLinkSetByRefString, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
+import {ILinkSet, linkSetToJson, linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
+import {LinkSet} from "../link-sets/link_set_models"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -109,6 +110,7 @@ router.get(
     const galleries: Gallery[] = []
     const notebooks: Notebook[] = []
     const features: IGffftFeatureRef[] = []
+    const linkSets: LinkSet[] = []
 
     if (gffft.features) {
       for (let i=0; i<gffft.features.length; i++) {
@@ -155,6 +157,17 @@ router.get(
               })
             }
           }
+        } else if (feature.indexOf("/link-sets/") != -1) {
+          const item = await getLinkSetByRefString(feature)
+          if (item) {
+            linkSets.push(item)
+            if (item.id) {
+              features.push({
+                type: "linkSet",
+                id: item.id,
+              })
+            }
+          }
         }
       }
     }
@@ -183,6 +196,13 @@ router.get(
       }
     })
 
+    const linkSetJson: ILinkSet[] = []
+    linkSets.forEach((linkSet) => {
+      const json = linkSetToJson(linkSet)
+      if (json != null) {
+        linkSetJson.push(json)
+      }
+    })
 
     let membership: GffftMember | undefined
     let bookmark: UserBookmark | undefined
@@ -193,7 +213,8 @@ router.get(
       user = await getUser(iamUser.id)
     }
 
-    res.json(gffftToJson(gffft, user, membership, bookmark, features, boardJson, calendars, galleryJson, notebookJson))
+    res.json(gffftToJson(gffft, user, membership, bookmark, features,
+      boardJson, calendars, galleryJson, notebookJson, linkSetJson))
   }
 )
 
@@ -605,7 +626,6 @@ router.get(
     res.json(linkSetToJsonWithItems(hydratedGallery))
   }
 )
-
 
 export default router
 
