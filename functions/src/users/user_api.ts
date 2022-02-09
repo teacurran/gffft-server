@@ -584,7 +584,7 @@ export interface GetLinkSetRequest extends ValidatedRequestSchema {
 }
 
 router.get(
-  "/:uid/gfffts/:gid/link-sets/:lid",
+  "/:uid/gfffts/:gid/links/:lid",
   requiredAuthentication,
   validator.params(getLinkSetPathParams),
   validator.query(getLinkSetQueryParams),
