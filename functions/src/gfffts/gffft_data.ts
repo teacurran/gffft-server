@@ -7,6 +7,9 @@ import {usersCollection} from "../users/user_data"
 import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
+import {Gallery} from "../galleries/gallery_models"
+import {LinkSet} from "../link-sets/link_set_models"
+import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
 
 const DEFAULT_GFFFT_KEY = "default"
 const DEFAULT_STRING = "{default}"
@@ -234,11 +237,16 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
     const itemRef = getRefPath(ref(userBoards, board.id))
     features.push(itemRef)
 
-    const gallery: Board = await getOrCreateDefaultGallery(userId, gffft.id)
+    const gallery: Gallery = await getOrCreateDefaultGallery(userId, gffft.id)
     const gfffts = gffftsCollection(ref(usersCollection, userId))
     const galleries = galleryCollection(ref(gfffts, gffft.id))
     const galleryRef = getRefPath(ref(galleries, gallery.id))
     features.push(galleryRef)
+
+    const linkSet: LinkSet = await getOrCreateDefaultLinkSet(userId, gffft.id)
+    const linkSets = linkSetCollection(ref(gfffts, gffft.id))
+    const linkSetRef = getRefPath(ref(linkSets, linkSet.id))
+    features.push(linkSetRef)
 
     gffft.features = features
 
