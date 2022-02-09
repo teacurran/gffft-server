@@ -49,7 +49,7 @@ export async function getOrCreateDefaultGallery(uid: string, gid: string): Promi
 }
 
 export async function getGallery(uid: string, gid: string, mid: string): Promise<Gallery | null> {
-  if (gid == "default") {
+  if (mid == "default") {
     return getOrCreateDefaultGallery(uid, gid)
   }
 

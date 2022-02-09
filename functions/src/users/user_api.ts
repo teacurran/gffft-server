@@ -25,6 +25,8 @@ import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galle
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {IGalleryType} from "../galleries/gallery_types"
 import {GffftMember} from "../gfffts/gffft_models"
+import {getLinkSet, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
+import {linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -535,6 +537,72 @@ router.get(
     const item = await getGalleryItem(uid, gid, mid, req.params.iid)
 
     res.json(galleryItemToJson(item))
+  }
+)
+
+
+export const getLinkSetPathParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  lid: Joi.string().required(),
+})
+export const getLinkSetQueryParams = Joi.object({
+  max: Joi.string().optional(),
+  offset: Joi.string().optional(),
+})
+export interface GetLinkSetRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    lid: string
+  }
+  [ContainerTypes.Query]: {
+    max?: number
+    offset?: string
+  };
+}
+
+router.get(
+  "/:uid/gfffts/:gid/link-sets/:lid",
+  requiredAuthentication,
+  validator.params(getLinkSetPathParams),
+  validator.query(getLinkSetQueryParams),
+
+  async (req: ValidatedRequest<GetLinkSetRequest>, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
+    const lid = req.params.lid
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
+
+    // make sure the gffft exists
+    const gffft = await getGffft(uid, gid)
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+    const linkSet = await getLinkSet(uid, gid, lid)
+
+    if (!linkSet) {
+      res.sendStatus(404)
+      return
+    }
+
+    const items = await getLinkSetItems(uid, gid, lid, req.query.offset, req.query.max)
+
+    const hydratedGallery = await hydrateLinkSet(linkSet, items)
+    if (hydratedGallery == null) {
+      res.sendStatus(404)
+      return
+    }
+
+    res.json(linkSetToJsonWithItems(hydratedGallery))
   }
 )
 
