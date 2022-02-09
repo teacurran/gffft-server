@@ -8,6 +8,7 @@ import boards from "./boards/board_api"
 import galleries from "./galleries/gallery_api"
 import gfffts from "./gfffts/gffft_api"
 import users from "./users/user_api"
+import links from "./link-sets/link_set_api"
 
 const PORT = process.env.PORT || 3000
 
@@ -38,6 +39,7 @@ async function start() {
   api.use("/galleries", galleries)
   api.use("/gfffts", gfffts)
   api.use("/boards", boards)
+  api.use("/links", links)
 
   app.use("/api", api)
 
