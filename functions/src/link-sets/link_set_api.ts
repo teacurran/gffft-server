@@ -11,14 +11,12 @@ import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem, getLink, 
 import {Link, LinkSetItem} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
 import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
-import {uuid} from "uuidv4"
 import urlParser from "url-parse"
 import {unfurl} from "unfurl.js"
 
 
 import Libhoney from "libhoney"
-import {Http} from "../common/http"
-import axios, {AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse} from "axios"
+import axios from "axios"
 
 const hny = new Libhoney({
   writeKey: "160965349838cd907f5532a79ee04410",
