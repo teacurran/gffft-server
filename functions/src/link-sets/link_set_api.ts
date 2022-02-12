@@ -160,8 +160,6 @@ router.get(
 
     let link = await getLink(url.toString())
     if (link == null) {
-      const itemId = uuid()
-
       const response = await axios.get(url)
 
       const unfurled = await unfurl(url.toString())
