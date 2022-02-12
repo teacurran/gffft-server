@@ -4,11 +4,11 @@ import {LoggedInUser, requiredAuthentication} from "../auth"
 import {getGffft, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {add, get, ref} from "typesaurus"
+import {add, get, ref, update, value} from "typesaurus"
 import * as Joi from "@hapi/joi"
 import multer from "multer"
 import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem, getLink, linksCollection} from "./link_set_data"
-import {Link, LinkSetItem} from "./link_set_models"
+import {Link, LinkSetItem, UpdateLink} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
 import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
 import urlParser from "url-parse"
@@ -157,15 +157,26 @@ router.get(
 
     let link = await getLink(url)
     if (link == null) {
-      const response = await axios.get(url)
+      const response = await axios
+        .get(url)
+        .catch((error) => {
+          console.info(`error fetching url: ${url}. ${error}`)
+          return null
+        })
+
+      if (response == null) {
+        res.status(500).send("unable to fetch url")
+        return
+      }
 
       const unfurled = await unfurl(url)
+      const description = unfurled?.description ?? unfurled.open_graph?.description
 
       link = {
         domain: parsedUrl.hostname,
         url: url,
         title: unfurled.title,
-        description: unfurled.description,
+        description: description,
         metadata: JSON.stringify(unfurled),
         responseCode: response.status,
         body: (typeof response.data == "string") ? response.data : null,
@@ -178,6 +189,29 @@ router.get(
 
       const ref = await add(linksCollection, link)
       link.id = ref.id
+    } else {
+      if (new Date().getTime() - link.updatedAt.getTime() > (1000 * 60 * 60 * 24)) {
+        const response = await axios.get(url)
+        const unfurled = await unfurl(url)
+        const description = unfurled.description ?? unfurled.open_graph.description
+
+        link.domain = parsedUrl.hostname
+        link.title = unfurled.title
+        link.description = description
+        link.metadata = JSON.stringify(unfurled)
+        link.responseCode = response.status
+        link.body = (typeof response.data == "string") ? response.data : undefined
+        link.updatedAt= new Date(),
+
+        await update<UpdateLink>(linksCollection, link.id, {
+          ...link,
+          queryCount: value("increment", 1),
+        })
+      } else {
+        await update<UpdateLink>(linksCollection, link.id, {
+          queryCount: value("increment", 1),
+        })
+      }
     }
     res.json(linkToJson(link))
   }

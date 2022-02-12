@@ -9,13 +9,25 @@ export type Link = {
     description?: string
     image?: string
     responseCode: number
-    body: string,
+    body?: string,
     metadata: string
     createdAt: Date
     updatedAt: Date
     queryCount: number
     saveCount: number
     clickCount: number
+}
+
+export type UpdateLink = {
+    domain: string
+    title?: string
+    description?: string
+    image?: string
+    responseCode: number
+    body?: string,
+    metadata: string
+    updatedAt: Date
+    queryCount: number
 }
 
 export type LinkCache = {
