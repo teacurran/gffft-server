@@ -1,10 +1,27 @@
 import {Ref} from "typesaurus"
 import {User} from "../users/user_models"
 
+export type Link = {
+    id: string
+    domain: string
+    url: string
+    createdAt: Date
+    updatedAt: Date
+    queryCount: number
+    saveCount: number
+    clickCount: number
+}
+
+export type LinkStats = {
+    queryCount: number
+    saveCount: number
+    clickCount: number
+}
+
 export type LinkSet = {
-    id: string,
-    key: string,
-    name?: string,
+    id: string
+    key: string
+    name?: string
     description?: string
     itemCount: number
     whoCanView?: string

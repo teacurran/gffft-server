@@ -23,7 +23,7 @@ export class Http {
     this.axios = axios.create({
       baseURL: baseUrl,
       headers,
-      withCredentials: true,
+      withCredentials: authToken ? true : false,
     })
     this.authToken = authToken
 

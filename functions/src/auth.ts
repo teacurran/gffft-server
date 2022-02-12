@@ -1,6 +1,7 @@
 import * as firebaseAdmin from "firebase-admin"
 import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
+import {trace, context} from "@opentelemetry/api"
 
 export type LoggedInUser = {
   id: string
@@ -75,8 +76,10 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
     if (splitToken.length == 3) {
       const npc = await getNpc(splitToken[1])
       if (npc != null) {
+        userId = splitToken[2]
+        observeUserId(userId)
         return {
-          id: splitToken[2],
+          id: userId,
         }
       }
       return null
@@ -92,10 +95,18 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
     const decodedToken = await auth.verifyIdToken(idToken)
     userId = decodedToken.uid
   }
+  observeUserId(userId)
 
   return firebaseAdmin.auth().getUser(userId).then((userRecord) => {
     return {
       id: userRecord.uid,
     }
   })
+}
+
+function observeUserId(userId: string) {
+  const activeSpan = trace.getSpan(context.active())
+  if (activeSpan != null) {
+    activeSpan.setAttribute("user.id", userId)
+  }
 }

@@ -12,6 +12,16 @@ import {LinkSetItem} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
 import {linkSetItemToJson} from "./link_set_interfaces"
 
+import Libhoney from "libhoney"
+import {Http} from "../common/http"
+import axios, {AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse} from "axios"
+
+const hny = new Libhoney({
+  writeKey: "160965349838cd907f5532a79ee04410",
+  dataset: "gffft",
+})
+
+
 // eslint-disable-next-line new-cap
 const router = express.Router()
 const validator = createValidator()
@@ -121,6 +131,33 @@ router.post(
     res.json(linkSetItemToJson(hgi))
   }
 )
+
+export interface LinkRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Query]: {
+    url: string
+  };
+}
+const linkGetQueryParams = Joi.object({
+  url: Joi.string().required(),
+})
+router.get(
+  "/link",
+  upload.any(),
+  validator.params(linkGetQueryParams),
+  async (req: ValidatedRequest<LinkRequest>, res: Response) => {
+    const url = req.params.url
+    const event = hny.newEvent()
+    event.addField("name", "link")
+    event.addField("action", "get")
+    event.addField("url", url)
+    event.send()
+
+    const client = axios.create()
+
+    const response = await client.get(url)
+  }
+)
+
 
 export default router
 
