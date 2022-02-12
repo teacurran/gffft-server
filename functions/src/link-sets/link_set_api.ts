@@ -14,7 +14,6 @@ import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
 import urlParser from "url-parse"
 import {unfurl} from "unfurl.js"
 
-
 import Libhoney from "libhoney"
 import axios from "axios"
 
@@ -145,9 +144,9 @@ const linkGetQueryParams = Joi.object({
 router.get(
   "/link",
   upload.any(),
-  validator.params(linkGetQueryParams),
+  validator.query(linkGetQueryParams),
   async (req: ValidatedRequest<LinkRequest>, res: Response) => {
-    const url = req.params.url
+    const url = decodeURIComponent(req.query.url)
     const parsedUrl = urlParser(url)
     const event = hny.newEvent()
     event.addField("name", "link")
