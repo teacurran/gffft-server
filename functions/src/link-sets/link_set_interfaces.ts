@@ -1,13 +1,41 @@
 import {WHO_OWNER} from "../boards/board_data"
 import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
-import {LinkSet, HydratedLinkSet, HydratedLinkSetItem} from "./link_set_models"
+import {LinkSet, HydratedLinkSet, HydratedLinkSetItem, Link} from "./link_set_models"
 
 export const mapToObj = (m: Map<string, string>) => {
   return Array.from(m).reduce((obj: any, [key, value]) => {
     obj[key] = value
     return obj
   }, {})
+}
+
+export interface ILink {
+  id: string,
+  domain: string,
+  url: string,
+  title?: string,
+  description?: string,
+  image?: string,
+  responseCode: number,
+  createdAt: Date
+  updatedAt: Date
+}
+
+export function linkToJson(
+  link: Link
+): ILink {
+  return {
+    id: link.id ?? "",
+    domain: link.domain,
+    url: link.url,
+    title: link.title,
+    description: link.description,
+    image: link.image,
+    responseCode: link.responseCode,
+    createdAt: link.createdAt,
+    updatedAt: link.updatedAt,
+  }
 }
 
 export interface ILinkSetItem {

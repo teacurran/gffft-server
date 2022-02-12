@@ -7,10 +7,14 @@ import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchem
 import {add, get, ref} from "typesaurus"
 import * as Joi from "@hapi/joi"
 import multer from "multer"
-import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem} from "./link_set_data"
-import {LinkSetItem} from "./link_set_models"
+import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem, getLink, linksCollection} from "./link_set_data"
+import {Link, LinkSetItem} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
-import {linkSetItemToJson} from "./link_set_interfaces"
+import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
+import {uuid} from "uuidv4"
+import urlParser from "url-parse"
+import {unfurl} from "unfurl.js"
+
 
 import Libhoney from "libhoney"
 import {Http} from "../common/http"
@@ -146,15 +150,41 @@ router.get(
   validator.params(linkGetQueryParams),
   async (req: ValidatedRequest<LinkRequest>, res: Response) => {
     const url = req.params.url
+    const parsedUrl = urlParser(url)
     const event = hny.newEvent()
     event.addField("name", "link")
     event.addField("action", "get")
-    event.addField("url", url)
+    event.addField("domain", url.hostname)
+    event.addField("url", url.toString())
     event.send()
 
-    const client = axios.create()
+    let link = await getLink(url.toString())
+    if (link == null) {
+      const itemId = uuid()
 
-    const response = await client.get(url)
+      const response = await axios.get(url)
+
+      const unfurled = await unfurl(url.toString())
+
+      link = {
+        domain: url.hostname,
+        url: url.toString(),
+        title: unfurled.title,
+        description: unfurled.description,
+        metadata: JSON.stringify(unfurled),
+        responseCode: response.status,
+        body: (typeof response.data == "string") ? response.data : null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        queryCount: 1,
+        clickCount: 0,
+        saveCount: 0,
+      } as Link
+
+      const ref = await add(linksCollection, link)
+      link.id = ref.id
+    }
+    res.json(linkToJson(link))
   }
 )
 

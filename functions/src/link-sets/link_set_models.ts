@@ -5,6 +5,12 @@ export type Link = {
     id: string
     domain: string
     url: string
+    title?: string
+    description?: string
+    image?: string
+    responseCode: number
+    body: string,
+    metadata: string
     createdAt: Date
     updatedAt: Date
     queryCount: number
@@ -12,7 +18,14 @@ export type Link = {
     clickCount: number
 }
 
-export type LinkStats = {
+export type LinkCache = {
+    createdAt: Date
+    responseCode: number
+    body: string
+    metadata: Map<string, string>
+}
+
+export type LinkStat = {
     queryCount: number
     saveCount: number
     clickCount: number

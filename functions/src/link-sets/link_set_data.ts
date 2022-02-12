@@ -1,13 +1,17 @@
-import {add, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
+import {add, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
   subcollection, where} from "typesaurus"
-import {itemOrUndefined} from "../common/data"
+import {itemOrNull, itemOrUndefined} from "../common/data"
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
-import {HydratedLinkSet, HydratedLinkSetItem, LinkSet, LinkSetItem} from "./link_set_models"
+import {HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache, LinkSet, LinkSetItem, LinkStat} from "./link_set_models"
 
 const DEFAULT_LINK_SET_KEY = "default"
+
+export const linksCollection = collection<Link>("links")
+export const linkStatsCollection = subcollection<LinkStat, Link>("stats", linksCollection)
+export const linkCacheCollection = subcollection<LinkCache, Link>("cache", linksCollection)
 
 export const linkSetCollection = subcollection<LinkSet, Gffft, User>("link-sets", gffftsCollection)
 export const linkSetItemsCollection = subcollection<LinkSetItem, LinkSet,
@@ -142,4 +146,17 @@ export async function hydrateLinkSet(linkSet: LinkSet,
   }
 }
 
+export async function getLink(url: string): Promise<Link | null> {
+  // todo
+  // transform URL to make domain case insensitive
+  return query(linksCollection, [
+    where("url", "==", url),
+    limit(1),
+  ]).then((results) => {
+    if (results.length > 0) {
+      return itemOrNull(results[0])
+    }
+    return null
+  })
+}
 
