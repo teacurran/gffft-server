@@ -154,19 +154,19 @@ router.get(
     const event = hny.newEvent()
     event.addField("name", "link")
     event.addField("action", "get")
-    event.addField("domain", url.hostname)
-    event.addField("url", url.toString())
+    event.addField("domain", parsedUrl.hostname)
+    event.addField("url", url)
     event.send()
 
-    let link = await getLink(url.toString())
+    let link = await getLink(url)
     if (link == null) {
       const response = await axios.get(url)
 
-      const unfurled = await unfurl(url.toString())
+      const unfurled = await unfurl(url)
 
       link = {
-        domain: url.hostname,
-        url: url.toString(),
+        domain: parsedUrl.hostname,
+        url: url,
         title: unfurled.title,
         description: unfurled.description,
         metadata: JSON.stringify(unfurled),
