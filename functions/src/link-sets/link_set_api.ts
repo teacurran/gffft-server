@@ -7,22 +7,13 @@ import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchem
 import {add, get, ref, update, value} from "typesaurus"
 import * as Joi from "@hapi/joi"
 import multer from "multer"
-import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem, getLink, linksCollection} from "./link_set_data"
-import {Link, LinkSetItem, UpdateLink} from "./link_set_models"
+import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem, getLink,
+  linksCollection, getOrCreateLink} from "./link_set_data"
+import {LinkSetItem, UpdateLink} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
 import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
+import {hny} from "../common/utils"
 import urlParser from "url-parse"
-import {unfurl} from "unfurl.js"
-import {parse} from "node-html-parser"
-
-import Libhoney from "libhoney"
-import axios from "axios"
-
-const hny = new Libhoney({
-  writeKey: "160965349838cd907f5532a79ee04410",
-  dataset: "gffft",
-})
-
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -70,6 +61,7 @@ router.post(
     const lid: string = req.body.lid
     const url = req.body.url
     const description = req.body.description
+    const parsedUrl = urlParser(url)
 
     if (uid == "me") {
       uid = iamUser.id
@@ -110,20 +102,35 @@ router.post(
 
     console.log(`creating linkSet item: uid:${uid} gid:${gid} lid:${lid} description: ${description}`)
 
+    const link = await getOrCreateLink(url)
+    if (link == null) {
+      res.status(500).send("unable to fetch url")
+      return
+    }
+
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const linkSets = linkSetCollection(ref(gfffts, gid))
     const linkSetRef = ref(linkSets, lid)
     const linkSetItems = linkSetItemsCollection(linkSetRef)
+    const linkRef = ref(linksCollection, link.id)
+
     const item = {
       author: posterRef,
       createdAt: new Date(),
+      link: linkRef,
       url: url,
       description: description,
     } as LinkSetItem
     const linkSetItemRef = await add(linkSetItems, item)
 
-    item.id = linkSetItemRef.id
+    const event = hny.newEvent()
+    event.addField("name", "link")
+    event.addField("action", "get")
+    event.addField("domain", parsedUrl.hostname)
+    event.addField("url", url)
+    event.send()
 
+    item.id = linkSetItemRef.id
     const hgi = await hydrateLinkSetItem(item)
     if (hgi == null) {
       console.warn(`Hydrated linkSet item was null when it shouldn't be: ${hgi}`)
@@ -148,123 +155,16 @@ router.get(
   validator.query(linkGetQueryParams),
   async (req: ValidatedRequest<LinkRequest>, res: Response) => {
     const url = decodeURIComponent(req.query.url)
-    const parsedUrl = urlParser(url)
-    const event = hny.newEvent()
-    event.addField("name", "link")
-    event.addField("action", "get")
-    event.addField("domain", parsedUrl.hostname)
-    event.addField("url", url)
-    event.send()
 
-    let link = await getLink(url)
+    const link = await getOrCreateLink(url)
     if (link == null) {
-      const response = await axios
-        .get(url)
-        .catch((error) => {
-          console.info(`error fetching url: ${url}. ${error}`)
-          return null
-        })
-
-      if (response == null) {
-        res.status(500).send("unable to fetch url")
-        return
-      }
-
-      const unfurled = await unfurl(url)
-
-      let title = unfurled.title
-      let description = unfurled?.description ?? unfurled.open_graph?.description
-      let image: string | undefined = undefined
-      let body: string | undefined = undefined
-
-      if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
-        image = url
-        title = url
-        description = ""
-      } else {
-        if (typeof response.data == "string") {
-          body = response.data
-          const dom = parse(body)
-
-          const imgs = dom.getElementsByTagName("img")
-          if (imgs.length > 0) {
-            const img = imgs[0]
-            image = img.getAttribute("src")
-            if (image != null && image != "") {
-              const imgUrl = new URL(image, parsedUrl.origin)
-              image = imgUrl.href
-            }
-          }
-        }
-      }
-
-      link = {
-        domain: parsedUrl.hostname,
-        url: url,
-        title: title,
-        description: description,
-        image: image,
-        metadata: JSON.stringify(unfurled),
-        responseCode: response.status,
-        body: body,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        queryCount: 1,
-        clickCount: 0,
-        saveCount: 0,
-      } as Link
-
-      const ref = await add(linksCollection, link)
-      link.id = ref.id
-    } else {
-      if (new Date().getTime() - link.updatedAt.getTime() > (1000 * 60 * 60 * 24)) {
-        const response = await axios.get(url)
-        const unfurled = await unfurl(url)
-
-        let title = unfurled.title
-        let description = unfurled?.description ?? unfurled.open_graph?.description
-        let image: string | undefined = undefined
-        let body: string | undefined = undefined
-
-        if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
-          image = url
-          title = url
-          description = ""
-        } else {
-          if (typeof response.data == "string") {
-            body = response.data
-            const dom = parse(body)
-
-            const imgs = dom.getElementsByTagName("img")
-            if (imgs.length > 0) {
-              const img = imgs[0]
-              image = img.getAttribute("src")
-              if (image != null && image != "") {
-                image = `${parsedUrl.protocol}${parsedUrl.host}${parsedUrl.pathname}/${image}`
-              }
-            }
-          }
-        }
-
-        link.domain = parsedUrl.hostname
-        link.title = title
-        link.image = image
-        link.description = description
-        link.metadata = JSON.stringify(unfurled)
-        link.responseCode = response.status
-        link.body = body
-        link.updatedAt= new Date(),
-
-        await update<UpdateLink>(linksCollection, link.id, {
-          ...link,
-          queryCount: value("increment", 1),
-        })
-      } else {
-        await update<UpdateLink>(linksCollection, link.id, {
-          queryCount: value("increment", 1),
-        })
-      }
+      res.status(500).send("unable to fetch url")
+      return
     }
+    await update<UpdateLink>(linksCollection, link.id, {
+      queryCount: value("increment", 1),
+    })
+
     res.json(linkToJson(link))
   }
 )

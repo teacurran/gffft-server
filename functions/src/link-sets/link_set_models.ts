@@ -64,6 +64,7 @@ export interface HydratedLinkSet extends LinkSet {
 export type LinkSetItem = {
     id: string
     author: Ref<User>
+    link: Ref<Link>
     url: string
     description: string
     createdAt: Date

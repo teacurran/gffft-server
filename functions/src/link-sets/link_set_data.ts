@@ -1,11 +1,17 @@
+import axios from "axios"
 import {add, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
-  subcollection, where} from "typesaurus"
+  subcollection, update, where} from "typesaurus"
 import {itemOrNull, itemOrUndefined} from "../common/data"
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
-import {HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache, LinkSet, LinkSetItem, LinkStat} from "./link_set_models"
+import {HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache,
+  LinkSet, LinkSetItem, LinkStat, UpdateLink} from "./link_set_models"
+import {unfurl} from "unfurl.js"
+import {parse} from "node-html-parser"
+import urlParser from "url-parse"
+import {hny} from "../common/utils"
 
 const DEFAULT_LINK_SET_KEY = "default"
 
@@ -159,4 +165,122 @@ export async function getLink(url: string): Promise<Link | null> {
     return null
   })
 }
+
+export async function getOrCreateLink(url: string): Promise<Link | null> {
+  const parsedUrl = urlParser(url)
+
+  const event = hny.newEvent()
+  event.addField("name", "link")
+  event.addField("action", "get")
+  event.addField("domain", parsedUrl.hostname)
+  event.addField("url", url)
+  event.send()
+
+  let link = await getLink(url)
+  if (link == null) {
+    const response = await axios
+      .get(url)
+      .catch((error) => {
+        console.info(`error fetching url: ${url}. ${error}`)
+        return null
+      })
+
+    if (response == null) {
+      return null
+    }
+
+    const unfurled = await unfurl(url)
+
+    let title = unfurled.title
+    let description = unfurled?.description ?? unfurled.open_graph?.description
+    let image: string | undefined = undefined
+    let body: string | undefined = undefined
+
+    if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
+      image = url
+      title = url
+      description = ""
+    } else {
+      if (typeof response.data == "string") {
+        body = response.data
+        const dom = parse(body)
+
+        const imgs = dom.getElementsByTagName("img")
+        if (imgs.length > 0) {
+          const img = imgs[0]
+          image = img.getAttribute("src")
+          if (image != null && image != "") {
+            const imgUrl = new URL(image, parsedUrl.origin)
+            image = imgUrl.href
+          }
+        }
+      }
+    }
+
+    link = {
+      domain: parsedUrl.hostname,
+      url: url,
+      title: title,
+      description: description,
+      image: image,
+      metadata: JSON.stringify(unfurled),
+      responseCode: response.status,
+      body: body,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      queryCount: 1,
+      clickCount: 0,
+      saveCount: 0,
+    } as Link
+
+    const ref = await add(linksCollection, link)
+    link.id = ref.id
+  } else {
+    if (new Date().getTime() - link.updatedAt.getTime() > (1000 * 60 * 60 * 24)) {
+      const response = await axios.get(url)
+      const unfurled = await unfurl(url)
+
+      let title = unfurled.title
+      let description = unfurled?.description ?? unfurled.open_graph?.description
+      let image: string | undefined = undefined
+      let body: string | undefined = undefined
+
+      if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
+        image = url
+        title = url
+        description = ""
+      } else {
+        if (typeof response.data == "string") {
+          body = response.data
+          const dom = parse(body)
+
+          const imgs = dom.getElementsByTagName("img")
+          if (imgs.length > 0) {
+            const img = imgs[0]
+            image = img.getAttribute("src")
+            if (image != null && image != "") {
+              image = `${parsedUrl.protocol}${parsedUrl.host}${parsedUrl.pathname}/${image}`
+            }
+          }
+        }
+      }
+
+      link.domain = parsedUrl.hostname
+      link.title = title
+      link.image = image
+      link.description = description
+      link.metadata = JSON.stringify(unfurled)
+      link.responseCode = response.status
+      link.body = body
+      link.updatedAt= new Date(),
+
+      await update<UpdateLink>(linksCollection, link.id, {
+        ...link,
+      })
+    }
+  }
+
+  return link
+}
+
 

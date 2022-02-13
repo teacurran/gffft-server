@@ -617,13 +617,13 @@ router.get(
 
     const items = await getLinkSetItems(uid, gid, lid, req.query.offset, req.query.max)
 
-    const hydratedGallery = await hydrateLinkSet(linkSet, items)
-    if (hydratedGallery == null) {
+    const hydratedLinkSet = await hydrateLinkSet(linkSet, items)
+    if (hydratedLinkSet == null) {
       res.sendStatus(404)
       return
     }
 
-    res.json(linkSetToJsonWithItems(hydratedGallery))
+    res.json(linkSetToJsonWithItems(hydratedLinkSet))
   }
 )
 
