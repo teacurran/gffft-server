@@ -13,6 +13,7 @@ import {usersCollection} from "../users/user_data"
 import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
 import urlParser from "url-parse"
 import {unfurl} from "unfurl.js"
+import {parse} from "node-html-parser"
 
 import Libhoney from "libhoney"
 import axios from "axios"
@@ -170,16 +171,42 @@ router.get(
       }
 
       const unfurled = await unfurl(url)
-      const description = unfurled?.description ?? unfurled.open_graph?.description
+
+      let title = unfurled.title
+      let description = unfurled?.description ?? unfurled.open_graph?.description
+      let image: string | undefined = undefined
+      let body: string | undefined = undefined
+
+      if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
+        image = url
+        title = url
+        description = ""
+      } else {
+        if (typeof response.data == "string") {
+          body = response.data
+          const dom = parse(body)
+
+          const imgs = dom.getElementsByTagName("img")
+          if (imgs.length > 0) {
+            const img = imgs[0]
+            image = img.getAttribute("src")
+            if (image != null && image != "") {
+              const imgUrl = new URL(image, parsedUrl.origin)
+              image = imgUrl.href
+            }
+          }
+        }
+      }
 
       link = {
         domain: parsedUrl.hostname,
         url: url,
-        title: unfurled.title,
+        title: title,
         description: description,
+        image: image,
         metadata: JSON.stringify(unfurled),
         responseCode: response.status,
-        body: (typeof response.data == "string") ? response.data : null,
+        body: body,
         createdAt: new Date(),
         updatedAt: new Date(),
         queryCount: 1,
@@ -193,14 +220,39 @@ router.get(
       if (new Date().getTime() - link.updatedAt.getTime() > (1000 * 60 * 60 * 24)) {
         const response = await axios.get(url)
         const unfurled = await unfurl(url)
-        const description = unfurled.description ?? unfurled.open_graph.description
+
+        let title = unfurled.title
+        let description = unfurled?.description ?? unfurled.open_graph?.description
+        let image: string | undefined = undefined
+        let body: string | undefined = undefined
+
+        if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
+          image = url
+          title = url
+          description = ""
+        } else {
+          if (typeof response.data == "string") {
+            body = response.data
+            const dom = parse(body)
+
+            const imgs = dom.getElementsByTagName("img")
+            if (imgs.length > 0) {
+              const img = imgs[0]
+              image = img.getAttribute("src")
+              if (image != null && image != "") {
+                image = `${parsedUrl.protocol}${parsedUrl.host}${parsedUrl.pathname}/${image}`
+              }
+            }
+          }
+        }
 
         link.domain = parsedUrl.hostname
-        link.title = unfurled.title
+        link.title = title
+        link.image = image
         link.description = description
         link.metadata = JSON.stringify(unfurled)
         link.responseCode = response.status
-        link.body = (typeof response.data == "string") ? response.data : undefined
+        link.body = body
         link.updatedAt= new Date(),
 
         await update<UpdateLink>(linksCollection, link.id, {
