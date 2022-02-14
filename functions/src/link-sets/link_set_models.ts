@@ -8,6 +8,7 @@ export type Link = {
     title?: string
     description?: string
     image?: string
+    images?: string[]
     responseCode: number
     body?: string,
     metadata: string
@@ -64,7 +65,7 @@ export interface HydratedLinkSet extends LinkSet {
 export type LinkSetItem = {
     id: string
     author: Ref<User>
-    link: Ref<Link>
+    linkRef: Ref<Link>
     url: string
     description: string
     createdAt: Date
@@ -72,5 +73,6 @@ export type LinkSetItem = {
 
 export interface HydratedLinkSetItem extends LinkSetItem {
     authorUser: User | undefined
+    link: Link | undefined
 }
 

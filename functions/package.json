@@ -42,6 +42,7 @@
     "firebase-functions": "^3.18.0",
     "fishery": "^2.1.0",
     "fs-extra": "^10.0.0",
+    "html-metadata-parser": "^2.0.4",
     "htmlparser": "^1.7.7",
     "libhoney": "^3.0.0",
     "mkdirp": "^1.0.4",

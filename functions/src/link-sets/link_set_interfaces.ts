@@ -40,9 +40,13 @@ export function linkToJson(
 
 export interface ILinkSetItem {
     id: string
+    url: string
     author: IUserRef
-    url: any
     description: string
+    domain?: string
+    blurb?: string
+    title?: string
+    image?: string
     createdAt: Date
 }
 
@@ -108,6 +112,10 @@ export function linkSetItemToJson(
     url: linkSetItem.url,
     description: linkSetItem.description,
     createdAt: linkSetItem.createdAt,
+    domain: linkSetItem?.link?.domain,
+    title: linkSetItem?.link?.title,
+    blurb: linkSetItem?.link?.description,
+    image: linkSetItem?.link?.image,
   }
   return item
 }

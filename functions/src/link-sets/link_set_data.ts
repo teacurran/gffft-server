@@ -9,9 +9,9 @@ import {User} from "../users/user_models"
 import {HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache,
   LinkSet, LinkSetItem, LinkStat, UpdateLink} from "./link_set_models"
 import {unfurl} from "unfurl.js"
-import {parse} from "node-html-parser"
 import urlParser from "url-parse"
 import {hny} from "../common/utils"
+import {parse as parseHtml, HTMLElement} from "node-html-parser"
 
 const DEFAULT_LINK_SET_KEY = "default"
 
@@ -103,7 +103,10 @@ export async function getLinkSetItems(uid: string,
   const items: HydratedLinkSetItem[] = []
   return query(linkSetItems, queries).then(async (results) => {
     for (const snapshot of results) {
-      const hydratedItem = await hydrateLinkSetItem(snapshot)
+      const link = snapshot.data?.linkRef ?
+        await getLinkByRef(snapshot.data?.linkRef) :
+        null
+      const hydratedItem = await hydrateLinkSetItem(snapshot, link)
       if (hydratedItem != null) {
         items.push(hydratedItem)
       }
@@ -114,7 +117,7 @@ export async function getLinkSetItems(uid: string,
 
 export async function hydrateLinkSetItem(snapshot: Doc<LinkSetItem> |
     LinkSetItem |
-    null): Promise<HydratedLinkSetItem | null> {
+    null, link: Link | null): Promise<HydratedLinkSetItem | null> {
   let item: LinkSetItem
 
   if (snapshot == null) {
@@ -132,6 +135,7 @@ export async function hydrateLinkSetItem(snapshot: Doc<LinkSetItem> |
   return {
     ...item,
     authorUser: authorUser,
+    link: link == null ? undefined : link,
   }
 }
 
@@ -191,50 +195,96 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
 
     const unfurled = await unfurl(url)
 
-    let title = unfurled.title
+    let title: string | undefined | null = unfurled.title
     let description = unfurled?.description ?? unfurled.open_graph?.description
     let image: string | undefined = undefined
     let body: string | undefined = undefined
+    let images: string[] = []
 
     if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
       image = url
       title = url
       description = ""
+      images = [image]
     } else {
       if (typeof response.data == "string") {
         body = response.data
-        const dom = parse(body)
+        const $ = parseHtml(body)
 
-        const imgs = dom.getElementsByTagName("img")
-        if (imgs.length > 0) {
-          const img = imgs[0]
-          image = img.getAttribute("src")
-          if (image != null && image != "") {
-            const imgUrl = new URL(image, parsedUrl.origin)
-            image = imgUrl.href
+        if (!title) {
+          const htmlTitle = $.querySelector("title")
+          if (htmlTitle) {
+            title = htmlTitle.text
           }
         }
+
+        const metas = $.querySelectorAll("meta")
+
+        for (let i = 0; i < metas.length; i++) {
+          const el = metas[i]
+
+          if (!description) {
+            const val = readMT(el, "description")
+            if (val) {
+              description = val
+            }
+          }
+
+          if (!title) {
+            const val = readMT(el, "title")
+            if (val) {
+              title = val
+            }
+          }
+
+          if (!image) {
+            const val = readMT(el, "image")
+            if (val) {
+              image = val
+            }
+          }
+        }
+
+        const imgs = $.getElementsByTagName("img")
+        if (imgs.length > 0) {
+          for (let i=0; i<imgs.length; i++) {
+            const img = imgs[i]
+            const imgSrc = img?.getAttribute("src")
+
+            if (imgSrc != null && imgSrc != "") {
+              const imgUrl = new URL(imgSrc, parsedUrl.origin)
+              if (!image) {
+                image = imgUrl.href
+              }
+              images.push(imgUrl.href)
+            }
+          }
+        }
+        if (images.length > 0) {
+          image = images[0]
+        }
       }
+
+      link = {
+        domain: parsedUrl.hostname,
+        url: url,
+        title: title,
+        description: description,
+        image: image,
+        images: images,
+        metadata: JSON.stringify(unfurled),
+        responseCode: response.status,
+        body: body,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        queryCount: 1,
+        clickCount: 0,
+        saveCount: 0,
+      } as Link
+
+      const ref = await add(linksCollection, link)
+      link.id = ref.id
     }
-
-    link = {
-      domain: parsedUrl.hostname,
-      url: url,
-      title: title,
-      description: description,
-      image: image,
-      metadata: JSON.stringify(unfurled),
-      responseCode: response.status,
-      body: body,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      queryCount: 1,
-      clickCount: 0,
-      saveCount: 0,
-    } as Link
-
-    const ref = await add(linksCollection, link)
-    link.id = ref.id
   } else {
     if (new Date().getTime() - link.updatedAt.getTime() > (1000 * 60 * 60 * 24)) {
       const response = await axios.get(url)
@@ -244,6 +294,7 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
       let description = unfurled?.description ?? unfurled.open_graph?.description
       let image: string | undefined = undefined
       let body: string | undefined = undefined
+      const images: string[] = []
 
       if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
         image = url
@@ -252,14 +303,58 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
       } else {
         if (typeof response.data == "string") {
           body = response.data
-          const dom = parse(body)
+          const $ = parseHtml(body)
 
-          const imgs = dom.getElementsByTagName("img")
-          if (imgs.length > 0) {
-            const img = imgs[0]
-            image = img.getAttribute("src")
-            if (image != null && image != "") {
-              image = `${parsedUrl.protocol}${parsedUrl.host}${parsedUrl.pathname}/${image}`
+          if (!title) {
+            const htmlTitle = $.querySelector("title")
+            if (htmlTitle) {
+              title = htmlTitle.text
+            }
+          }
+
+          const metas = $.querySelectorAll("meta")
+
+          for (let i = 0; i < metas.length; i++) {
+            const el = metas[i]
+
+            if (!description) {
+              const val = readMT(el, "description")
+              if (val) {
+                description = val
+              }
+            }
+
+            if (!title) {
+              const val = readMT(el, "title")
+              if (val) {
+                title = val
+              }
+            }
+
+            if (!image) {
+              const val = readMT(el, "image")
+              if (val) {
+                image = val
+              }
+            }
+
+            const imgs = $.getElementsByTagName("img")
+            if (imgs.length > 0) {
+              for (let i=0; i<imgs.length; i++) {
+                const img = imgs[i]
+                const imgSrc = img?.getAttribute("src")
+
+                if (imgSrc != null && imgSrc != "") {
+                  const imgUrl = new URL(imgSrc, parsedUrl.origin)
+                  if (!image) {
+                    image = imgUrl.href
+                  }
+                  images.push(imgUrl.href)
+                }
+              }
+            }
+            if (images.length > 0) {
+              image = images[0]
             }
           }
         }
@@ -283,4 +378,24 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
   return link
 }
 
+export async function getLinkByRef(itemRef: Ref<Link>): Promise<Link | null> {
+  return get(itemRef).then(async (snapshot) => {
+    if (snapshot != null) {
+      const data = snapshot.data
+      data.id = snapshot.ref.id
+      return data
+    }
+    return null
+  })
+}
+
+export async function getLinkByRefString(refId: string): Promise<Link | null> {
+  const itemRef = pathToRef<Link>(refId)
+  return getLinkByRef(itemRef)
+}
+
+const readMT = (el: HTMLElement, name: string) => {
+  const prop = el.getAttribute("name") || el.getAttribute("property")
+  return prop == name ? el.getAttribute("content") : null
+}
 

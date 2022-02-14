@@ -7,7 +7,7 @@ import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchem
 import {add, get, ref, update, value} from "typesaurus"
 import * as Joi from "@hapi/joi"
 import multer from "multer"
-import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem, getLink,
+import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem,
   linksCollection, getOrCreateLink} from "./link_set_data"
 import {LinkSetItem, UpdateLink} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
@@ -117,7 +117,7 @@ router.post(
     const item = {
       author: posterRef,
       createdAt: new Date(),
-      link: linkRef,
+      linkRef: linkRef,
       url: url,
       description: description,
     } as LinkSetItem
@@ -131,7 +131,7 @@ router.post(
     event.send()
 
     item.id = linkSetItemRef.id
-    const hgi = await hydrateLinkSetItem(item)
+    const hgi = await hydrateLinkSetItem(item, link)
     if (hgi == null) {
       console.warn(`Hydrated linkSet item was null when it shouldn't be: ${hgi}`)
       res.sendStatus(404)
