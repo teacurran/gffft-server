@@ -113,62 +113,70 @@ router.get(
     const linkSets: LinkSet[] = []
 
     if (gffft.features) {
+      const featurePromises: Promise<void>[] = []
       for (let i=0; i<gffft.features.length; i++) {
         const feature = gffft.features[i]
         console.log(`looking at feature: ${feature}`)
         if (feature.indexOf("/boards/") != -1) {
-          const board = await getBoardByRefString(feature)
-          if (board) {
-            boards.push(board)
-            if (board.id) {
-              features.push({
-                type: "board",
-                id: board.id,
-              })
+          featurePromises.push(getBoardByRefString(feature).then((board) => {
+            if (board) {
+              boards.push(board)
+              if (board.id) {
+                features.push({
+                  type: "board",
+                  id: board.id,
+                })
+              }
             }
-          }
+          }))
         } else if (feature.indexOf("/calendars/") != -1) {
-          const calendar = await getCalendarByRef(feature)
-          const calendarJson = calendarToJson(calendar)
-          if (calendarJson != null) {
-            calendars.push(calendarJson)
-            features.push({
-              type: "calendar",
-              id: calendarJson.id,
-            })
-          }
+          featurePromises.push(getCalendarByRef(feature).then((calendar) => {
+            const calendarJson = calendarToJson(calendar)
+            if (calendarJson != null) {
+              calendars.push(calendarJson)
+              features.push({
+                type: "calendar",
+                id: calendarJson.id,
+              })
+            }
+          }))
         } else if (feature.indexOf("/galleries/") != -1) {
-          const gallery = await getGalleryByRefString(feature)
-          if (gallery) {
-            galleries.push(gallery)
-            features.push({
-              type: "gallery",
-              id: gallery.id,
-            })
-          }
+          featurePromises.push(getGalleryByRefString(feature).then((gallery) => {
+            if (gallery) {
+              galleries.push(gallery)
+              features.push({
+                type: "gallery",
+                id: gallery.id,
+              })
+            }
+          }))
         } else if (feature.indexOf("/notebooks/") != -1) {
-          const notebook = await getNotebookByRef(feature)
-          if (notebook) {
-            notebooks.push(notebook)
-            if (notebook.id) {
-              features.push({
-                type: "notebook",
-                id: notebook.id,
-              })
+          featurePromises.push(getNotebookByRef(feature).then((notebook) => {
+            if (notebook) {
+              notebooks.push(notebook)
+              if (notebook.id) {
+                features.push({
+                  type: "notebook",
+                  id: notebook.id,
+                })
+              }
             }
-          }
+          }))
         } else if (feature.indexOf("/link-sets/") != -1) {
-          const item = await getLinkSetByRefString(feature)
-          if (item) {
-            linkSets.push(item)
-            if (item.id) {
-              features.push({
-                type: "linkSet",
-                id: item.id,
-              })
+          featurePromises.push(getLinkSetByRefString(feature).then((item) => {
+            if (item) {
+              linkSets.push(item)
+              if (item.id) {
+                features.push({
+                  type: "linkSet",
+                  id: item.id,
+                })
+              }
             }
-          }
+          }))
         }
+
+        await Promise.all(featurePromises)
       }
     }
 
