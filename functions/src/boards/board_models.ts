@@ -1,4 +1,5 @@
 import {Ref} from "typesaurus"
+import {Link} from "../link-sets/link_set_models"
 import {HydratedUser, User} from "../users/user_models"
 
 export type Board = {
@@ -36,7 +37,7 @@ export type BoardPostCounter = {
 }
 
 export type Thread = {
-  id?: string
+  id: string
   subject: string
   firstPost: Ref<User>
   latestPost: Ref<User>
@@ -56,6 +57,7 @@ export type ThreadPost = {
   id?: string
   body: string
   author: Ref<User>
+  linkRef?: Ref<Link>
   createdAt: Date
 }
 

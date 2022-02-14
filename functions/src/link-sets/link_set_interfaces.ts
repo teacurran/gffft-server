@@ -1,3 +1,4 @@
+import {getRefPath} from "typesaurus"
 import {WHO_OWNER} from "../boards/board_data"
 import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
@@ -49,6 +50,7 @@ export interface ILinkSetItem {
     blurb?: string
     title?: string
     image?: string
+    thread?: string
     createdAt: Date
 }
 
@@ -118,6 +120,7 @@ export function linkSetItemToJson(
     title: linkSetItem?.link?.title,
     blurb: linkSetItem?.link?.description,
     image: linkSetItem?.link?.image,
+    thread: (linkSetItem.threadRef != null) ? getRefPath(linkSetItem.threadRef) : undefined,
   }
   return item
 }

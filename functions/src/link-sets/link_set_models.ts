@@ -1,4 +1,5 @@
 import {Ref} from "typesaurus"
+import {Thread} from "../boards/board_models"
 import {User} from "../users/user_models"
 
 export type Link = {
@@ -66,6 +67,7 @@ export type LinkSetItem = {
     id: string
     author: Ref<User>
     linkRef: Ref<Link>
+    threadRef: Ref<Thread>
     url: string
     description: string
     createdAt: Date
@@ -74,5 +76,6 @@ export type LinkSetItem = {
 export interface HydratedLinkSetItem extends LinkSetItem {
     authorUser: User | undefined
     link: Link | undefined
+    thread?: Thread | undefined
 }
 

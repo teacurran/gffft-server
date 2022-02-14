@@ -14,6 +14,8 @@ import {usersCollection} from "../users/user_data"
 import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
 import {hny} from "../common/utils"
 import urlParser from "url-parse"
+import {getOrCreateDefaultBoard, threadPostsCollection, threadsCollection} from "../boards/board_data"
+import {Thread} from "../boards/board_models"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -114,10 +116,31 @@ router.post(
     const linkSetItems = linkSetItemsCollection(linkSetRef)
     const linkRef = ref(linksCollection, link.id)
 
+    const board = await getOrCreateDefaultBoard(uid, gid)
+    const threads = threadsCollection([uid, gid, board.id])
+    const thread = {
+      subject: `🔗: ${link.title}`,
+      firstPost: posterRef,
+      latestPost: posterRef,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      postCount: 0,
+    } as Thread
+    const threadRef = await add(threads, thread)
+
+    const postsCollection = threadPostsCollection(threadRef)
+    await add(postsCollection, {
+      author: posterRef,
+      body: description,
+      createdAt: new Date(),
+      linkRef: linkRef,
+    })
+
     const item = {
       author: posterRef,
       createdAt: new Date(),
       linkRef: linkRef,
+      threadRef: threadRef,
       url: url,
       description: description,
     } as LinkSetItem
@@ -125,7 +148,7 @@ router.post(
 
     const event = hny.newEvent()
     event.addField("name", "link")
-    event.addField("action", "get")
+    event.addField("action", "save")
     event.addField("domain", parsedUrl.hostname)
     event.addField("url", url)
     event.send()

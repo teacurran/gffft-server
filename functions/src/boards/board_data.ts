@@ -173,6 +173,16 @@ export async function getThreads(uid: string,
   })
 }
 
+export async function getThreadByRef(itemRef: Ref<Thread>): Promise<Thread | null> {
+  return get(itemRef).then((snapshot) => itemOrNull(snapshot))
+}
+
+export async function getThreadByRefString(refId: string): Promise<Thread | null> {
+  const itemRef = pathToRef<Thread>(refId)
+  return getThreadByRef(itemRef)
+}
+
+
 export async function getThread(uid: string,
   gid: string,
   bid: string,

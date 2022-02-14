@@ -12,6 +12,7 @@ import {unfurl} from "unfurl.js"
 import urlParser from "url-parse"
 import {hny} from "../common/utils"
 import {parse as parseHtml, HTMLElement} from "node-html-parser"
+import {getThreadByRef} from "../boards/board_data"
 
 const DEFAULT_LINK_SET_KEY = "default"
 
@@ -133,12 +134,17 @@ export async function hydrateLinkSetItem(snapshot: Doc<LinkSetItem> |
     item = (snapshot as LinkSetItem)
   }
 
+  const thread = item.threadRef ?
+    await getThreadByRef(item.threadRef) :
+    null
+
   const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
 
   return {
     ...item,
     authorUser: authorUser,
     link: link == null ? undefined : link,
+    thread: thread == null ? undefined: thread,
   }
 }
 
