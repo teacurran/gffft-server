@@ -3,7 +3,9 @@ import {notEmpty} from "../common/utils"
 import {IUserRef} from "../users/user_interfaces"
 import {Gallery, HydratedGallery, HydratedGalleryItem} from "./gallery_models"
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const mapToObj = (m: Map<string, string>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return Array.from(m).reduce((obj: any, [key, value]) => {
     obj[key] = value
     return obj

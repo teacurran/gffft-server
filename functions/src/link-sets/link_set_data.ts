@@ -103,9 +103,12 @@ export async function getLinkSetItems(uid: string,
   const items: HydratedLinkSetItem[] = []
   return query(linkSetItems, queries).then(async (results) => {
     for (const snapshot of results) {
+      console.log(`snapshot ref: ${snapshot.data?.linkRef}`)
       const link = snapshot.data?.linkRef ?
         await getLinkByRef(snapshot.data?.linkRef) :
         null
+
+      console.log(`link: ${link}`)
       const hydratedItem = await hydrateLinkSetItem(snapshot, link)
       if (hydratedItem != null) {
         items.push(hydratedItem)
