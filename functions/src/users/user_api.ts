@@ -539,16 +539,20 @@ export interface GetGalleryItemRequest extends ValidatedRequestSchema {
 }
 router.get(
   "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
-  requiredAuthentication,
+  optionalAuthentication,
   validator.params(getGalleryItemPathParams),
   async (req: ValidatedRequest<GetGalleryItemRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
+    const iamUser: LoggedInUser | null = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
     const mid = req.params.mid
 
     if (uid == "me") {
+      if (iamUser == null) {
+        res.sendStatus(404)
+        return
+      }
       uid = iamUser.id
     }
 
@@ -597,18 +601,23 @@ export interface GetLinkSetRequest extends ValidatedRequestSchema {
 
 router.get(
   "/:uid/gfffts/:gid/links/:lid",
-  requiredAuthentication,
+  optionalAuthentication,
   validator.params(getLinkSetPathParams),
   validator.query(getLinkSetQueryParams),
 
   async (req: ValidatedRequest<GetLinkSetRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
+    const iamUser: LoggedInUser | null = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
     const lid = req.params.lid
 
     if (uid == "me") {
+      if (iamUser == null) {
+        res.sendStatus(404)
+        return
+      }
+
       uid = iamUser.id
     }
 
