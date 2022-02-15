@@ -12,6 +12,8 @@ import {boardsCollection, threadsCollection} from "./boards/board_data"
 import {BoardPostCounterWithAuthor, BoardThreadCounter, BoardThreadPostCounterNoAuthor,
   ThreadPostCounterWithAuthor} from "./boards/board_models"
 import {User} from "./users/user_models"
+import {galleryCollection, galleryItemsCollection} from "./galleries/gallery_data"
+import {GalleryUpdateCounter} from "./galleries/gallery_models"
 
 const PROJECTID = "gffft-auth"
 firebaseAdmin.initializeApp({
@@ -211,5 +213,41 @@ export const threadReplyCounter = functions.firestore
 
     return
   })
+
+export const galleryItemCounter = functions.firestore
+  .document("users/{uid}/gfffts/{gid}/galleries/{mid}/items/{iid}")
+  .onWrite(async (change, context) => {
+    const uid = context.params.uid
+    const gid = context.params.gid
+    const mid = context.params.mid
+    const iid = context.params.iid
+
+    const beforeData = change.before.data()
+    const afterData = change.after.data()
+
+    const users = usersCollection
+    const gfffts = gffftsCollection(ref(users, uid))
+    const galleries = galleryCollection(ref(gfffts, gid))
+    const galleryItems = galleryItemsCollection(ref(galleries, mid))
+    const itemRef = ref(galleryItems, iid)
+
+    if (!change.before.exists && afterData != null) {
+      return upset<GalleryUpdateCounter>(itemRef, {
+        photoCount: value("increment", 1),
+        updatedAt: afterData.createdAt ? afterData.createdAt.toDate() : new Date(),
+      })
+    } else if (change.before.exists && change.after.exists && beforeData && afterData) {
+      // do nithing for post updates
+    } else if (!change.after.exists && beforeData) {
+      if (beforeData.postCount) {
+        return upset<GalleryUpdateCounter>(itemRef, {
+          photoCount: value("increment", -1),
+        })
+      }
+    }
+
+    return
+  })
+
 
 export * from "./resizer/index"

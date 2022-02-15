@@ -15,6 +15,11 @@ export type Gallery = {
     updatedAt: Date
   }
 
+export type GalleryUpdateCounter = {
+    photoCount: number
+    updatedAt?: Date
+  }
+
 export interface HydratedGallery extends Gallery {
   latestPostUser: User | undefined
   items?: HydratedGalleryItem[]
