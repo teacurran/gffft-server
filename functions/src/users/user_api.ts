@@ -474,17 +474,21 @@ export interface GetGalleryRequest extends ValidatedRequestSchema {
 }
 router.get(
   "/:uid/gfffts/:gid/galleries/:mid",
-  requiredAuthentication,
+  optionalAuthentication,
   validator.params(getGalleryPathParams),
   validator.query(getGalleryQueryParams),
   async (req: ValidatedRequest<GetGalleryRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
+    const iamUser: LoggedInUser | null = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
     const mid = req.params.mid
 
     if (uid == "me") {
+      if (iamUser == null) {
+        res.sendStatus(404)
+        return
+      }
       uid = iamUser.id
     }
 
