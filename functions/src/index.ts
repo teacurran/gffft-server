@@ -12,7 +12,7 @@ import {boardsCollection, threadsCollection} from "./boards/board_data"
 import {BoardPostCounterWithAuthor, BoardThreadCounter, BoardThreadPostCounterNoAuthor,
   ThreadPostCounterWithAuthor} from "./boards/board_models"
 import {User} from "./users/user_models"
-import {galleryCollection, galleryItemsCollection} from "./galleries/gallery_data"
+import {galleryCollection} from "./galleries/gallery_data"
 import {GalleryUpdateCounter} from "./galleries/gallery_models"
 
 const PROJECTID = "gffft-auth"
@@ -222,17 +222,19 @@ export const galleryItemCounter = functions.firestore
     const mid = context.params.mid
     const iid = context.params.iid
 
+    console.log(`galleryItemCounter: uid:${uid} gid:${gid} mid:${mid} iid:${iid}`)
+
     const beforeData = change.before.data()
     const afterData = change.after.data()
 
     const users = usersCollection
     const gfffts = gffftsCollection(ref(users, uid))
     const galleries = galleryCollection(ref(gfffts, gid))
-    const galleryItems = galleryItemsCollection(ref(galleries, mid))
-    const itemRef = ref(galleryItems, iid)
+    // const galleryItems = galleryItemsCollection(ref(galleries, mid))
+    const galleryRef = ref(galleries, mid)
 
     if (!change.before.exists && afterData != null) {
-      return upset<GalleryUpdateCounter>(itemRef, {
+      return upset<GalleryUpdateCounter>(galleryRef, {
         photoCount: value("increment", 1),
         updatedAt: afterData.createdAt ? afterData.createdAt.toDate() : new Date(),
       })
@@ -240,11 +242,12 @@ export const galleryItemCounter = functions.firestore
       // do nithing for post updates
     } else if (!change.after.exists && beforeData) {
       if (beforeData.postCount) {
-        return upset<GalleryUpdateCounter>(itemRef, {
+        return upset<GalleryUpdateCounter>(galleryRef, {
           photoCount: value("increment", -1),
         })
       }
     }
+    console.log("done")
 
     return
   })
