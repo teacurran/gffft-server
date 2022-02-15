@@ -8,11 +8,14 @@ import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
 import {HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache,
   LinkSet, LinkSetItem, LinkStat, UpdateLink} from "./link_set_models"
-import {unfurl} from "unfurl.js"
+import {getMetadata, IPageMetadata} from "page-metadata-parser"
+import domino from "domino"
+
 import urlParser from "url-parse"
 import {hny} from "../common/utils"
 import {parse as parseHtml, HTMLElement} from "node-html-parser"
 import {getThreadByRef} from "../boards/board_data"
+
 
 const DEFAULT_LINK_SET_KEY = "default"
 
@@ -180,7 +183,12 @@ export async function getLink(url: string): Promise<Link | null> {
 }
 
 export async function getOrCreateLink(url: string): Promise<Link | null> {
-  const parsedUrl = urlParser(url)
+  let finalUrl = url
+
+  if (!finalUrl.startsWith("http://") && !finalUrl.startsWith("https://")) {
+    finalUrl = `http://${finalUrl}`
+  }
+  const parsedUrl = urlParser(finalUrl)
 
   const event = hny.newEvent()
   event.addField("name", "link")
@@ -189,36 +197,46 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
   event.addField("url", url)
   event.send()
 
-  let link = await getLink(url)
+  console.log(`checking link ${finalUrl}`)
+  let link = await getLink(finalUrl)
   if (link == null) {
+    console.debug("link not found, fetching")
     const response = await axios
-      .get(url)
+      .get(finalUrl)
       .catch((error) => {
-        console.info(`error fetching url: ${url}. ${error}`)
+        console.info(`error fetching url: ${finalUrl}. ${error}`)
         return null
       })
 
     if (response == null) {
+      console.debug("response was null")
       return null
     }
 
-    const unfurled = await unfurl(url)
-
-    let title: string | undefined | null = unfurled.title ?? url
-    let description = unfurled?.description ?? unfurled.open_graph?.description ?? ""
-    let image: string | undefined = undefined
-    let body: string | undefined = undefined
+    let title: string | undefined | null
+    let description: string | undefined | null
+    let image: string | undefined
+    let metadata: IPageMetadata | undefined
     let images: string[] = []
 
+    finalUrl = response.request.res.responseUrl
     const mimeType = response.headers["content-type"] != null ? response.headers["content-type"] : ""
-
     if (mimeType.startsWith("image/")) {
-      image = url
+      image = finalUrl
       images = [image]
-    } else if (mimeType === "text/html") {
-      if (typeof response.data == "string") {
-        body = response.data
-        const $ = parseHtml(body)
+    } else if (mimeType.startsWith("text/html") ||
+      mimeType.startsWith("text/xml") ||
+      mimeType.startsWith("text/xhtml")) {
+      const data = await response.data
+
+      if (typeof data == "string") {
+        const doc = domino.createWindow(data).document
+        metadata = getMetadata(doc, finalUrl)
+
+        title ??= metadata.title
+        description ??= metadata.description
+
+        const $ = parseHtml(data)
 
         if (!title) {
           const htmlTitle = $.querySelector("title")
@@ -277,45 +295,53 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
       // todo, html body, request info to storage
       // might as well look into downloading + writing other things (images, css, js, etc...)
       // const itemId = uuid()
-
-      link = {
-        domain: parsedUrl.hostname,
-        url: url,
-        title: title,
-        description: description,
-        image: image,
-        images: images,
-        metadata: JSON.stringify(unfurled),
-        responseCode: response.status,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        queryCount: 1,
-        clickCount: 0,
-        saveCount: 0,
-      } as Link
-
-      const ref = await add(linksCollection, link)
-      link.id = ref.id
+    } else {
+      console.warn(`unhandled mime type: ${mimeType}`)
     }
+
+    link = {
+      domain: parsedUrl.hostname,
+      url: finalUrl,
+      title: title,
+      description: description,
+      image: image,
+      images: images,
+      metadata: metadata ? JSON.stringify(metadata) : undefined,
+      responseCode: response.status,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      queryCount: 1,
+      clickCount: 0,
+      saveCount: 0,
+    } as Link
+
+    const ref = await add(linksCollection, link)
+    link.id = ref.id
   } else {
     if (new Date().getTime() - link.updatedAt.getTime() > (1000 * 60 * 60 * 24)) {
       const response = await axios.get(url)
-      const unfurled = await unfurl(url)
 
-      let title = unfurled.title
-      let description = unfurled?.description ?? unfurled.open_graph?.description
-      let image: string | undefined = undefined
-      let body: string | undefined = undefined
-      const images: string[] = []
+      let title: string | undefined | null
+      let description: string | undefined | null
+      let image: string | undefined
+      let images: string[] = []
 
-      if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
+      const mimeType = response.headers["content-type"] != null ? response.headers["content-type"] : ""
+      if (mimeType.startsWith("image/")) {
         image = url
-        title = url
-        description = ""
-      } else {
-        if (typeof response.data == "string") {
-          body = response.data
-          const $ = parseHtml(body)
+        images = [image]
+      } else if (mimeType === "text/html" || mimeType === "text/xml" || mimeType === "text/xhtml") {
+        const data = await response.data
+
+        let metadata: IPageMetadata | undefined
+        if (typeof data == "string") {
+          const doc = domino.createWindow(data).document
+          metadata = getMetadata(doc, url)
+
+          title ??= metadata.title
+          description ??= metadata.description
+
+          const $ = parseHtml(data)
 
           if (!title) {
             const htmlTitle = $.querySelector("title")
@@ -370,13 +396,16 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
             }
           }
         }
+
+        link.title = title ? title : undefined
+        link.description = description ? description : undefined
+        if (metadata) {
+          link.metadata = JSON.stringify(metadata)
+        }
       }
 
       link.domain = parsedUrl.hostname
-      link.title = title
       link.image = image
-      link.description = description
-      link.metadata = JSON.stringify(unfurled)
       link.responseCode = response.status
       link.updatedAt= new Date(),
 
