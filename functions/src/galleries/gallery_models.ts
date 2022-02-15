@@ -29,7 +29,7 @@ export type GalleryItem = {
   id: string
   author: Ref<User>
   fileName: string
-  path: string
+  filePath: string
   thumbnail: boolean
   createdAt: Date
   urls?: Array<string>

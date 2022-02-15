@@ -161,7 +161,7 @@ router.post(
       author: posterRef,
       createdAt: new Date(),
       fileName: fileName,
-      path: filePath,
+      filePath: filePath,
     } as GalleryItem
     await upset(itemRef, item)
 

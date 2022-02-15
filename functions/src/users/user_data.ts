@@ -1,6 +1,6 @@
 import {QueryDocumentSnapshot, WriteResult} from "@google-cloud/firestore"
 import * as firebaseAdmin from "firebase-admin"
-import {collection, get, set, query, where, limit, subcollection, all, ref, upset, remove} from "typesaurus"
+import {collection, get, query, where, limit, subcollection, all, ref, upset, remove} from "typesaurus"
 import {itemOrNull, itemOrUndefined} from "../common/data"
 import {randomInt} from "../common/utils"
 import {getGffft, gffftsCollection} from "../gfffts/gffft_data"
@@ -25,13 +25,9 @@ export async function getUser(userId: string): Promise<User> {
   let user = await get(usersCollection, userId).then((snapshot) => itemOrNull(snapshot))
   if (user == null) {
     user = {} as User
-  }
-  if (user?.username == null) {
-    user.username = await getUniqueUsername(userId.startsWith("npc#"))
-    user.usernameCounter = 0
     user.createdAt = new Date()
     user.updatedAt = new Date()
-    await set<User>(usersCollection, userId, user)
+    await upset<User>(usersCollection, userId, user)
   }
 
   if (!user.id) {

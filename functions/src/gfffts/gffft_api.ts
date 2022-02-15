@@ -250,7 +250,7 @@ router.patch(
         console.log(`got link-set enable:${body.linkSetEnabled}`)
 
         const linkSet = await getOrCreateDefaultLinkSet(iamUser.id, gffft.id)
-        const linkSets = linkSetCollection([iamUser.id, gffft.id])
+        const linkSets = linkSetCollection(ref(gffftsCollection(iamUser.id), gffft.id))
         const itemRef = getRefPath(ref(linkSets, linkSet.id))
 
         const itemIndex = features.indexOf(itemRef, 0)

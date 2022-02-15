@@ -16,7 +16,7 @@ export interface IGalleryItem {
     id: string
     author: IUserRef
     fileName: string
-    path: string
+    filePath: string
     thumbnail: boolean
     urls: any
     createdAt: Date
@@ -103,7 +103,7 @@ export function galleryItemToJson(
       handle: "deleted",
     },
     fileName: gi.fileName ?? "",
-    path: gi.path ?? "",
+    filePath: gi.filePath ?? "",
     thumbnail: gi.thumbnail ?? false,
     urls: mapToObj(urls),
     createdAt: gi.createdAt,

@@ -4,7 +4,7 @@ import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
 
 export interface IUserType {
     id: string
-    username: string
+    createdAt: Date
 }
 
 export interface IUserRef {
@@ -36,7 +36,7 @@ export function iamUserToJson(
 ): IUserType {
   const item: IUserType = {
     id: user.id,
-    username: user.username,
+    createdAt: user.createdAt ?? new Date(),
   }
   return item
 }
