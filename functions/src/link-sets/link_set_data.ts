@@ -204,18 +204,18 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
 
     const unfurled = await unfurl(url)
 
-    let title: string | undefined | null = unfurled.title
-    let description = unfurled?.description ?? unfurled.open_graph?.description
+    let title: string | undefined | null = unfurled.title ?? url
+    let description = unfurled?.description ?? unfurled.open_graph?.description ?? ""
     let image: string | undefined = undefined
     let body: string | undefined = undefined
     let images: string[] = []
 
-    if (response.headers["content-type"] != null && response.headers["content-type"].startsWith("image/")) {
+    const mimeType = response.headers["content-type"] != null ? response.headers["content-type"] : ""
+
+    if (mimeType.startsWith("image/")) {
       image = url
-      title = url
-      description = ""
       images = [image]
-    } else {
+    } else if (mimeType === "text/html") {
       if (typeof response.data == "string") {
         body = response.data
         const $ = parseHtml(body)

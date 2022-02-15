@@ -18,6 +18,7 @@ export interface IGalleryItem {
     fileName: string
     filePath: string
     thumbnail: boolean
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     urls: any
     createdAt: Date
 }
