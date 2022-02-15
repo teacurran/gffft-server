@@ -11,7 +11,6 @@ export type Link = {
     image?: string
     images?: string[]
     responseCode: number
-    body?: string,
     metadata: string
     createdAt: Date
     updatedAt: Date

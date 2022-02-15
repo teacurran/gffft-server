@@ -274,6 +274,10 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
         }
       }
 
+      // todo, html body, request info to storage
+      // might as well look into downloading + writing other things (images, css, js, etc...)
+      // const itemId = uuid()
+
       link = {
         domain: parsedUrl.hostname,
         url: url,
@@ -283,7 +287,6 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
         images: images,
         metadata: JSON.stringify(unfurled),
         responseCode: response.status,
-        body: body,
         createdAt: new Date(),
         updatedAt: new Date(),
         queryCount: 1,
@@ -375,7 +378,6 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
       link.description = description
       link.metadata = JSON.stringify(unfurled)
       link.responseCode = response.status
-      link.body = body
       link.updatedAt= new Date(),
 
       await update<UpdateLink>(linksCollection, link.id, {
