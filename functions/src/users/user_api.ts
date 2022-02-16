@@ -91,7 +91,7 @@ router.get(
 
     if (uid == "me") {
       if (iamUser == null) {
-        res.status(403).send("Unauthorized: Token expired")
+        res.status(403).send("Unauthorized: login required for 'me'")
         return
       } else {
         uid = iamUser.id
@@ -314,11 +314,11 @@ export interface GetThreadsRequest extends ValidatedRequestSchema {
 
 router.get(
   "/:uid/gfffts/:gid/boards/:bid/threads/:tid",
-  requiredAuthentication,
+  optionalAuthentication,
   validator.params(getThreadPathParams),
   validator.query(getThreadQueryParams),
   async (req: ValidatedRequest<GetThreadsRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
+    const iamUser: LoggedInUser | null = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
@@ -326,7 +326,12 @@ router.get(
     const tid = req.params.tid
 
     if (uid == "me") {
-      uid = iamUser.id
+      if (iamUser == null) {
+        res.status(403).send("Unauthorized: login required for 'me'")
+        return
+      } else {
+        uid = iamUser.id
+      }
     }
 
     // make sure the gffft exists
