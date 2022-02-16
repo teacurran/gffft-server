@@ -139,6 +139,7 @@ export function gffftMemberToJson(
   }
   return {
     type: membership.type,
+    handle: membership.handle,
     createdAt: membership.createdAt,
   } as IGffftMember
 }
