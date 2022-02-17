@@ -5,6 +5,8 @@ import {HydratedUser, User} from "../users/user_models"
 import {getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {itemOrNull} from "../common/data"
+import {Link} from "../link-sets/link_set_models"
+import {getLinkByRef} from "../link-sets/link_set_data"
 
 const DEFAULT_BOARD_KEY = "default"
 const DEFAULT_BOARD_NAME = "board"
@@ -139,10 +141,12 @@ export async function hydrateThreadPost(uid: string, gid: string,
 
   const authorUser = await getGffftUser(uid, gid, item.author)
 
+  const link: Link | null = item.linkRef ? await getLinkByRef(item.linkRef) : null
 
   return {
     ...item,
     authorUser: authorUser ?? undefined,
+    link: link ?? undefined,
   }
 }
 

@@ -63,6 +63,7 @@ export type ThreadPost = {
 
 export interface HydratedThreadPost extends ThreadPost {
   authorUser: HydratedUser | undefined
+  link?: Link | undefined
 }
 
 export type ThreadPostCounter = {

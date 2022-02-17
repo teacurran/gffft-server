@@ -213,7 +213,7 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
       return null
     }
 
-    let title: string | undefined | null
+    let title: string | undefined | null = finalUrl
     let description: string | undefined | null
     let image: string | undefined
     let metadata: IPageMetadata | undefined

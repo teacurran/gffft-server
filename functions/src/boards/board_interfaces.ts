@@ -1,4 +1,5 @@
 import {notEmpty} from "../common/utils"
+import {ILink, linkToJson} from "../link-sets/link_set_interfaces"
 import {IUserRef} from "../users/user_interfaces"
 import {WHO_OWNER} from "./board_data"
 import {Board, HydratedThread, HydratedThreadPost} from "./board_models"
@@ -37,6 +38,7 @@ export interface IThreadPost {
   body: string
   createdAt: Date
   author: IUserRef
+  link?: ILink
 }
 
 export interface IThreadPostResults {
@@ -134,6 +136,7 @@ export function threadPostToJson(
       id: "deleted",
       handle: "deleted",
     },
+    link: post.link ? linkToJson(post.link) : undefined,
   }
   return item
 }
