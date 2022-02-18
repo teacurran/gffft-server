@@ -57,6 +57,11 @@ export type LinkSet = {
     updatedAt: Date
 }
 
+export type LinkSetUpdateCounter = {
+    itemCount: number
+    updatedAt?: Date
+  }
+
 export interface HydratedLinkSet extends LinkSet {
     latestPostUser: User | undefined
     items?: HydratedLinkSetItem[]
