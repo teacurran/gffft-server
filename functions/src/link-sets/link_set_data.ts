@@ -2,7 +2,7 @@ import fs from "fs"
 import axios from "axios"
 import {add, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
   subcollection, update, where} from "typesaurus"
-import {itemOrNull, itemOrUndefined} from "../common/data"
+import {itemOrNull} from "../common/data"
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {usersCollection} from "../users/user_data"
@@ -15,7 +15,7 @@ import domino from "domino"
 import urlParser from "url-parse"
 import {hny} from "../common/utils"
 import {parse as parseHtml, HTMLElement} from "node-html-parser"
-import {getThreadByRef} from "../boards/board_data"
+import {getGffftUser, getThreadByRef} from "../boards/board_data"
 
 
 const DEFAULT_LINK_SET_KEY = "default"
@@ -114,7 +114,7 @@ export async function getLinkSetItems(uid: string,
         null
 
       console.log(`link: ${link}`)
-      const hydratedItem = await hydrateLinkSetItem(snapshot, link)
+      const hydratedItem = await hydrateLinkSetItem(uid, gid, snapshot, link)
       if (hydratedItem != null) {
         items.push(hydratedItem)
       }
@@ -123,7 +123,7 @@ export async function getLinkSetItems(uid: string,
   })
 }
 
-export async function hydrateLinkSetItem(snapshot: Doc<LinkSetItem> |
+export async function hydrateLinkSetItem(uid: string, gid: string, snapshot: Doc<LinkSetItem> |
     LinkSetItem |
     null, link: Link | null): Promise<HydratedLinkSetItem | null> {
   let item: LinkSetItem
@@ -142,29 +142,27 @@ export async function hydrateLinkSetItem(snapshot: Doc<LinkSetItem> |
     await getThreadByRef(item.threadRef) :
     null
 
-  const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
+  const authorUser = await getGffftUser(uid, gid, item.author)
 
   return {
     ...item,
-    authorUser: authorUser,
+    authorUser: authorUser ? authorUser : undefined,
     link: link == null ? undefined : link,
     thread: thread == null ? undefined: thread,
   }
 }
 
-export async function hydrateLinkSet(linkSet: LinkSet,
+export async function hydrateLinkSet(uid: string, gid: string, linkSet: LinkSet,
   items: HydratedLinkSetItem[]): Promise<HydratedLinkSet | null> {
   if (linkSet == null) {
     return null
   }
 
-  const latestPostUser = linkSet.latestPost ?
-    await get<User>(linkSet.latestPost).then((snapshot) => itemOrUndefined(snapshot)) :
-    undefined
+  const latestPostUser = await getGffftUser(uid, gid, linkSet.latestPost)
 
   return {
     ...linkSet,
-    latestPostUser: latestPostUser,
+    latestPostUser: latestPostUser ? latestPostUser : undefined,
     items: items,
   }
 }

@@ -1,6 +1,6 @@
 import {Ref} from "typesaurus"
 import {Thread} from "../boards/board_models"
-import {User} from "../users/user_models"
+import {HydratedUser, User} from "../users/user_models"
 
 export type Link = {
     id: string
@@ -63,7 +63,7 @@ export type LinkSetUpdateCounter = {
   }
 
 export interface HydratedLinkSet extends LinkSet {
-    latestPostUser: User | undefined
+    latestPostUser: HydratedUser | undefined
     items?: HydratedLinkSetItem[]
 }
 
@@ -78,7 +78,7 @@ export type LinkSetItem = {
 }
 
 export interface HydratedLinkSetItem extends LinkSetItem {
-    authorUser: User | undefined
+    authorUser: HydratedUser | undefined
     link: Link | undefined
     thread?: Thread | undefined
 }

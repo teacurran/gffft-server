@@ -108,7 +108,7 @@ export function linkSetItemToJson(
     id: linkSetItem.id,
     author: linkSetItem.authorUser ? {
       id: linkSetItem.authorUser.id,
-      handle: linkSetItem.authorUser.username,
+      handle: linkSetItem.authorUser.handle ?? linkSetItem.authorUser.id,
     } : {
       id: "deleted",
       handle: "deleted",

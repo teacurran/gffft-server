@@ -25,9 +25,9 @@ import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galle
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {IGalleryType} from "../galleries/gallery_types"
 import {GffftMember} from "../gfffts/gffft_models"
-import {getLinkSet, getLinkSetByRefString, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
 import {ILinkSet, linkSetToJson, linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
 import {LinkSet} from "../link-sets/link_set_models"
+import {getLinkSet, getLinkSetByRefString, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -666,7 +666,7 @@ router.get(
 
     const items = await getLinkSetItems(uid, gid, lid, req.query.offset, req.query.max)
 
-    const hydratedLinkSet = await hydrateLinkSet(linkSet, items)
+    const hydratedLinkSet = await hydrateLinkSet(uid, gid, linkSet, items)
     if (hydratedLinkSet == null) {
       res.sendStatus(404)
       return

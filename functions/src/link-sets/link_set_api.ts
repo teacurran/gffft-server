@@ -154,7 +154,7 @@ router.post(
     event.send()
 
     item.id = linkSetItemRef.id
-    const hgi = await hydrateLinkSetItem(item, link)
+    const hgi = await hydrateLinkSetItem(uid, gid, item, link)
     if (hgi == null) {
       console.warn(`Hydrated linkSet item was null when it shouldn't be: ${hgi}`)
       res.sendStatus(404)
