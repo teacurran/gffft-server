@@ -262,13 +262,13 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string): P
   const queries: Query<Gffft, keyof Gffft>[] = [
     where("enabled", "==", true),
   ]
-
+  const variable = ""
   let maybeFruit: string | null = null
   if (q) {
     console.log(`using query search: ${q}`)
 
     let qFiltered = decodeURI(q)
-    qFiltered = qFiltered.replace(/(\r\n|\n|\r)/gm, "")
+    qFiltered = qFiltered.replace(/(\s|\r\n|\n|\r)/gm, "")
     if (qFiltered.indexOf("!") > -1) {
       maybeFruit = qFiltered.substring(qFiltered.indexOf("!") + 1).trim()
     } else {
