@@ -174,6 +174,11 @@ router.get(
               }
             }
           }))
+        } else if (feature == "fruitCode") {
+          features.push({
+            type: "fruitCode",
+            id: "fruitCode",
+          })
         }
 
         await Promise.all(featurePromises)

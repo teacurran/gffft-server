@@ -125,6 +125,7 @@ export function threadPostToJson(
   if (post == null || post.id == null) {
     return null
   }
+
   const item: IThreadPost = {
     id: post.id,
     body: post.body,

@@ -131,6 +131,7 @@ const gffftPatchRequestParams = Joi.object({
   notebookEnabled: Joi.boolean().optional(),
   linkSetEnabled: Joi.boolean().optional(),
   fruitCodeReset: Joi.boolean().optional(),
+  fruitCodeEnabled: Joi.boolean().optional(),
 })
 export interface GffftPatchRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
@@ -148,6 +149,7 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     notebookEnabled?: boolean,
     linkSetEnabled?: boolean,
     fruitCodeReset?: boolean,
+    fruitCodeEnabled?: boolean,
   };
 }
 router.patch(
@@ -258,6 +260,19 @@ router.patch(
           features.splice(itemIndex, 1)
         }
         if (body.linkSetEnabled) {
+          features.push(itemRef)
+        }
+      }
+      if (body.fruitCodeEnabled != undefined) {
+        console.log(`got fruit-code enable:${body.fruitCodeEnabled}`)
+
+        const itemRef = "fruitCode"
+
+        const itemIndex = features.indexOf(itemRef, 0)
+        if (itemIndex > -1) {
+          features.splice(itemIndex, 1)
+        }
+        if (body.fruitCodeEnabled) {
           features.push(itemRef)
         }
       }
