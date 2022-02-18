@@ -52,7 +52,7 @@ export type LinkSet = {
     itemCount: number
     whoCanView?: string
     whoCanPost?: string
-    latestPost: Ref<User>
+    latestPost?: Ref<User>
     createdAt: Date
     updatedAt: Date
 }

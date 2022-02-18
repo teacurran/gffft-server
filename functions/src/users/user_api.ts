@@ -79,6 +79,7 @@ export interface GetGffftByIdRequest extends ValidatedRequestSchema {
     gid: string;
   };
 }
+
 router.get(
   "/:uid/gfffts/:gid",
   optionalAuthentication,

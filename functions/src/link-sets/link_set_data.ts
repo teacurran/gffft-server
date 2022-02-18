@@ -108,20 +108,24 @@ export async function getLinkSetItems(uid: string,
   const items: HydratedLinkSetItem[] = []
   return query(linkSetItems, queries).then(async (results) => {
     for (const snapshot of results) {
-      console.log(`snapshot ref: ${snapshot.data?.linkRef}`)
+      console.log(`snapshot ref: ${snapshot.data?.linkRef?.id}`)
       const link = snapshot.data?.linkRef ?
         await getLinkByRef(snapshot.data?.linkRef) :
         null
 
-      console.log(`link: ${link}`)
-      const hydratedItem = await hydrateLinkSetItem(uid, gid, snapshot, link)
-      if (hydratedItem != null) {
-        items.push(hydratedItem)
+      if (link == null) {
+        console.error(`null link reference: ${snapshot.ref.id}`)
+      } else {
+        const hydratedItem = await hydrateLinkSetItem(uid, gid, snapshot, link)
+        if (hydratedItem != null) {
+          items.push(hydratedItem)
+        }
       }
     }
     return items
   })
 }
+
 
 export async function hydrateLinkSetItem(uid: string, gid: string, snapshot: Doc<LinkSetItem> |
     LinkSetItem |
@@ -158,7 +162,9 @@ export async function hydrateLinkSet(uid: string, gid: string, linkSet: LinkSet,
     return null
   }
 
-  const latestPostUser = await getGffftUser(uid, gid, linkSet.latestPost)
+  const latestPostUser = linkSet.latestPost ?
+    await getGffftUser(uid, gid, linkSet.latestPost) :
+    null
 
   return {
     ...linkSet,

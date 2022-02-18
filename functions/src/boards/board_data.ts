@@ -109,6 +109,7 @@ export async function getGffftUser(uid: string, gid: string, userRef: Ref<User>)
   if (user == null) {
     return null
   }
+
   return hydrateUser(uid, gid, user)
 }
 
