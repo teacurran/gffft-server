@@ -248,6 +248,8 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
     const linkSetRef = getRefPath(ref(linkSets, linkSet.id))
     features.push(linkSetRef)
 
+    features.push("fruitCode")
+
     gffft.features = features
 
     updateGffft(userId, gffft.id, gffft)
@@ -262,7 +264,7 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string): P
   const queries: Query<Gffft, keyof Gffft>[] = [
     where("enabled", "==", true),
   ]
-  const variable = ""
+
   let maybeFruit: string | null = null
   if (q) {
     console.log(`using query search: ${q}`)
