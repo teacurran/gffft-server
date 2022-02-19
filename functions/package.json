@@ -57,7 +57,7 @@
     "typesafe-node-firestore": "^1.4.0",
     "typesaurus": "^7.2.0",
     "unfurl.js": "^5.6.3",
-    "url-parse": "^1.5.4",
+    "url-parse": "^1.5.6",
     "uuidv4": "^6.2.12"
   },
   "devDependencies": {
