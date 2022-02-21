@@ -22,10 +22,12 @@ declare module "page-metadata-parser" {
 
     export function getProvider (host: string): string
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     export function buildRuleSet<O = any, CMP = any> (ruleSet: {
       rules: PageMetadataRule[]
       scorers: (el: HTMLElement, score: CMP) => CMP
       defaultValue: (context: IPageMetadataContext) => O
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       processors: ((output: O, context: IPageMetadataContext) => any)[]
     }): (doc: Document, context: IPageMetadataContext) => void
 
