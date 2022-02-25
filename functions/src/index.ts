@@ -72,22 +72,18 @@ async function updateCounter(ref: Ref<GffftStats>, type: string, changeValue: nu
     return upset<GffftOwnerCounter>(ref, {
       ownerCount: value("increment", changeValue),
     })
-    break
   case "admin":
-    await upset<GffftAdminCounter>(ref, {
+    return upset<GffftAdminCounter>(ref, {
       adminCount: value("increment", changeValue),
     })
-    break
   case "member":
-    await upset<GffftMemberCounter>(ref, {
+    return await upset<GffftMemberCounter>(ref, {
       memberCount: value("increment", changeValue),
     })
-    break
   case "anon":
-    await upset<GffftAnonCounter>(ref, {
+    return await upset<GffftAnonCounter>(ref, {
       anonCount: value("increment", changeValue),
     })
-    break
   default:
     break
   }

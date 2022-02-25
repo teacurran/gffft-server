@@ -175,7 +175,6 @@ async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
       }
     }
   })
-  return
 }
 
 /**

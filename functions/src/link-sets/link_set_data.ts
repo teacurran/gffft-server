@@ -446,7 +446,7 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
       link.domain = parsedUrl.hostname
       link.image = image
       link.responseCode = response.status
-      link.updatedAt= new Date(),
+      link.updatedAt= new Date()
 
       await update<UpdateLink>(linksCollection, link.id, {
         ...link,
