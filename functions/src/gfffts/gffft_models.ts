@@ -31,6 +31,7 @@ export type GffftMemberParams = {
 export type GffftMember = {
     user: Ref<User>
     type: string
+    updateCounters: Map<string, number>
     handle?: string
     createdAt?: Date
     updatedAt?: Date

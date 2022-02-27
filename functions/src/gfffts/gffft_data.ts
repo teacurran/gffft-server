@@ -1,6 +1,6 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query,
   startAfter, get, ref, pathToRef, remove, getRefPath} from "typesaurus"
-import {Gffft, GffftMember, GffftStats, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
+import {Gffft, GffftMember, GffftStats, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {itemOrNull} from "../common/data"
 import {usersCollection} from "../users/user_data"
@@ -126,6 +126,12 @@ export async function createGffftMembership(uid: string,
       needsUpdate = true
     }
 
+    if (member.type == TYPE_ANON) {
+      member.type = TYPE_MEMBER
+      member.updatedAt = new Date()
+      needsUpdate = true
+    }
+
     if (member.handle != handle) {
       member.handle = handle ? handle : undefined
       member.updatedAt = new Date()
@@ -151,6 +157,30 @@ export async function getGffftMembership(uid: string, gid: string, memberId: str
   const memberRef = ref(gffftMembers, memberId)
   return get(memberRef).then((snapshot) => {
     return snapshot == null ? undefined : snapshot.data
+  })
+}
+
+export async function getOrCreateGffftMembership(
+  uid: string,
+  gid: string,
+  memberId: string): Promise<GffftMember> {
+  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const memberRef = ref(gffftMembers, memberId)
+  return get(memberRef).then((snapshot) => {
+    let member: GffftMember
+    if (snapshot != null) {
+      member = snapshot.data
+    } else {
+      member = {
+        user: memberRef,
+        type: TYPE_ANON,
+        updateCounters: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as GffftMember
+    }
+
+    return member
   })
 }
 

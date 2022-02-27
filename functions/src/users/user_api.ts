@@ -7,7 +7,7 @@ import {User, UserBookmark, UsernameChange} from "./user_models"
 import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
-  getGffftMembership} from "../gfffts/gffft_data"
+  getOrCreateGffftMembership} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {getGallery, getGalleryByRefString, getGalleryItem,
@@ -222,7 +222,7 @@ router.get(
     let bookmark: UserBookmark | undefined
     let user: User | undefined
     if (iamUser != null) {
-      membership = await getGffftMembership(uid, gid, iamUser.id)
+      membership = await getOrCreateGffftMembership(uid, gid, iamUser.id)
       bookmark = await getBookmark(uid, gid, iamUser.id)
       user = await getUser(iamUser.id)
     }
