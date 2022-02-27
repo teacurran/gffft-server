@@ -22,7 +22,7 @@ export type IGffftMemberUpdateCounters = {
   galleryPhotos?: number
   galleryVideos?: number
   boardThreads?: number
-  boardReplies?: number
+  boardPosts?: number
   linkSetItems?: number
 }
 
@@ -149,7 +149,7 @@ export function gffftMemberCountersToJson(counters?: GffftMemberUpdateCounters):
     galleryPhotos: counters.galleryPhotos,
     galleryVideos: counters.galleryVideos,
     boardThreads: counters.boardThreads,
-    boardReplies: counters.boardReplies,
+    boardPosts: counters.boardPosts,
     linkSetItems: counters.linkSetItems,
   }
 }

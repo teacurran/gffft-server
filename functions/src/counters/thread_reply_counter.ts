@@ -5,6 +5,7 @@ import {BoardPostCounterWithAuthor, ThreadPostCounterWithAuthor} from "../boards
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
+import {incrementMemberCounter} from "./common"
 
 
 export const threadReplyCounter = functions.firestore
@@ -27,6 +28,8 @@ export const threadReplyCounter = functions.firestore
     const threads = threadsCollection(ref(boards, bid))
 
     if (!change.before.exists && newPost != null) {
+      await incrementMemberCounter("boardPosts", uid, gid)
+
       const authorRef = pathToRef<User>(newPost.author.path)
       await upset<ThreadPostCounterWithAuthor>(ref(threads, tid), {
         postCount: value("increment", 1),
@@ -54,3 +57,5 @@ export const threadReplyCounter = functions.firestore
 
     return
   })
+
+

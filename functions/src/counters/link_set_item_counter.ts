@@ -4,6 +4,7 @@ import {gffftsCollection} from "../gfffts/gffft_data"
 import {linkSetCollection} from "../link-sets/link_set_data"
 import {LinkSetUpdateCounter} from "../link-sets/link_set_models"
 import {usersCollection} from "../users/user_data"
+import {incrementMemberCounter} from "./common"
 
 
 export const linkSetItemCounter = functions.firestore
@@ -26,6 +27,7 @@ export const linkSetItemCounter = functions.firestore
     const linkSetRef = ref(linkSets, lid)
 
     if (!change.before.exists && afterData != null) {
+      await incrementMemberCounter("linkSetItems", uid, gid)
       return upset<LinkSetUpdateCounter>(linkSetRef, {
         itemCount: value("increment", 1),
         updatedAt: afterData.createdAt ? afterData.createdAt.toDate() : new Date(),

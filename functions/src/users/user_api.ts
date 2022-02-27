@@ -1,35 +1,40 @@
-import express, {Request, Response} from "express"
-import {createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks,
-  getUniqueUsername,
-  getUser, usersCollection} from "./user_data"
-import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
-import {User, UserBookmark, UsernameChange} from "./user_models"
-import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
-import {Board} from "../boards/board_models"
-import {checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
-  getOrCreateGffftMembership,
-  gffftsCollection,
-  gffftsMembersCollection} from "../gfffts/gffft_data"
-import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
-import {getGallery, getGalleryByRefString, getGalleryItem,
-  getGalleryItems, hydrateGallery} from "../galleries/gallery_data"
-import {Gallery} from "../galleries/gallery_models"
-import {Notebook} from "../notebooks/notebook_models"
-import {getCalendarByRef} from "../calendars/calendar_data"
-import {boardToJson, IBoardType, threadsToJson, threadToJson} from "../boards/board_interfaces"
-import {getNotebookByRef} from "../notebooks/notebook_data"
-import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
-import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import * as Joi from "@hapi/joi"
-import {field, ref, update, upset, value} from "typesaurus"
-import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
+import express, {Request, Response} from "express"
+import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
+import {upset, value} from "typesaurus"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
+import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
+import {boardToJson, IBoardType, threadsToJson, threadToJson} from "../boards/board_interfaces"
+import {Board} from "../boards/board_models"
+import {getCalendarByRef} from "../calendars/calendar_data"
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
+import {resetMemberCounter} from "../counters/common"
+import {
+  getGallery, getGalleryByRefString, getGalleryItem,
+  getGalleryItems, hydrateGallery,
+} from "../galleries/gallery_data"
+import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
+import {Gallery} from "../galleries/gallery_models"
 import {IGalleryType} from "../galleries/gallery_types"
+import {
+  checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
+  getOrCreateGffftMembership,
+} from "../gfffts/gffft_data"
+import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {GffftMember} from "../gfffts/gffft_models"
+import {getLinkSet, getLinkSetByRefString, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
 import {ILinkSet, linkSetToJson, linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
 import {LinkSet} from "../link-sets/link_set_models"
-import {getLinkSet, getLinkSetByRefString, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
+import {getNotebookByRef} from "../notebooks/notebook_data"
+import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
+import {Notebook} from "../notebooks/notebook_models"
+import {
+  createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks,
+  getUniqueUsername,
+  getUser, usersCollection,
+} from "./user_data"
+import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
+import {User, UserBookmark, UsernameChange} from "./user_models"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -260,7 +265,7 @@ router.get(
   validator.params(getBoardThreadsPathParams),
   validator.query(getBoardThreadsQueryParams),
   async (req: ValidatedRequest<GetBoardThreadsRequest>, res: Response) => {
-    const iamUser: LoggedInUser | undefined = res.locals.iamUser
+    const iamUser: LoggedInUser | null = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
@@ -288,6 +293,9 @@ router.get(
       res.sendStatus(404)
       return
     }
+
+    await resetMemberCounter(iamUser, "boardPosts", uid, gid)
+    await resetMemberCounter(iamUser, "boardThreads", uid, gid)
 
     getThreads(uid, gid, bid, req.query.offset, req.query.max).then(
       (items) => {
@@ -538,15 +546,8 @@ router.get(
       return
     }
 
-    // reset user notification counts
-    if (iamUser != null) {
-      const gfffts = gffftsCollection(ref(usersCollection, uid))
-      const gffftRef = ref(gfffts, gid)
-      const membersCollection = gffftsMembersCollection(gffftRef)
-      update(membersCollection, iamUser.id, [
-        field(["updateCounters", "galleryPhotos"], 0),
-      ])
-    }
+    await resetMemberCounter(iamUser, "galleryPhotos", uid, gid)
+    await resetMemberCounter(iamUser, "galleryVideos", uid, gid)
 
     const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max)
 

@@ -32,7 +32,7 @@ export type GffftMemberUpdateCounters = {
   galleryPhotos?: number
   galleryVideos?: number
   boardThreads?: number
-  boardReplies?: number
+  boardPosts?: number
   linkSetItems?: number
 }
 

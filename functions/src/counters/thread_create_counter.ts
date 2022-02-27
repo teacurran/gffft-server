@@ -4,6 +4,7 @@ import {boardsCollection} from "../boards/board_data"
 import {BoardThreadCounter, BoardThreadPostCounterNoAuthor} from "../boards/board_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
+import {incrementMemberCounter} from "./common"
 
 
 // eslint-disable-next-line max-len
@@ -24,6 +25,7 @@ export const threadCreateCounter = functions.firestore
     const boardRef = ref(boards, bid)
 
     if (!change.before.exists && newThread != null) {
+      await incrementMemberCounter("boardThreads", uid, gid)
       return upset<BoardThreadCounter>(boardRef, {
         threadCount: value("increment", 1),
         updatedAt: newThread.createdAt ? newThread.createdAt.toDate() : new Date(),
