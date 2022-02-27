@@ -92,7 +92,7 @@ export async function getBookmark(uid: string, gid: string, memberId: string): P
 
 
 export async function createBookmark(uid: string, gid: string, memberId: string): Promise<UserBookmark> {
-  const gc = gffftsCollection(uid)
+  const gc = gffftsCollection(ref(usersCollection, uid))
   const gffftRef = ref(gc, gid)
   const gffft = await getGffft(uid, gid)
 

@@ -38,6 +38,7 @@ export const addVerbs = functions.https.onRequest(async (req, res) => {
   })
 })
 
+
 export const addAdjectives = functions.https.onRequest(async (req, res) => {
   console.log("addAdjectives() called")
   const writes: Promise<WriteResult | string>[] = []

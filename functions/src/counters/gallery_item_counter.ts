@@ -1,8 +1,8 @@
 import * as functions from "firebase-functions"
-import {ref, upset, value} from "typesaurus"
+import {all, field, ref, update, upset, value} from "typesaurus"
 import {galleryCollection} from "../galleries/gallery_data"
 import {GalleryUpdateCounter} from "../galleries/gallery_models"
-import {gffftsCollection} from "../gfffts/gffft_data"
+import {gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
 
 
@@ -26,6 +26,7 @@ export const galleryItemCounter = functions.firestore
     const galleryRef = ref(galleries, mid)
 
     if (!change.before.exists && afterData != null) {
+      await incrementMemberGalleryCounts(uid, gid)
       return upset<GalleryUpdateCounter>(galleryRef, {
         photoCount: value("increment", 1),
         updatedAt: afterData.createdAt ? afterData.createdAt.toDate() : new Date(),
@@ -43,3 +44,21 @@ export const galleryItemCounter = functions.firestore
 
     return
   })
+
+async function incrementMemberGalleryCounts(uid: string, gid: string) {
+  const gfffts = gffftsCollection(ref(usersCollection, uid))
+  const gffftRef = ref(gfffts, gid)
+
+  const writes: Promise<void>[] = []
+  const membersCollection = gffftsMembersCollection(gffftRef)
+  all(membersCollection).then(async (results) => {
+    for (const snapshot of results) {
+      if (snapshot.data != null) {
+        writes.push(update(membersCollection, snapshot.ref.id, [
+          field(["updateCounters", "galleryPhotos"], value("increment", 1)),
+        ]))
+      }
+    }
+  })
+  await Promise.all(writes)
+}

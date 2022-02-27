@@ -2,6 +2,7 @@ import * as functions from "firebase-functions"
 import moment from "moment"
 import {ref} from "typesaurus"
 import {gffftsCollection, gffftsStatsCollection} from "../gfffts/gffft_data"
+import {usersCollection} from "../users/user_data"
 import {updateCounter} from "./common"
 
 
@@ -15,7 +16,7 @@ export const gffftMemberCounter = functions.firestore
     console.log(`gffftMemberCounter trigger: userId:${uid} 
         gffftId:${gid} memberId:${mid}`)
 
-    const userGfffts = gffftsCollection(uid)
+    const userGfffts = gffftsCollection(ref(usersCollection, uid))
     const gffftRef = ref(userGfffts, gid)
     const gffftStats = gffftsStatsCollection(gffftRef)
     const totalsRef = ref(gffftStats, "totals")
