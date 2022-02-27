@@ -6,7 +6,7 @@ import {ILinkSet} from "../link-sets/link_set_interfaces"
 import {INotebookType} from "../notebooks/notebook_interfaces"
 import {bookmarkToJson, iamUserToJson, IUserBookmark, IUserType} from "../users/user_interfaces"
 import {User, UserBookmark} from "../users/user_models"
-import {Gffft, GffftMember} from "./gffft_models"
+import {Gffft, GffftMember, GffftMemberUpdateCounters} from "./gffft_models"
 
 export interface IGffftId {
   uid: string
@@ -18,9 +18,18 @@ export interface IGffftFeatureRef {
   id: string
 }
 
+export type IGffftMemberUpdateCounters = {
+  galleryPhotos?: number
+  galleryVideos?: number
+  boardThreads?: number
+  boardReplies?: number
+  linkSetItems?: number
+}
+
 export interface IGffftMember {
   type: string
   createdAt?: Date
+  updateCounters?: IGffftMemberUpdateCounters
 }
 
 export interface IGffftType {
@@ -131,6 +140,20 @@ export function gffftsToJson(
   }
 }
 
+export function gffftMemberCountersToJson(counters?: GffftMemberUpdateCounters):
+ IGffftMemberUpdateCounters | undefined {
+  if (!counters) {
+    return undefined
+  }
+  return {
+    galleryPhotos: counters.galleryPhotos,
+    galleryVideos: counters.galleryVideos,
+    boardThreads: counters.boardThreads,
+    boardReplies: counters.boardReplies,
+    linkSetItems: counters.linkSetItems,
+  }
+}
+
 export function gffftMemberToJson(
   membership?: GffftMember
 ): IGffftMember | undefined {
@@ -141,6 +164,7 @@ export function gffftMemberToJson(
     type: membership.type,
     handle: membership.handle,
     createdAt: membership.createdAt,
+    updateCounters: gffftMemberCountersToJson(membership.updateCounters),
   } as IGffftMember
 }
 

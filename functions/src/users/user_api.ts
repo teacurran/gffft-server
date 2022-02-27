@@ -7,7 +7,9 @@ import {User, UserBookmark, UsernameChange} from "./user_models"
 import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
-  getOrCreateGffftMembership} from "../gfffts/gffft_data"
+  getOrCreateGffftMembership,
+  gffftsCollection,
+  gffftsMembersCollection} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {getGallery, getGalleryByRefString, getGalleryItem,
@@ -20,7 +22,7 @@ import {getNotebookByRef} from "../notebooks/notebook_data"
 import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import * as Joi from "@hapi/joi"
-import {upset, value} from "typesaurus"
+import {field, ref, update, upset, value} from "typesaurus"
 import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {IGalleryType} from "../galleries/gallery_types"
@@ -534,6 +536,16 @@ router.get(
     if (!gallery) {
       res.sendStatus(404)
       return
+    }
+
+    // reset user notification counts
+    if (iamUser != null) {
+      const gfffts = gffftsCollection(ref(usersCollection, uid))
+      const gffftRef = ref(gfffts, gid)
+      const membersCollection = gffftsMembersCollection(gffftRef)
+      update(membersCollection, iamUser.id, [
+        field(["updateCounters", "galleryPhotos"], 0),
+      ])
     }
 
     const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max)
