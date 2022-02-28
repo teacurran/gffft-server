@@ -32,10 +32,17 @@ export type UpdateLink = {
 }
 
 export type LinkCache = {
+    id: string
+    domain: string
+    url: string
     createdAt: Date
     responseCode: number
+    title?: string
+    description?: string
+    image?: string
+    images?: string[]
     body: string
-    metadata: Map<string, string>
+    metadata: string
 }
 
 export type LinkStat = {
