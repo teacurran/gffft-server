@@ -3,7 +3,7 @@ import express, {Request, Response} from "express"
 import {getGffft, getGfffts, getOrCreateDefaultGffft,
   getUniqueFruitCode, gffftsCollection, gffftsMembersCollection, updateGffft} from "./gffft_data"
 
-import {LoggedInUser, requiredAuthentication} from "../auth"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
 import {Gffft, TYPE_OWNER} from "./gffft_models"
 import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_interfaces"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
@@ -108,9 +108,11 @@ const validator = createValidator()
 
 router.get(
   "/",
+  optionalAuthentication,
   validator.query(gffftListRequestParams),
   async (req: ValidatedRequest<GffftListRequest>, res: Response) => {
-    getGfffts(req.query.offset, req.query.max, req.query.q).then((items) => {
+    const iamUser: LoggedInUser | null = res.locals.iamUser
+    getGfffts(req.query.offset, req.query.max, req.query.q, iamUser?.id).then((items) => {
       res.json(gffftsToJson(items))
     })
   }

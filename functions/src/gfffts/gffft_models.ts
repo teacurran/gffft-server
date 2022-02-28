@@ -20,6 +20,7 @@ export type Gffft = {
     enableAltHandles: boolean
     createdAt?: Date
     updatedAt?: Date
+    membership?: GffftMember
   }
 
 export type GffftMemberParams = {

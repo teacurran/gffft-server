@@ -289,7 +289,7 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   return gffft
 }
 
-export async function getGfffts(offset?: string, maxResults = 20, q?: string): Promise<Gffft[]> {
+export async function getGfffts(offset?: string, maxResults = 20, q?: string, memberId?: string): Promise<Gffft[]> {
   const queries: Query<Gffft, keyof Gffft>[] = [
     where("enabled", "==", true),
   ]
@@ -341,11 +341,16 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string): P
 
   queries.push(limit(maxResults))
 
-  return query(gffftsGroup, queries).then((results) => {
+  return query(gffftsGroup, queries).then(async (results) => {
     const gfffts: Gffft[] = []
     for (const snapshot of results) {
       const item = snapshot.data
       item.id = snapshot.ref.id
+
+      if (item.uid && item.id && memberId) {
+        item.membership = await getGffftMembership(item.uid, item.id, memberId)
+      }
+
       gfffts.push(item)
     }
     return gfffts

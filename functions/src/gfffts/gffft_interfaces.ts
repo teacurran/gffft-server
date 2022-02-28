@@ -78,6 +78,7 @@ export interface IGffftMinimalType {
     uid?: string
     gid?: string
     name: string
+    membership?: IGffftMember
     description: string
     allowMembers: boolean
     requireApproval: boolean
@@ -229,6 +230,7 @@ export function gffftToJsonMinimal(
   const item: IGffftMinimalType = {
     uid: gffft.uid,
     gid: gffft.id,
+    membership: gffft.membership ? gffftMemberToJson(gffft.membership) : undefined,
     name: gffft.name,
     description: gffft.description,
     allowMembers: gffft.allowMembers,
