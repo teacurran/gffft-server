@@ -678,6 +678,8 @@ router.get(
       return
     }
 
+    await resetMemberCounter(iamUser, "linkSetItems", uid, gid)
+
     const items = await getLinkSetItems(uid, gid, lid, req.query.offset, req.query.max)
 
     const hydratedLinkSet = await hydrateLinkSet(uid, gid, linkSet, items)
