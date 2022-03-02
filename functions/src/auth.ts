@@ -25,7 +25,13 @@ export const requiredAuthentication = async (
   }
 
   try {
+    const tracer = trace.getTracer("gffft-tracer")
+    const span = tracer.startSpan("firebase-auth")
+
     const iamUser = await authenticateAndFetchUser(idToken)
+
+    span.end()
+
     res.locals.iamUser = iamUser
   } catch (error) {
     console.log(error)
