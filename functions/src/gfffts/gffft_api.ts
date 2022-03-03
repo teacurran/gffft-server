@@ -185,6 +185,9 @@ router.patch(
       if (body.intro != undefined) {
         gffft.intro = body.intro
       }
+      if (body.description != undefined) {
+        gffft.description = body.description
+      }
       if (body.enabled != undefined) {
         gffft.enabled = body.enabled
       }
