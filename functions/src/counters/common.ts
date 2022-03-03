@@ -1,5 +1,5 @@
 
-import {all, field, ref, Ref, update, upset, value} from "typesaurus"
+import {all, field, get, ref, Ref, update, upset, value} from "typesaurus"
 import {LoggedInUser} from "../auth"
 import {gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {
@@ -58,8 +58,13 @@ export async function resetMemberCounter(iamUser: LoggedInUser | null,
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const gffftRef = ref(gfffts, gid)
     const membersCollection = gffftsMembersCollection(gffftRef)
-    return update(membersCollection, iamUser.id, [
-      field(["updateCounters", counterName], 0),
-    ])
+    const memberRef = ref(membersCollection, iamUser.id)
+
+    const snapshot = await get(memberRef)
+    if (snapshot?.data != null) {
+      return update(membersCollection, iamUser.id,
+        [field(["updateCounters", counterName], 0)],
+      )
+    }
   }
 }
