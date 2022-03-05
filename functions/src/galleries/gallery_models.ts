@@ -1,5 +1,5 @@
 import {Ref} from "typesaurus"
-import {User} from "../users/user_models"
+import {HydratedUser, User} from "../users/user_models"
 
 export type Gallery = {
     id: string,
@@ -21,7 +21,7 @@ export type GalleryUpdateCounter = {
   }
 
 export interface HydratedGallery extends Gallery {
-  latestPostUser: User | undefined
+  latestPostUser: HydratedUser | undefined
   items?: HydratedGalleryItem[]
 }
 
@@ -36,7 +36,7 @@ export type GalleryItem = {
 }
 
 export interface HydratedGalleryItem extends GalleryItem {
-  authorUser: User | undefined
+  authorUser: HydratedUser | undefined
 }
 
 export type GalleryItemThumbnail = {

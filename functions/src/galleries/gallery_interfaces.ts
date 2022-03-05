@@ -98,7 +98,7 @@ export function galleryItemToJson(
     id: gi.id,
     author: gi.authorUser ? {
       id: gi.authorUser.id,
-      handle: gi.authorUser.username,
+      handle: gi.authorUser.handle ?? gi.authorUser.username,
     } : {
       id: "deleted",
       handle: "deleted",

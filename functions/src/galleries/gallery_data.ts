@@ -4,8 +4,8 @@ import {Gallery, GalleryItem, HydratedGallery, HydratedGalleryItem} from "./gall
 import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
-import {itemOrUndefined} from "../common/data"
 import {usersCollection} from "../users/user_data"
+import {getGffftUser} from "../boards/board_data"
 
 const DEFAULT_BOARD_KEY = "default"
 
@@ -87,7 +87,7 @@ export async function getGalleryItem(uid: string,
   const galleryItems = galleryItemsCollection(galleryRef)
 
   const item = await get(galleryItems, iid)
-  return hydrateGalleryItem(item)
+  return hydrateGalleryItem(uid, gid, item)
 }
 
 export async function getGalleryItems(uid: string,
@@ -111,7 +111,7 @@ export async function getGalleryItems(uid: string,
   const items: HydratedGalleryItem[] = []
   return query(galleryItems, queries).then(async (results) => {
     for (const snapshot of results) {
-      const hydratedItem = await hydrateGalleryItem(snapshot)
+      const hydratedItem = await hydrateGalleryItem(uid, gid, snapshot)
       if (hydratedItem != null) {
         items.push(hydratedItem)
       }
@@ -120,7 +120,7 @@ export async function getGalleryItems(uid: string,
   })
 }
 
-export async function hydrateGalleryItem(snapshot: Doc<GalleryItem> |
+export async function hydrateGalleryItem(uid: string, gid: string, snapshot: Doc<GalleryItem> |
     GalleryItem |
     null): Promise<HydratedGalleryItem | null> {
   let item: GalleryItem
@@ -135,27 +135,25 @@ export async function hydrateGalleryItem(snapshot: Doc<GalleryItem> |
     item = (snapshot as GalleryItem)
   }
 
-  const authorUser = await get<User>(item.author).then((snapshot) => itemOrUndefined(snapshot))
+  const gffftMember = await getGffftUser(uid, gid, item.author)
 
   return {
     ...item,
-    authorUser: authorUser,
+    authorUser: gffftMember == null ? undefined : gffftMember,
   }
 }
 
-export async function hydrateGallery(gallery: Gallery,
+export async function hydrateGallery(uid: string, gid: string, gallery: Gallery,
   items: HydratedGalleryItem[]): Promise<HydratedGallery | null> {
   if (gallery == null) {
     return null
   }
 
-  const latestPostUser = gallery.latestPost ?
-    await get<User>(gallery.latestPost).then((snapshot) => itemOrUndefined(snapshot)) :
-    undefined
+  const latestPostUser = await getGffftUser(uid, gid, gallery.latestPost)
 
   return {
     ...gallery,
-    latestPostUser: latestPostUser,
+    latestPostUser: latestPostUser == null ? undefined : latestPostUser,
     items: items,
   }
 }

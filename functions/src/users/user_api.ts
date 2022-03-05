@@ -551,7 +551,7 @@ router.get(
 
     const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max)
 
-    const hydratedGallery = await hydrateGallery(gallery, items)
+    const hydratedGallery = await hydrateGallery(gid, uid, gallery, items)
     if (hydratedGallery == null) {
       res.sendStatus(404)
       return
