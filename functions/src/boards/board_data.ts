@@ -105,6 +105,9 @@ async function hydrateUser(uid: string,
 }
 
 export async function getGffftUser(uid: string, gid: string, userRef: Ref<User>): Promise<HydratedUser | null> {
+  if (!userRef) {
+    return null
+  }
   const user = await get<User>(userRef).then((snapshot) => itemOrNull(snapshot))
   if (user == null) {
     return null
