@@ -40,6 +40,7 @@ export type GalleryItem = {
 
 export interface HydratedGalleryItem extends GalleryItem {
   authorUser: HydratedUser | undefined
+  liked: boolean
 }
 
 export type GalleryItemThumbnail = {

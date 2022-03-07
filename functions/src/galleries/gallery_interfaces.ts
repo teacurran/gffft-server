@@ -21,6 +21,8 @@ export interface IGalleryItem {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     urls: any
     createdAt: Date
+    likeCount: number
+    liked: boolean
 }
 
 export interface IGallery {
@@ -113,6 +115,8 @@ export function galleryItemToJson(
     thumbnail: gi.thumbnail ?? false,
     urls: mapToObj(urls),
     createdAt: gi.createdAt,
+    likeCount: gi.likeCount ?? 0,
+    liked: gi.liked,
   }
 
   console.log(`here-3: ${item}`)

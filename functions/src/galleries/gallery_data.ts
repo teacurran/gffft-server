@@ -94,7 +94,8 @@ export async function getGalleryItems(uid: string,
   gid: string,
   mid:string,
   offset?: string,
-  maxResults = 200): Promise<HydratedGalleryItem[]> {
+  maxResults = 200,
+  currentUid?: string): Promise<HydratedGalleryItem[]> {
   const gfffts = gffftsCollection(ref(usersCollection, uid))
   const galleries = galleryCollection(ref(gfffts, gid))
   const galleryRef = ref(galleries, mid)
@@ -111,7 +112,7 @@ export async function getGalleryItems(uid: string,
   const items: HydratedGalleryItem[] = []
   return query(galleryItems, queries).then(async (results) => {
     for (const snapshot of results) {
-      const hydratedItem = await hydrateGalleryItem(uid, gid, snapshot)
+      const hydratedItem = await hydrateGalleryItem(uid, gid, snapshot, currentUid)
       if (hydratedItem != null) {
         items.push(hydratedItem)
       }
@@ -122,7 +123,8 @@ export async function getGalleryItems(uid: string,
 
 export async function hydrateGalleryItem(uid: string, gid: string, snapshot: Doc<GalleryItem> |
     GalleryItem |
-    null): Promise<HydratedGalleryItem | null> {
+    null,
+currentUid?: string): Promise<HydratedGalleryItem | null> {
   let item: GalleryItem
 
   if (snapshot == null) {
@@ -137,9 +139,19 @@ export async function hydrateGalleryItem(uid: string, gid: string, snapshot: Doc
 
   const gffftMember = await getGffftUser(uid, gid, item.author)
 
+  let liked = false
+
+  if (currentUid && item.likes) {
+    const itemIndex = item.likes.indexOf(currentUid, 0)
+    if (itemIndex > -1) {
+      liked = true
+    }
+  }
+
   return {
     ...item,
     authorUser: gffftMember == null ? undefined : gffftMember,
+    liked,
   }
 }
 
