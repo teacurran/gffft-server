@@ -297,6 +297,8 @@ router.post(
     const mid: string = req.body.mid
     const iid: string = req.body.iid
 
+    console.log(`like, uid:${uid} gid:${gid} mid:${mid} iid:${iid}`)
+
     if (uid == "me") {
       uid = iamUser.id
     }
@@ -318,6 +320,7 @@ router.post(
     const gffft = await gffftPromise
     // make sure the gffft exists
     if (!gffft) {
+      console.log(`gffft not found, gid: ${gid}`)
       res.sendStatus(404)
       return
     }
@@ -334,12 +337,12 @@ router.post(
 
     const itemDoc = await itemPromise
     if (!itemDoc) {
+      console.log(`item not found, gid: ${iid}`)
       res.sendStatus(404)
       return
     }
 
     const item = itemDoc.data
-
     const likes: string[] = item.likes ?? []
     const itemIndex = likes.indexOf(posterUid, 0)
     if (itemIndex > -1) {
@@ -347,8 +350,12 @@ router.post(
     } else {
       likes.push(posterUid)
     }
+    item.likes = likes
+    item.likeCount = likes.length
 
-    upset<GalleryItem>(itemRef, item)
+    // console.log(`item: ${iid} likes: ${likes}`)
+
+    await upset<GalleryItem>(itemRef, item)
 
     const hgi = await hydrateGalleryItem(gid, uid, item)
     if (hgi == null) {
