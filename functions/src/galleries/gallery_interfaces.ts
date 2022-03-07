@@ -74,7 +74,10 @@ export function galleryToJsonWithItems(
 
 export function galleryItemToJson(
   gi: HydratedGalleryItem | null): IGalleryItem | null {
+  console.log("here-1")
   if (gi == null || gi.id == null) {
+    console.log("here-2")
+
     return null
   }
   const urls = new Map<string, string>()
@@ -94,6 +97,8 @@ export function galleryItemToJson(
     }
   }
 
+  console.log("here-3")
+
   const item: IGalleryItem = {
     id: gi.id,
     author: gi.authorUser ? {
@@ -109,6 +114,9 @@ export function galleryItemToJson(
     urls: mapToObj(urls),
     createdAt: gi.createdAt,
   }
+
+  console.log(`here-3: ${item}`)
+
   return item
 }
 

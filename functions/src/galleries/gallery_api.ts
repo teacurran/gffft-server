@@ -13,6 +13,7 @@ import {galleryCollection, galleryItemsCollection, hydrateGalleryItem} from "./g
 import {GalleryItem} from "./gallery_models"
 import {usersCollection} from "../users/user_data"
 import {galleryItemToJson} from "./gallery_interfaces"
+import {itemOrNull} from "../common/data"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -336,13 +337,14 @@ router.post(
     // todo: poster must be either the original photo poster, or a gffft owner
 
     const itemDoc = await itemPromise
-    if (!itemDoc) {
+    const item = itemOrNull(itemDoc)
+
+    if (!item) {
       console.log(`item not found, gid: ${iid}`)
       res.sendStatus(404)
       return
     }
 
-    const item = itemDoc.data
     const likes: string[] = item.likes ?? []
     const itemIndex = likes.indexOf(posterUid, 0)
     if (itemIndex > -1) {
@@ -363,6 +365,7 @@ router.post(
       res.sendStatus(404)
       return
     }
+    console.log(`hgi: ${JSON.stringify(hgi)}`)
     res.json(galleryItemToJson(hgi))
   })
 
