@@ -33,6 +33,9 @@ export type GalleryItem = {
   thumbnail: boolean
   createdAt: Date
   urls?: Array<string>
+  description?: string
+  likes?: Array<string>
+  likeCount?: number
 }
 
 export interface HydratedGalleryItem extends GalleryItem {

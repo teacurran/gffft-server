@@ -2,7 +2,7 @@ import express, {Response} from "express"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
 import {getGffft, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
-import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
+import {TYPE_OWNER, TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, ref, upset} from "typesaurus"
 import * as Joi from "@hapi/joi"
@@ -161,6 +161,7 @@ router.post(
       createdAt: new Date(),
       fileName: fileName,
       filePath: filePath,
+      description: description,
     } as GalleryItem
     await upset(itemRef, item)
 
@@ -175,6 +176,188 @@ router.post(
     res.json(galleryItemToJson(hgi))
   }
 )
+
+const updateItemParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  mid: Joi.string().required(),
+  iid: Joi.string().required(),
+  description: Joi.string().optional(),
+})
+export interface UpdateItemRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Fields]: {
+    uid: string
+    gid: string
+    mid: string
+    iid: string
+    description?: string
+  }
+}
+
+router.patch(
+  "/",
+  validator.fields(updateItemParams),
+  requiredAuthentication,
+  async (req: ValidatedRequest<UpdateItemRequest>, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid: string = req.body.uid
+    let gid: string = req.body.gid
+    const mid: string = req.body.mid
+    const iid: string = req.body.iid
+    const description = req.body.description
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
+
+    const gffftMembers = gffftsMembersCollection([uid, gid])
+    const gfffts = gffftsCollection(ref(usersCollection, uid))
+    const galleries = galleryCollection(ref(gfffts, gid))
+    const galleryRef = ref(galleries, mid)
+    const galleryItems = galleryItemsCollection(galleryRef)
+    const itemRef = ref(galleryItems, iid)
+
+    // is this poster a member of the gffft?
+    const posterUid = res.locals.iamUser.id
+    const posterRef = ref(usersCollection, posterUid)
+
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = get(ref(gffftMembers, posterUid))
+    const itemPromise = get(itemRef)
+
+    const gffft = await gffftPromise
+    // make sure the gffft exists
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+    const membershipDoc = await membershipPromise
+    if (!membershipDoc) {
+      console.log("poster is not a member of this gffft")
+      res.sendStatus(403)
+      return
+    }
+
+    // todo: poster must be either the original photo poster, or a gffft owner
+
+    const itemDoc = await itemPromise
+    if (!itemDoc) {
+      res.sendStatus(404)
+      return
+    }
+
+    const membership = membershipDoc.data
+    const item = itemDoc.data
+    if (membership.type != TYPE_OWNER && posterRef.id != item.author.id) {
+      console.log("poster is not an owner of this item")
+      res.sendStatus(403)
+      return
+    }
+
+    item.description = description
+
+    upset<GalleryItem>(itemRef, item)
+
+    const hgi = await hydrateGalleryItem(gid, uid, item)
+    if (hgi == null) {
+      console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
+      res.sendStatus(404)
+      return
+    }
+    res.json(galleryItemToJson(hgi))
+  })
+
+const likeItemParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  mid: Joi.string().required(),
+  iid: Joi.string().required(),
+})
+export interface LikeItemRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Fields]: {
+    uid: string
+    gid: string
+    mid: string
+    iid: string
+  }
+}
+
+router.post(
+  "/like",
+  validator.fields(likeItemParams),
+  requiredAuthentication,
+  async (req: ValidatedRequest<LikeItemRequest>, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid: string = req.body.uid
+    let gid: string = req.body.gid
+    const mid: string = req.body.mid
+    const iid: string = req.body.iid
+
+    if (uid == "me") {
+      uid = iamUser.id
+    }
+
+    const gffftMembers = gffftsMembersCollection([uid, gid])
+    const gfffts = gffftsCollection(ref(usersCollection, uid))
+    const galleries = galleryCollection(ref(gfffts, gid))
+    const galleryRef = ref(galleries, mid)
+    const galleryItems = galleryItemsCollection(galleryRef)
+    const itemRef = ref(galleryItems, iid)
+
+    // is this poster a member of the gffft?
+    const posterUid = res.locals.iamUser.id
+
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = get(ref(gffftMembers, posterUid))
+    const itemPromise = get(itemRef)
+
+    const gffft = await gffftPromise
+    // make sure the gffft exists
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+    const membershipDoc = await membershipPromise
+    if (!membershipDoc) {
+      console.log("poster is not a member of this gffft")
+      res.sendStatus(403)
+      return
+    }
+
+    // todo: poster must be either the original photo poster, or a gffft owner
+
+    const itemDoc = await itemPromise
+    if (!itemDoc) {
+      res.sendStatus(404)
+      return
+    }
+
+    const item = itemDoc.data
+
+    const likes: string[] = item.likes ?? []
+    const itemIndex = likes.indexOf(posterUid, 0)
+    if (itemIndex > -1) {
+      likes.splice(itemIndex, 1)
+    } else {
+      likes.push(posterUid)
+    }
+
+    upset<GalleryItem>(itemRef, item)
+
+    const hgi = await hydrateGalleryItem(gid, uid, item)
+    if (hgi == null) {
+      console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
+      res.sendStatus(404)
+      return
+    }
+    res.json(galleryItemToJson(hgi))
+  })
 
 export default router
 
