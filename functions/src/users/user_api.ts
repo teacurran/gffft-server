@@ -549,7 +549,7 @@ router.get(
     await resetMemberCounter(iamUser, "galleryPhotos", uid, gid)
     await resetMemberCounter(iamUser, "galleryVideos", uid, gid)
 
-    const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max)
+    const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max, iamUser?.id)
 
     const hydratedGallery = await hydrateGallery(gid, uid, gallery, items)
     if (hydratedGallery == null) {

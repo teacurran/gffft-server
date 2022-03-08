@@ -21,6 +21,7 @@ export interface IGalleryItem {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     urls: any
     createdAt: Date
+    description?: string
     likeCount: number
     liked: boolean
 }
@@ -76,10 +77,7 @@ export function galleryToJsonWithItems(
 
 export function galleryItemToJson(
   gi: HydratedGalleryItem | null): IGalleryItem | null {
-  console.log("here-1")
   if (gi == null || gi.id == null) {
-    console.log("here-2")
-
     return null
   }
   const urls = new Map<string, string>()
@@ -99,8 +97,6 @@ export function galleryItemToJson(
     }
   }
 
-  console.log("here-3")
-
   const item: IGalleryItem = {
     id: gi.id,
     author: gi.authorUser ? {
@@ -110,6 +106,7 @@ export function galleryItemToJson(
       id: "deleted",
       handle: "deleted",
     },
+    description: gi.description,
     fileName: gi.fileName ?? "",
     filePath: gi.filePath ?? "",
     thumbnail: gi.thumbnail ?? false,
@@ -118,8 +115,6 @@ export function galleryItemToJson(
     likeCount: gi.likeCount ?? 0,
     liked: gi.liked,
   }
-
-  console.log(`here-3: ${item}`)
 
   return item
 }
