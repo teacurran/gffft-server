@@ -2,33 +2,10 @@ import * as firebaseAdmin from "firebase-admin"
 import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
 import {trace, context} from "@opentelemetry/api"
-import {CacheContainer} from "node-ts-cache"
-import {IoRedisStorage} from "node-ts-cache-storage-ioredis"
-import {MemoryStorage} from "node-ts-cache-storage-memory"
-import IoRedis from "ioredis"
+import cacheContainer from "./common/redis"
 
 export type LoggedInUser = {
   id: string
-}
-
-let redisPort = 6379
-if (process.env.REDIS_PORT) {
-  redisPort = parseInt(process.env.REDIS_PORT)
-}
-const redisHost = process.env.REDIS_HOST
-
-console.log(`Redis host:${redisHost}, port:${redisPort}`)
-
-let userCache: CacheContainer | undefined
-if (redisHost) {
-  const ioRedisInstance = new IoRedis({
-    host: redisHost,
-    port: redisPort,
-    password: process.env.REDIS_PASSWORD,
-  })
-  userCache = new CacheContainer(new IoRedisStorage(ioRedisInstance))
-} else {
-  userCache = new CacheContainer(new MemoryStorage())
 }
 
 async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
@@ -61,14 +38,14 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
   }
 
   let uid: string | undefined
-  if (userCache) {
-    uid = await userCache.getItem<string>(idToken)
+  if (cacheContainer) {
+    uid = await cacheContainer.getItem<string>(idToken)
     if (uid) {
       console.debug(`got cache hit: ${uid}`)
     } else {
       const userRecord = await firebaseAdmin.auth().getUser(userId)
       uid = userRecord.uid
-      await userCache.setItem(idToken, uid, {ttl: 60})
+      await cacheContainer.setItem(idToken, uid, {ttl: 60})
     }
   } else {
     const userRecord = await firebaseAdmin.auth().getUser(userId)

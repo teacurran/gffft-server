@@ -10,7 +10,8 @@ import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery
 import {Gallery} from "../galleries/gallery_models"
 import {LinkSet} from "../link-sets/link_set_models"
 import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
-
+import cacheContainer from "../common/redis"
+""
 const DEFAULT_GFFFT_KEY = "default"
 const DEFAULT_STRING = "{default}"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
@@ -155,9 +156,23 @@ export async function deleteGffftMembership(uid: string, gid: string, memberId: 
 export async function getGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember|undefined> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const memberRef = ref(gffftMembers, memberId)
-  return get(memberRef).then((snapshot) => {
-    return snapshot == null ? undefined : snapshot.data
-  })
+  const cacheKey = `${uid}-${gid}-${memberId}`
+
+  const cachedItem = await cacheContainer?.getItem<GffftMember>(cacheKey)
+  if (cachedItem) {
+    console.log(`returning cached item for memberId: ${memberId}`)
+    return cachedItem
+  }
+
+  const memberDoc = await get(memberRef)
+  let snapshot: GffftMember | undefined
+  if (memberDoc != null) {
+    snapshot = memberDoc.data
+    if (cacheContainer) {
+      cacheContainer.setItem(cacheKey, snapshot, {ttl: 20})
+    }
+  }
+  return snapshot
 }
 
 export async function getOrCreateGffftMembership(
