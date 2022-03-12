@@ -14,17 +14,19 @@ let redisPort = 6379
 if (process.env.REDIS_PORT) {
   redisPort = parseInt(process.env.REDIS_PORT)
 }
-const redisHost = process.env.REDIS_HOST ?? "127.0.0.1"
+const redisHost = process.env.REDIS_HOST
 
 console.log(`Redis host:${redisHost}, port:${redisPort}`)
 
-const ioRedisInstance = new IoRedis({
-  host: redisHost,
-  port: redisPort,
-  password: process.env.REDIS_PASSWORD,
-  db: 0,
-})
-const userCache = new CacheContainer(new IoRedisStorage(ioRedisInstance))
+let userCache: CacheContainer | undefined
+if (redisHost) {
+  const ioRedisInstance = new IoRedis({
+    host: redisHost,
+    port: redisPort,
+    password: process.env.REDIS_PASSWORD,
+  })
+  userCache = new CacheContainer(new IoRedisStorage(ioRedisInstance))
+}
 
 async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
   console.log(`authenticating user: ${idToken}`)
@@ -55,13 +57,19 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
     userId = decodedToken.uid
   }
 
-  let uid = await userCache.getItem<string>(idToken)
-  if (uid) {
-    console.debug(`got cache hit: ${uid}`)
+  let uid: string | undefined
+  if (userCache) {
+    uid = await userCache.getItem<string>(idToken)
+    if (uid) {
+      console.debug(`got cache hit: ${uid}`)
+    } else {
+      const userRecord = await firebaseAdmin.auth().getUser(userId)
+      uid = userRecord.uid
+      await userCache.setItem(idToken, uid, {ttl: 60})
+    }
   } else {
     const userRecord = await firebaseAdmin.auth().getUser(userId)
     uid = userRecord.uid
-    await userCache.setItem(idToken, uid, {ttl: 60})
   }
 
   observeUserId(uid)
