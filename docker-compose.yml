@@ -35,8 +35,6 @@ services:
     ports:
       - '6379:6379'
     command: redis-server --save 20 1 --loglevel warning --requirepass 98puOInkjbO&YiubkBt8guhvjhvredrg
-    volumes:
-      - cache:/data
 
   api:
     image: gffft-api
