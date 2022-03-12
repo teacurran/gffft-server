@@ -53,6 +53,7 @@
     "node-html-parser": "^5.2.0",
     "node-ts-cache": "^4.4.0",
     "node-ts-cache-storage-ioredis": "^4.4.0",
+    "node-ts-cache-storage-memory": "^4.4.0",
     "page-metadata-parser": "^1.1.4",
     "set-script": "^1.0.1",
     "sharp": "^0.29.3",
