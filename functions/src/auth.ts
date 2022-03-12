@@ -4,6 +4,7 @@ import {getNpc} from "./npcs/data"
 import {trace, context} from "@opentelemetry/api"
 import {CacheContainer} from "node-ts-cache"
 import {IoRedisStorage} from "node-ts-cache-storage-ioredis"
+import {MemoryStorage} from "node-ts-cache-storage-memory"
 import IoRedis from "ioredis"
 
 export type LoggedInUser = {
@@ -26,6 +27,8 @@ if (redisHost) {
     password: process.env.REDIS_PASSWORD,
   })
   userCache = new CacheContainer(new IoRedisStorage(ioRedisInstance))
+} else {
+  userCache = new CacheContainer(new MemoryStorage())
 }
 
 async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
