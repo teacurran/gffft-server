@@ -62,5 +62,4 @@ services:
 
 volumes:
   gffft_db: null
-  cache:
-    driver: local
+  cache: null
