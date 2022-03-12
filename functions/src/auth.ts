@@ -10,17 +10,17 @@ export type LoggedInUser = {
   id: string
 }
 
-console.log(`redis host:${process.env.REDIS_HOST}, port:${process.env.REDIS_PORT}`)
-
 let redisPort = 6379
 if (process.env.REDIS_PORT) {
   redisPort = parseInt(process.env.REDIS_PORT)
 }
+const redisHost = process.env.REDIS_HOST ?? "127.0.0.1"
+
+console.log(`Redis host:${redisHost}, port:${redisPort}`)
 
 const ioRedisInstance = new IoRedis({
+  host: redisHost,
   port: redisPort,
-  host: process.env.REDIS_HOST ?? "127.0.0.1",
-  family: 4,
   password: process.env.REDIS_PASSWORD,
   db: 0,
 })
