@@ -29,6 +29,15 @@ services:
       - "9199:9199"
     command: firebase emulators:start --project gffft-auth --import /app/data
 
+  redis:
+    image: "redis:alpine"
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass 98puOInkjbO&YiubkBt8guhvjhvredrg
+    volumes:
+      - cache:/data
+
   api:
     image: gffft-api
     build:
@@ -44,9 +53,14 @@ services:
       FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
       FIREBASE_STORAGE_EMULATOR_HOST: "firebase-emulator:9199"
       GCLOUD_PROJECT: "gffft-auth"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: 98puOInkjbO&YiubkBt8guhvjhvredrg
 
     ports:
       - "3000:3000"
 
 volumes:
   gffft_db: null
+  cache:
+    driver: local

@@ -2,9 +2,74 @@ import * as firebaseAdmin from "firebase-admin"
 import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
 import {trace, context} from "@opentelemetry/api"
+import {Cache, CacheContainer} from "node-ts-cache"
+import {IoRedisStorage} from "node-ts-cache-storage-ioredis"
+import IoRedis from "ioredis"
 
 export type LoggedInUser = {
   id: string
+}
+
+let redisPort = 6379
+if (process.env.REDIS_PORT) {
+  redisPort = parseInt(process.env.REDIS_PORT)
+}
+
+const ioRedisInstance = new IoRedis({
+  port: redisPort,
+  host: process.env.REDIS_HOST ?? "127.0.0.1",
+  family: 4,
+  password: process.env.REDIS_PASSWORD,
+  db: 0,
+})
+const userCache = new CacheContainer(new IoRedisStorage(ioRedisInstance))
+
+class UserService {
+  // eslint-disable-next-line new-cap
+  @Cache(userCache, {ttl: 60})
+  public async authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
+    console.log(`authenticating user: ${idToken}`)
+    let userId: string
+    if (idToken.startsWith("npc-")) {
+      console.log("token appears to be npc")
+      const splitToken = idToken.split("-")
+      if (splitToken.length == 3) {
+        const npc = await getNpc(splitToken[1])
+        if (npc != null) {
+          userId = splitToken[2]
+          this.observeUserId(userId)
+          return {
+            id: userId,
+          }
+        }
+        return null
+      } else {
+        return null
+      }
+    } else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+      const base64String = idToken.split(".")[1]
+      const jsonString = Buffer.from(base64String, "base64").toString("ascii")
+      userId = JSON.parse(jsonString).user_id
+    } else {
+      const auth = firebaseAdmin.auth()
+      const decodedToken = await auth.verifyIdToken(idToken)
+      userId = decodedToken.uid
+    }
+    this.observeUserId(userId)
+
+    return firebaseAdmin.auth().getUser(userId).then((userRecord) => {
+      return {
+        id: userRecord.uid,
+      }
+    })
+  }
+
+  observeUserId(userId: string) {
+    const activeSpan = trace.getSpan(context.active())
+    if (activeSpan != null) {
+      activeSpan.setAttribute("user.id", userId)
+    }
+  }
 }
 
 export const requiredAuthentication = async (
@@ -28,7 +93,7 @@ export const requiredAuthentication = async (
     const tracer = trace.getTracer("gffft-tracer")
     const span = tracer.startSpan("firebase-auth")
 
-    const iamUser = await authenticateAndFetchUser(idToken)
+    const iamUser = await new UserService().authenticateAndFetchUser(idToken)
 
     span.end()
 
@@ -58,7 +123,7 @@ export const optionalAuthentication = async (
   ) {
     const idToken = req.headers.authorization.split("Bearer ")[1]
 
-    const iamUser = await authenticateAndFetchUser(idToken)
+    const iamUser = await new UserService().authenticateAndFetchUser(idToken)
 
     res.locals.iamUser = iamUser
 
@@ -68,51 +133,3 @@ export const optionalAuthentication = async (
   }
 }
 
-/**
- * gets user from firebase
- * @param {string} idToken Token to look up.
- * @return {Promise<LoggedInUser|null>}.
- */
-async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
-  console.log(`authenticating user: ${idToken}`)
-  let userId: string
-  if (idToken.startsWith("npc-")) {
-    console.log("token appears to be npc")
-    const splitToken = idToken.split("-")
-    if (splitToken.length == 3) {
-      const npc = await getNpc(splitToken[1])
-      if (npc != null) {
-        userId = splitToken[2]
-        observeUserId(userId)
-        return {
-          id: userId,
-        }
-      }
-      return null
-    } else {
-      return null
-    }
-  } else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    const base64String = idToken.split(".")[1]
-    const jsonString = Buffer.from(base64String, "base64").toString("ascii")
-    userId = JSON.parse(jsonString).user_id
-  } else {
-    const auth = firebaseAdmin.auth()
-    const decodedToken = await auth.verifyIdToken(idToken)
-    userId = decodedToken.uid
-  }
-  observeUserId(userId)
-
-  return firebaseAdmin.auth().getUser(userId).then((userRecord) => {
-    return {
-      id: userRecord.uid,
-    }
-  })
-}
-
-function observeUserId(userId: string) {
-  const activeSpan = trace.getSpan(context.active())
-  if (activeSpan != null) {
-    activeSpan.setAttribute("user.id", userId)
-  }
-}
