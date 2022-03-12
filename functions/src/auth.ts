@@ -10,6 +10,8 @@ export type LoggedInUser = {
   id: string
 }
 
+console.log(`redis host:${process.env.REDIS_HOST}, port:${process.env.REDIS_PORT}`)
+
 let redisPort = 6379
 if (process.env.REDIS_PORT) {
   redisPort = parseInt(process.env.REDIS_PORT)
