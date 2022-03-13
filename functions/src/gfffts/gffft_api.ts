@@ -297,7 +297,7 @@ router.patch(
     }
   }
 )
-``
+
 router.put(
   "/",
   requiredAuthentication,
