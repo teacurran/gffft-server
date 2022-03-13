@@ -348,7 +348,7 @@ router.post(
 
     await upset<GalleryItem>(itemRef, item)
 
-    const hgi = await hydrateGalleryItem(gid, uid, item, posterUid)
+    const hgi = await hydrateGalleryItem(uid, gid, item, posterUid)
     if (hgi == null) {
       console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
       res.sendStatus(404)
