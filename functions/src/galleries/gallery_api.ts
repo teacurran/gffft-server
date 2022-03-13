@@ -1,7 +1,7 @@
 import express, {Response} from "express"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
-import {getGffft, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
+import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_OWNER, TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, ref, upset} from "typesaurus"
@@ -174,7 +174,7 @@ router.post(
       res.sendStatus(404)
       return
     }
-    res.json(galleryItemToJson(hgi))
+    res.json(galleryItemToJson(iamUser, membership, hgi))
   }
 )
 
@@ -220,7 +220,7 @@ router.patch(
     const itemRef = ref(galleryItems, iid)
 
     // is this poster a member of the gffft?
-    const posterUid = res.locals.iamUser.id
+    const posterUid = iamUser.id
     const posterRef = ref(usersCollection, posterUid)
 
     const gffftPromise = getGffft(uid, gid)
@@ -268,7 +268,7 @@ router.patch(
       res.sendStatus(404)
       return
     }
-    res.json(galleryItemToJson(hgi))
+    res.json(galleryItemToJson(iamUser, membership, hgi))
   })
 
 const likeItemParams = Joi.object({
@@ -292,6 +292,7 @@ router.post(
   requiredAuthentication,
   async (req: ValidatedRequest<LikeItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
+    const posterUid = iamUser.id
 
     let uid: string = req.body.uid
     let gid: string = req.body.gid
@@ -304,18 +305,14 @@ router.post(
       uid = iamUser.id
     }
 
-    const gffftMembers = gffftsMembersCollection([uid, gid])
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const galleries = galleryCollection(ref(gfffts, gid))
     const galleryRef = ref(galleries, mid)
     const galleryItems = galleryItemsCollection(galleryRef)
     const itemRef = ref(galleryItems, iid)
 
-    // is this poster a member of the gffft?
-    const posterUid = res.locals.iamUser.id
-
     const gffftPromise = getGffft(uid, gid)
-    const membershipPromise = get(ref(gffftMembers, posterUid))
+    const membershipPromise = await getGffftMembership(uid, gid, posterUid)
     const itemPromise = get(itemRef)
 
     const gffft = await gffftPromise
@@ -327,15 +324,7 @@ router.post(
     }
     gid = gffft.id
 
-    const membershipDoc = await membershipPromise
-    if (!membershipDoc) {
-      console.log("poster is not a member of this gffft")
-      res.sendStatus(403)
-      return
-    }
-
-    // todo: poster must be either the original photo poster, or a gffft owner
-
+    const membership = await membershipPromise
     const itemDoc = await itemPromise
     const item = itemOrNull(itemDoc)
 
@@ -366,7 +355,7 @@ router.post(
       return
     }
     console.log(`hgi: ${JSON.stringify(hgi)}`)
-    res.json(galleryItemToJson(hgi))
+    res.json(galleryItemToJson(iamUser, membership, hgi))
   })
 
 export default router

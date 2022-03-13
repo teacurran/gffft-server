@@ -1,5 +1,7 @@
+import {LoggedInUser} from "../auth"
 import {WHO_OWNER} from "../boards/board_data"
 import {notEmpty} from "../common/utils"
+import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
 import {IUserRef} from "../users/user_interfaces"
 import {Gallery, HydratedGallery, HydratedGalleryItem} from "./gallery_models"
 
@@ -10,6 +12,12 @@ export const mapToObj = (m: Map<string, string>) => {
     obj[key] = value
     return obj
   }, {})
+}
+
+export interface IGalleryType {
+  id: string
+  name?: string
+  description?: string
 }
 
 export interface IGalleryItem {
@@ -24,6 +32,7 @@ export interface IGalleryItem {
     description?: string
     likeCount: number
     liked: boolean
+    canEdit: boolean
 }
 
 export interface IGallery {
@@ -56,11 +65,14 @@ export function galleryToJson(
   }
 }
 
-
 export function galleryToJsonWithItems(
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
   gallery: HydratedGallery
 ): IGallery {
-  const itemsJson = gallery.items?.map((item) => galleryItemToJson(item)).filter(notEmpty)
+  const itemsJson = gallery.items?.map((item) => galleryItemToJson(loggedInUser,
+    gffftMembership,
+    item)).filter(notEmpty)
   return {
     id: gallery.id,
     name: gallery.name,
@@ -76,6 +88,8 @@ export function galleryToJsonWithItems(
 }
 
 export function galleryItemToJson(
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
   gi: HydratedGalleryItem | null): IGalleryItem | null {
   if (gi == null || gi.id == null) {
     return null
@@ -97,6 +111,14 @@ export function galleryItemToJson(
     }
   }
 
+  let canEdit = false
+  if (gffftMembership && gffftMembership.type == TYPE_OWNER) {
+    canEdit = true
+  }
+  if (loggedInUser && gi.authorUser && gi.authorUser.id == loggedInUser.id) {
+    canEdit = true
+  }
+
   const item: IGalleryItem = {
     id: gi.id,
     author: gi.authorUser ? {
@@ -114,6 +136,7 @@ export function galleryItemToJson(
     createdAt: gi.createdAt,
     likeCount: gi.likeCount ?? 0,
     liked: gi.liked,
+    canEdit: canEdit,
   }
 
   return item

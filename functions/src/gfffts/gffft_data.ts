@@ -153,7 +153,10 @@ export async function deleteGffftMembership(uid: string, gid: string, memberId: 
   return remove(memberRef)
 }
 
-export async function getGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember|undefined> {
+export async function getGffftMembership(uid: string, gid: string, memberId?: string): Promise<GffftMember|undefined> {
+  if (!memberId) {
+    return undefined
+  }
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const memberRef = ref(gffftMembers, memberId)
   const cacheKey = `${uid}-${gid}-${memberId}`

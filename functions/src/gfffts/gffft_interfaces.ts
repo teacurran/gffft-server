@@ -1,7 +1,7 @@
 import {IBoardType} from "../boards/board_interfaces"
 import {ICalendarType} from "../calendars/calendar_interfaces"
 import {notEmpty} from "../common/utils"
-import {IGalleryType} from "../galleries/gallery_types"
+import {IGalleryType} from "../galleries/gallery_interfaces"
 import {ILinkSet} from "../link-sets/link_set_interfaces"
 import {INotebookType} from "../notebooks/notebook_interfaces"
 import {bookmarkToJson, iamUserToJson, IUserBookmark, IUserType} from "../users/user_interfaces"

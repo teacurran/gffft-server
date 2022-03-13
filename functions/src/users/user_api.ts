@@ -15,11 +15,11 @@ import {
   getGallery, getGalleryByRefString, getGalleryItem,
   getGalleryItems, hydrateGallery,
 } from "../galleries/gallery_data"
-import {galleryItemToJson, galleryToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
+import {galleryItemToJson, galleryToJson, galleryToJsonWithItems, IGalleryType} from "../galleries/gallery_interfaces"
 import {Gallery} from "../galleries/gallery_models"
-import {IGalleryType} from "../galleries/gallery_types"
 import {
   checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
+  getGffftMembership,
   getOrCreateGffftMembership,
   gffftsCollection,
 } from "../gfffts/gffft_data"
@@ -534,26 +534,41 @@ router.get(
       }
       uid = iamUser.id
     }
+    const posterUid = iamUser?.id
 
+    // const gfffts = gffftsCollection(ref(usersCollection, uid))
+    // `const galleries = galleryCollection(ref(gfffts, gid))
+    // const galleryRef = ref(galleries, mid)
+    // const galleryItems = galleryItemsCollection(galleryRef)
+
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = getGffftMembership(uid, gid, posterUid)
+    const galleryPromise = getGallery(uid, gid, mid)
+    const galleryItemsPromise = getGalleryItems(uid, gid, mid, req.query.offset, req.query.max, iamUser?.id)
+    const resetPhotoCounterPromise = resetMemberCounter(iamUser, "galleryPhotos", uid, gid)
+    const resetVideoCounterPromise = resetMemberCounter(iamUser, "galleryVideos", uid, gid)
+
+    const gffft = await gffftPromise
     // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
     if (!gffft) {
+      console.log(`gffft not found, gid: ${gid}`)
       res.sendStatus(404)
       return
     }
     gid = gffft.id
 
-    const gallery = await getGallery(uid, gid, mid)
+    const membership = await membershipPromise
+    const gallery = await galleryPromise
 
     if (!gallery) {
       res.sendStatus(404)
       return
     }
 
-    await resetMemberCounter(iamUser, "galleryPhotos", uid, gid)
-    await resetMemberCounter(iamUser, "galleryVideos", uid, gid)
+    await resetPhotoCounterPromise
+    await resetVideoCounterPromise
 
-    const items = await getGalleryItems(uid, gid, mid, req.query.offset, req.query.max, iamUser?.id)
+    const items = await galleryItemsPromise
 
     const hydratedGallery = await hydrateGallery(gid, uid, gallery, items)
     if (hydratedGallery == null) {
@@ -561,7 +576,7 @@ router.get(
       return
     }
 
-    res.json(galleryToJsonWithItems(hydratedGallery))
+    res.json(galleryToJsonWithItems(iamUser, membership, hydratedGallery))
   }
 )
 
@@ -655,6 +670,11 @@ router.get(
     }
     gid = gffft.id
 
+    let gffftMembership: GffftMember | undefined
+    if (iamUser != null) {
+      gffftMembership = await getGffftMembership(uid, gid, iamUser.id)
+    }
+
     const gallery = await getGallery(uid, gid, mid)
 
     if (!gallery) {
@@ -664,7 +684,7 @@ router.get(
 
     const item = await getGalleryItem(uid, gid, mid, req.params.iid)
 
-    res.json(galleryItemToJson(item))
+    res.json(galleryItemToJson(iamUser, gffftMembership, item))
   }
 )
 
