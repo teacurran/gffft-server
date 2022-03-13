@@ -1,7 +1,7 @@
 import * as Joi from "@hapi/joi"
 import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {upset, value} from "typesaurus"
+import {ref, remove, upset, value} from "typesaurus"
 import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
 import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
 import {boardToJson, IBoardType, threadsToJson, threadToJson} from "../boards/board_interfaces"
@@ -10,6 +10,8 @@ import {getCalendarByRef} from "../calendars/calendar_data"
 import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
 import {resetMemberCounter} from "../counters/common"
 import {
+  galleryCollection,
+  galleryItemsCollection,
   getGallery, getGalleryByRefString, getGalleryItem,
   getGalleryItems, hydrateGallery,
 } from "../galleries/gallery_data"
@@ -19,6 +21,7 @@ import {IGalleryType} from "../galleries/gallery_types"
 import {
   checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
   getOrCreateGffftMembership,
+  gffftsCollection,
 } from "../gfffts/gffft_data"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
 import {GffftMember} from "../gfffts/gffft_models"
@@ -511,6 +514,7 @@ export interface GetGalleryRequest extends ValidatedRequestSchema {
     offset?: string
   };
 }
+
 router.get(
   "/:uid/gfffts/:gid/galleries/:mid",
   optionalAuthentication,
@@ -579,6 +583,51 @@ export interface GetGalleryItemRequest extends ValidatedRequestSchema {
     offset?: string
   };
 }
+
+
+router.delete(
+  "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
+  requiredAuthentication,
+  validator.params(getGalleryItemPathParams),
+  validator.query(getGalleryQueryParams),
+  async (req: ValidatedRequest<GetGalleryItemRequest>, res: Response) => {
+    const iamUser: LoggedInUser | null = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
+    const mid = req.params.mid
+    const iid = req.params.iid
+
+    if (uid == "me") {
+      if (iamUser == null) {
+        res.sendStatus(404)
+        return
+      }
+      uid = iamUser.id
+    }
+
+    // make sure the gffft exists
+    const gffft = await getGffft(uid, gid)
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+
+    const gfffts = gffftsCollection(ref(usersCollection, uid))
+    const galleries = galleryCollection(ref(gfffts, gid))
+    const galleryRef = ref(galleries, mid)
+    const galleryItems = galleryItemsCollection(galleryRef)
+    const itemRef = ref(galleryItems, iid)
+
+    await remove(itemRef)
+
+    res.sendStatus(204)
+    return
+  }
+)
+
 router.get(
   "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
   optionalAuthentication,

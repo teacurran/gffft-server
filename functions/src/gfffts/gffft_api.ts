@@ -154,6 +154,7 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     fruitCodeEnabled?: boolean,
   };
 }
+
 router.patch(
   "/",
   requiredAuthentication,
@@ -296,8 +297,7 @@ router.patch(
     }
   }
 )
-
-
+``
 router.put(
   "/",
   requiredAuthentication,

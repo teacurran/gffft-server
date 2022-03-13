@@ -11,7 +11,7 @@ import {Gallery} from "../galleries/gallery_models"
 import {LinkSet} from "../link-sets/link_set_models"
 import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
 import cacheContainer from "../common/redis"
-""
+
 const DEFAULT_GFFFT_KEY = "default"
 const DEFAULT_STRING = "{default}"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
