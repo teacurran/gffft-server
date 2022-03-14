@@ -24,7 +24,7 @@ import {
   gffftsCollection,
 } from "../gfffts/gffft_data"
 import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
-import {GffftMember} from "../gfffts/gffft_models"
+import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
 import {getLinkSet, getLinkSetByRefString, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
 import {ILinkSet, linkSetToJson, linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
 import {LinkSet} from "../link-sets/link_set_models"
@@ -640,6 +640,90 @@ router.delete(
 
     res.sendStatus(204)
     return
+  }
+)
+
+const updateGalleryItemParams = Joi.object({
+  description: Joi.string().optional().allow(null, ""),
+})
+export interface UpdateGalleryItemRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    mid: string
+    iid: string
+  }
+  [ContainerTypes.Body]: {
+    description?: string
+  }
+}
+
+router.patch(
+  "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
+  requiredAuthentication,
+  validator.params(getGalleryItemPathParams),
+  validator.body(updateGalleryItemParams),
+  async (req: ValidatedRequest<UpdateGalleryItemRequest>, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
+    const mid = req.params.mid
+    const iid = req.params.iid
+
+    if (uid == "me") {
+      if (iamUser == null) {
+        res.sendStatus(404)
+        return
+      }
+      uid = iamUser.id
+    }
+
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
+    const itemPromise = getGalleryItem(uid, gid, mid, iid)
+
+    // make sure the gffft exists
+    const gffft = await gffftPromise
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+    const item = await itemPromise
+    if (!item) {
+      res.sendStatus(404)
+      return
+    }
+
+    const membership = await membershipPromise
+
+    let canEdit = false
+    if (item.author.id == iamUser.id) {
+      canEdit = true
+    }
+    if (membership && membership.type == TYPE_OWNER) {
+      canEdit = true
+    }
+
+    if (!canEdit) {
+      res.status(403).send("user does not have permission to edit item")
+      return
+    }
+
+    item.description = req.body.description
+
+    const gfffts = gffftsCollection(ref(usersCollection, uid))
+
+    const galleries = galleryCollection(ref(gfffts, gid))
+    const galleryRef = ref(galleries, mid)
+    const galleryItems = galleryItemsCollection(galleryRef)
+    const itemRef = ref(galleryItems, iid)
+
+    upset(itemRef, item)
+
+    res.json(galleryItemToJson(iamUser, membership, item))
   }
 )
 
