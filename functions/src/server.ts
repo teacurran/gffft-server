@@ -9,6 +9,7 @@ import galleries from "./galleries/gallery_api"
 import gfffts from "./gfffts/gffft_api"
 import users from "./users/user_api"
 import links from "./link-sets/link_set_api"
+import compression from "compression"
 
 const PORT = process.env.PORT || 3000
 
@@ -34,6 +35,8 @@ async function start() {
   app.use(bodyParser.json({limit: "50mb"}))
   app.use(bodyParser.urlencoded({extended: true}))
   jsdocSwagger(app)(openApiOptions)
+
+  app.use(compression())
 
   api.use("/users", users)
   api.use("/galleries", galleries)
