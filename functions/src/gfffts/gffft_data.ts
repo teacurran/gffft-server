@@ -307,6 +307,40 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
   return gffft
 }
 
+export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
+  const userGfffts = gffftsCollection(userId)
+
+  return query(userGfffts, [
+    where("key", "==", DEFAULT_GFFFT_KEY),
+    limit(1),
+  ]).then(async (results) => {
+    if (results.length > 0) {
+      const gffft = results[0].data
+      gffft.id = results[0].ref.id
+
+      // below this are hacks to upgrade data as I've changed my mind about it.
+      if (!gffft.fruitCode) {
+        [gffft.fruitCode,
+          gffft.rareFruits,
+          gffft.ultraRareFruits] = await getUniqueFruitCode()
+        await updateGffft(userId, gffft.id, gffft)
+      } else if (gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
+        [gffft.fruitCode,
+          gffft.rareFruits,
+          gffft.ultraRareFruits] = await getUniqueFruitCode()
+        await updateGffft(userId, gffft.id, gffft)
+      }
+      if (!gffft.uid) {
+        gffft.uid = userId
+        await updateGffft(userId, gffft.id, gffft)
+      }
+      // await ensureOwnership(gffft, userId)
+      return gffft
+    }
+    return null
+  })
+}
+
 export async function getGfffts(offset?: string, maxResults = 20, q?: string, memberId?: string): Promise<Gffft[]> {
   const queries: Query<Gffft, keyof Gffft>[] = [
     where("enabled", "==", true),
