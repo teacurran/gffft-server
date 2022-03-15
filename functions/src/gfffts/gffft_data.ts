@@ -267,7 +267,8 @@ export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
     gffft = {
       key: DEFAULT_GFFFT_KEY,
       uid: userId,
-      name: DEFAULT_STRING,
+      name: "My gffft",
+      description: "Change this text in settings",
       intro: DEFAULT_STRING,
       createdAt: new Date(),
       updatedAt: new Date(),
