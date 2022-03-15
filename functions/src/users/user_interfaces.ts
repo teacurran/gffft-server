@@ -1,5 +1,6 @@
 import {notEmpty} from "../common/utils"
 import {gffftToJsonMinimal, IGffftMinimalType} from "../gfffts/gffft_interfaces"
+import {TYPE_OWNER} from "../gfffts/gffft_models"
 import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
 
 export interface IUserType {
@@ -22,6 +23,7 @@ export interface IUserBookmark {
 
 export interface IBookmarkResults {
     count: number
+    isHosting: boolean
     items: IUserBookmark[]
 }
 
@@ -74,6 +76,9 @@ export function bookmarksToJson(
   return {
     count: items.length,
     items: itemsJson,
+    isHosting: items.some((item) => {
+      return item.gffft?.membership?.type == TYPE_OWNER
+    }),``
   }
 }
 
