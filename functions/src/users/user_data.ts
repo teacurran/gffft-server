@@ -3,7 +3,7 @@ import * as firebaseAdmin from "firebase-admin"
 import {collection, get, query, where, limit, subcollection, all, ref, upset, remove} from "typesaurus"
 import {itemOrNull, itemOrUndefined} from "../common/data"
 import {randomInt} from "../common/utils"
-import {getGffft, gffftsCollection} from "../gfffts/gffft_data"
+import {getGffft, getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
 
@@ -24,9 +24,8 @@ export const bookmarksCollection = subcollection<UserBookmark, User>("bookmarks"
 export async function getUser(userId: string): Promise<User> {
   let user = await get(usersCollection, userId).then((snapshot) => itemOrNull(snapshot))
   if (user == null) {
-    user = {} as User
-    user.createdAt = new Date()
-    user.updatedAt = new Date()
+    user = {createdAt: new Date(),
+      updatedAt: new Date()} as User
     await upset<User>(usersCollection, userId, user)
   }
 
@@ -60,8 +59,8 @@ export async function getUserBookmarks(uid: string): Promise<UserBookmark[]> {
   return bookmarks
 }
 
-export async function getHydratedUserBookmarks(uid: string): Promise<HydratedUserBookmark[]> {
-  const results = await all(bookmarksCollection(uid))
+export async function getHydratedUserBookmarks(memberId: string): Promise<HydratedUserBookmark[]> {
+  const results = await all(bookmarksCollection(memberId))
   const bookmarks: HydratedUserBookmark[] = []
 
   for (const snapshot of results) {
@@ -69,6 +68,10 @@ export async function getHydratedUserBookmarks(uid: string): Promise<HydratedUse
     item.id = snapshot.ref.id
 
     const gffft = await get<Gffft>(item.gffftRef).then((snapshot) => itemOrUndefined(snapshot))
+
+    if (gffft && gffft.uid && gffft.id) {
+      gffft.membership = await getGffftMembership(gffft.uid, item.id, memberId)
+    }
 
     const hub: HydratedUserBookmark = {
       ...item,
