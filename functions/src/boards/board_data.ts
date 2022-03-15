@@ -164,8 +164,8 @@ export async function getThreads(uid: string,
   const queries: Query<Thread, keyof Thread>[] = []
 
   // todo: add this back once the deleted field is definitely populated
-  // queries.push(where("deleted", "!=", true))
-  // queries.push(order("deleted", "asc"))
+  queries.push(where("deleted", "!=", true))
+  queries.push(order("deleted", "asc"))
   if (offset) {
     queries.push(order("updatedAt", "desc", [startAfter(offset)]))
   } else {
@@ -181,12 +181,12 @@ export async function getThreads(uid: string,
         threads.push(hydratedThread)
 
         // todo: temp fix to upgrade data
-        // if (hydratedThread.deleted == undefined) {
-        await update(threadCollection, hydratedThread.id, [
-          field("deleted", false),
-          field("deletedAt", new Date()),
-        ])
-        // }
+        if (hydratedThread.deleted == undefined) {
+          await update(threadCollection, hydratedThread.id, [
+            field("deleted", false),
+            field("deletedAt", new Date()),
+          ])
+        }
       }
     }
     return threads

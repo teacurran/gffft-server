@@ -45,7 +45,7 @@ export type Thread = {
   postCount: number
   createdAt: Date
   updatedAt: Date
-  deleted?: boolean
+  deleted: boolean
   deletedAt?: Date
 }
 
@@ -61,7 +61,7 @@ export type ThreadPost = {
   author: Ref<User>
   linkRef?: Ref<Link>
   createdAt: Date
-  deleted?: boolean
+  deleted: boolean
   deletedAt?: Date
 }
 

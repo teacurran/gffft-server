@@ -126,6 +126,7 @@ router.post(
         createdAt: new Date(),
         updatedAt: new Date(),
         postCount: 0,
+        deleted: false,
       } as Thread
 
       threadRef = await add(threads, thread)
@@ -137,6 +138,7 @@ router.post(
       author: posterRef,
       body: req.body.body,
       createdAt: new Date(),
+      deleted: false,
     })
 
     res.sendStatus(204)
