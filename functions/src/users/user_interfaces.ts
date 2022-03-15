@@ -78,7 +78,7 @@ export function bookmarksToJson(
     items: itemsJson,
     isHosting: items.some((item) => {
       return item.gffft?.membership?.type == TYPE_OWNER
-    }),``
+    }),
   }
 }
 
