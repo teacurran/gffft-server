@@ -1,9 +1,9 @@
 import * as Joi from "@hapi/joi"
 import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {ref, remove, upset, value} from "typesaurus"
+import {field, ref, remove, update, upset, value} from "typesaurus"
 import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
-import {getBoard, getBoardByRefString, getThread, getThreads} from "../boards/board_data"
+import {getBoard, getBoardByRefString, getThread, getThreads, threadsCollection} from "../boards/board_data"
 import {boardToJson, IBoardType, threadsToJson, threadToJson} from "../boards/board_interfaces"
 import {Board} from "../boards/board_models"
 import {getCalendarByRef} from "../calendars/calendar_data"
@@ -308,6 +308,86 @@ router.get(
   }
 )
 
+export const deleteBoardThreadsPathParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  bid: Joi.string().required(),
+  tid: Joi.string().required(),
+})
+export interface DeleteBoardThreadsRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    bid: string
+    tid: string
+  }
+}
+
+router.delete(
+  "/:uid/gfffts/:gid/boards/:bid/threads/:tid",
+  requiredAuthentication,
+  validator.params(deleteBoardThreadsPathParams),
+  async (req: ValidatedRequest<DeleteBoardThreadsRequest>, res: Response) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
+    const bid = req.params.bid
+    const tid = req.params.tid
+
+    if (uid == "me") {
+      if (iamUser == null) {
+        res.sendStatus(404)
+        return
+      }
+      uid = iamUser.id
+    }
+
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
+    const itemPromise = getThread(uid, gid, bid, tid, "", 0)
+
+    // make sure the gffft exists
+    const gffft = await gffftPromise
+    if (!gffft) {
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+    const item = await itemPromise
+    if (!item) {
+      res.sendStatus(404)
+      return
+    }
+
+    const membership = await membershipPromise
+
+    let canEdit = false
+    if (item.firstPost.id == iamUser.id) {
+      canEdit = true
+    }
+    if (membership && membership.type == TYPE_OWNER) {
+      canEdit = true
+    }
+
+    if (!canEdit) {
+      res.status(403).send("user does not have permission to edit item")
+      return
+    }
+
+    const threadCollection = threadsCollection([uid, gid, bid])
+
+    await update(threadCollection, tid, [
+      field("deleted", true),
+      field("deletedAt", new Date()),
+    ])
+
+    res.sendStatus(204)
+    return
+  }
+)
+
 export const getThreadPathParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
@@ -606,7 +686,7 @@ router.delete(
   validator.params(getGalleryItemPathParams),
   validator.query(getGalleryQueryParams),
   async (req: ValidatedRequest<GetGalleryItemRequest>, res: Response) => {
-    const iamUser: LoggedInUser | null = res.locals.iamUser
+    const iamUser: LoggedInUser = res.locals.iamUser
 
     let uid = req.params.uid
     let gid = req.params.gid
@@ -621,14 +701,38 @@ router.delete(
       uid = iamUser.id
     }
 
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
+    const itemPromise = getGalleryItem(uid, gid, mid, iid)
+
     // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
+    const gffft = await gffftPromise
     if (!gffft) {
       res.sendStatus(404)
       return
     }
     gid = gffft.id
 
+    const item = await itemPromise
+    if (!item) {
+      res.sendStatus(404)
+      return
+    }
+
+    const membership = await membershipPromise
+
+    let canEdit = false
+    if (item.author.id == iamUser.id) {
+      canEdit = true
+    }
+    if (membership && membership.type == TYPE_OWNER) {
+      canEdit = true
+    }
+
+    if (!canEdit) {
+      res.status(403).send("user does not have permission to edit item")
+      return
+    }
 
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const galleries = galleryCollection(ref(gfffts, gid))

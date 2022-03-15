@@ -45,6 +45,8 @@ export type Thread = {
   postCount: number
   createdAt: Date
   updatedAt: Date
+  deleted?: boolean
+  deletedAt?: Date
 }
 
 export interface HydratedThread extends Thread {

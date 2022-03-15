@@ -162,6 +162,7 @@ export async function getThreads(uid: string,
   const threadCollection = threadsCollection([uid, gid, bid])
 
   const queries: Query<Thread, keyof Thread>[] = []
+  queries.push(where("deleted", "!=", true))
   if (offset) {
     queries.push(order("updatedAt", "desc", [startAfter(offset)]))
   } else {
@@ -208,25 +209,26 @@ export async function getThread(uid: string,
     return null
   }
 
-  const queries: Query<ThreadPost, keyof ThreadPost>[] = []
-  if (offset) {
-    queries.push(order("createdAt", "asc", [startAfter(offset)]))
-  } else {
-    queries.push(order("createdAt", "asc"))
-  }
-  queries.push(limit(maxResults))
-
-  const results = await query(pCollection, queries)
-
-  const posts: HydratedThreadPost[] = []
-  for (const snapshot of results) {
-    const hydratedThreadPost = await hydrateThreadPost(uid, gid, snapshot)
-    if (hydratedThreadPost != null) {
-      posts.push(hydratedThreadPost)
+  if (maxResults > 0) {
+    const queries: Query<ThreadPost, keyof ThreadPost>[] = []
+    if (offset) {
+      queries.push(order("createdAt", "asc", [startAfter(offset)]))
+    } else {
+      queries.push(order("createdAt", "asc"))
     }
-  }
+    queries.push(limit(maxResults))
 
-  hydratedThread.posts = posts
+    const results = await query(pCollection, queries)
+
+    const posts: HydratedThreadPost[] = []
+    for (const snapshot of results) {
+      const hydratedThreadPost = await hydrateThreadPost(uid, gid, snapshot)
+      if (hydratedThreadPost != null) {
+        posts.push(hydratedThreadPost)
+      }
+    }
+    hydratedThread.posts = posts
+  }
 
   return hydratedThread
 }
