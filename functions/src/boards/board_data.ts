@@ -181,12 +181,12 @@ export async function getThreads(uid: string,
         threads.push(hydratedThread)
 
         // todo: temp fix to upgrade data
-        if (hydratedThread.deleted == undefined) {
-          await update(threadCollection, hydratedThread.id, [
-            field("deleted", true),
-            field("deletedAt", new Date()),
-          ])
-        }
+        // if (hydratedThread.deleted == undefined) {
+        await update(threadCollection, hydratedThread.id, [
+          field("deleted", false),
+          field("deletedAt", new Date()),
+        ])
+        // }
       }
     }
     return threads
