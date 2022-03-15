@@ -61,6 +61,8 @@ export type ThreadPost = {
   author: Ref<User>
   linkRef?: Ref<Link>
   createdAt: Date
+  deleted?: boolean
+  deletedAt?: Date
 }
 
 export interface HydratedThreadPost extends ThreadPost {

@@ -1,4 +1,6 @@
+import {LoggedInUser} from "../auth"
 import {notEmpty} from "../common/utils"
+import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
 import {ILink, linkToJson} from "../link-sets/link_set_interfaces"
 import {IUserRef} from "../users/user_interfaces"
 import {WHO_OWNER} from "./board_data"
@@ -22,10 +24,11 @@ export interface IThread {
   createdAt: Date
   updatedAt: Date
   firstPost: IUserRef
-  latestPost: IUserRef,
-  postCount: number,
-  topReaction?: string,
+  latestPost: IUserRef
+  postCount: number
+  topReaction?: string
   posts: IThreadPost[]
+  canEdit: boolean
 }
 
 export interface IThreadResults {
@@ -39,6 +42,8 @@ export interface IThreadPost {
   createdAt: Date
   author: IUserRef
   link?: ILink
+  canEdit: boolean
+  deleted: boolean
 }
 
 export interface IThreadPostResults {
@@ -48,9 +53,11 @@ export interface IThreadPostResults {
 
 
 export function threadsToJson(
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
   items: HydratedThread[]
 ): IThreadResults {
-  const itemsJson = items.map((item) => threadToJson(item)).filter(notEmpty)
+  const itemsJson = items.map((item) => threadToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
   return {
     count: items.length,
     items: itemsJson,
@@ -58,10 +65,21 @@ export function threadsToJson(
 }
 
 export function threadToJson(
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
   thread: HydratedThread): IThread | null {
   if (thread == null || thread.id == null) {
     return null
   }
+
+  let canEdit = false
+  if (gffftMembership && gffftMembership.type == TYPE_OWNER) {
+    canEdit = true
+  }
+  if (loggedInUser && thread.firstPost && thread.firstPost.id == loggedInUser.id) {
+    canEdit = true
+  }
+
   const item: IThread = {
     id: thread.id,
     subject: thread.subject,
@@ -82,18 +100,13 @@ export function threadToJson(
       handle: "deleted",
     },
     postCount: thread.postCount,
-    posts: threadPostsToJson(thread.posts),
+    posts: threadPostsToJson(loggedInUser, gffftMembership, thread.posts),
+    canEdit: canEdit,
   }
   return item
 }
 
 
-/**
-   * to Json
-   * @param {Board} board object to serialize
-   * @param {User} user
-   * @return {IIAMUserType}
-   */
 export function boardToJson(
   board: Board,
 ): IBoardType | null {
@@ -115,16 +128,29 @@ export function boardToJson(
 }
 
 export function threadPostsToJson(
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
   items: HydratedThreadPost[]
 ): IThreadPost[] {
-  return items.map((item) => threadPostToJson(item)).filter(notEmpty)
+  return items.map((item) => threadPostToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
 }
 
 export function threadPostToJson(
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
   post: HydratedThreadPost): IThreadPost | null {
   if (post == null || post.id == null) {
     return null
   }
+
+  let canEdit = false
+  if (gffftMembership && gffftMembership.type == TYPE_OWNER) {
+    canEdit = true
+  }
+  if (loggedInUser && post.author && post.author.id == loggedInUser.id) {
+    canEdit = true
+  }
+
 
   const item: IThreadPost = {
     id: post.id,
@@ -138,6 +164,8 @@ export function threadPostToJson(
       handle: "deleted",
     },
     link: post.link ? linkToJson(post.link) : undefined,
+    canEdit: canEdit,
+    deleted: post.deleted ?? false,
   }
   return item
 }

@@ -1,5 +1,5 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
-  ref, Ref, Query, startAfter, order, Doc} from "typesaurus"
+  ref, Ref, Query, startAfter, order, Doc, update, field} from "typesaurus"
 import {Board, HydratedThread, HydratedThreadPost, Thread, ThreadPost} from "./board_models"
 import {HydratedUser, User} from "../users/user_models"
 import {getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
@@ -162,8 +162,10 @@ export async function getThreads(uid: string,
   const threadCollection = threadsCollection([uid, gid, bid])
 
   const queries: Query<Thread, keyof Thread>[] = []
-  queries.push(where("deleted", "!=", true))
-  queries.push(order("deleted", "asc"))
+
+  // todo: add this back once the deleted field is definitely populated
+  // queries.push(where("deleted", "!=", true))
+  // queries.push(order("deleted", "asc"))
   if (offset) {
     queries.push(order("updatedAt", "desc", [startAfter(offset)]))
   } else {
@@ -177,9 +179,19 @@ export async function getThreads(uid: string,
       const hydratedThread = await hydrateThread(uid, gid, snapshot)
       if (hydratedThread != null) {
         threads.push(hydratedThread)
+
+        // todo: temp fix to upgrade data
+        if (hydratedThread.deleted == undefined) {
+          await update(threadCollection, hydratedThread.id, [
+            field("deleted", true),
+            field("deletedAt", new Date()),
+          ])
+        }
       }
     }
-    return threads
+    return threads.filter((value)=> {
+      return value.deleted
+    })
   })
 }
 
