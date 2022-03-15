@@ -280,8 +280,12 @@ router.get(
       }
     }
 
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
+    const boardProomise = getBoard(uid, gid, bid)
+
     // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
+    const gffft = await gffftPromise
     if (!gffft) {
       res.sendStatus(404)
       return
@@ -290,19 +294,21 @@ router.get(
 
     // const iamUser: LoggedInUser = res.locals.iamUser
     // const gffft = await getGffft(uid, gid)
-    const board = await getBoard(uid, gid, bid)
+    const board = await boardProomise
 
     if (!board) {
       res.sendStatus(404)
       return
     }
 
+    const membership = await membershipPromise
+
     await resetMemberCounter(iamUser, "boardPosts", uid, gid)
     await resetMemberCounter(iamUser, "boardThreads", uid, gid)
 
     getThreads(uid, gid, bid, req.query.offset, req.query.max).then(
       (items) => {
-        res.json(threadsToJson(items))
+        res.json(threadsToJson(iamUser, membership, items))
       }
     )
   }
@@ -433,23 +439,28 @@ router.get(
       }
     }
 
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
+    const boardPromise = getBoard(uid, gid, bid)
+
     // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
+    const gffft = await gffftPromise
     if (!gffft) {
       res.sendStatus(404)
       return
     }
     gid = gffft.id
 
-
     // const iamUser: LoggedInUser = res.locals.iamUser
     // const gffft = await getGffft(uid, gid)
-    const board = await getBoard(uid, gid, bid)
+    const board = await boardPromise
 
     if (!board) {
       res.sendStatus(404)
       return
     }
+
+    const membership = await membershipPromise
 
     getThread(uid, gid, bid, tid, req.query.offset, req.query.max).then(
       (thread) => {
@@ -457,7 +468,7 @@ router.get(
           res.sendStatus(404)
           return
         }
-        res.json(threadToJson(thread))
+        res.json(threadToJson(iamUser, membership, thread))
       }
     )
   }

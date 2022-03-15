@@ -189,9 +189,7 @@ export async function getThreads(uid: string,
         }
       }
     }
-    return threads.filter((value)=> {
-      return value.deleted
-    })
+    return threads
   })
 }
 
