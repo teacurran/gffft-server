@@ -163,6 +163,7 @@ export async function getThreads(uid: string,
 
   const queries: Query<Thread, keyof Thread>[] = []
   queries.push(where("deleted", "!=", true))
+  queries.push(order("deleted", "asc"))
   if (offset) {
     queries.push(order("updatedAt", "desc", [startAfter(offset)]))
   } else {
