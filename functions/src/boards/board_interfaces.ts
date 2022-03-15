@@ -82,7 +82,7 @@ export function threadToJson(
 
   const item: IThread = {
     id: thread.id,
-    subject: thread.subject,
+    subject: thread.deleted ? "(deleted)" : thread.subject,
     createdAt: thread.createdAt ?? new Date(),
     updatedAt: thread.updatedAt ?? new Date(),
     firstPost: thread.firstPostUser ? {
@@ -151,10 +151,9 @@ export function threadPostToJson(
     canEdit = true
   }
 
-
   const item: IThreadPost = {
     id: post.id,
-    body: post.body,
+    body: post.deleted ? "(deleted)" : post.body,
     createdAt: post.createdAt,
     author: post.authorUser ? {
       id: post.authorUser.id,
