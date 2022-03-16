@@ -134,6 +134,7 @@ router.post(
       body: description,
       createdAt: new Date(),
       linkRef: linkRef,
+      deleted: false,
     })
 
     const item = {
