@@ -29,6 +29,7 @@ export interface IThread {
   topReaction?: string
   posts: IThreadPost[]
   canEdit: boolean
+  deleted: boolean
 }
 
 export interface IThreadResults {
@@ -101,6 +102,7 @@ export function threadToJson(
     },
     postCount: thread.postCount,
     posts: threadPostsToJson(loggedInUser, gffftMembership, thread.posts),
+    deleted: thread.deleted,
     canEdit: canEdit,
   }
   return item
