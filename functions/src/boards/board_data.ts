@@ -179,14 +179,6 @@ export async function getThreads(uid: string,
       const hydratedThread = await hydrateThread(uid, gid, snapshot)
       if (hydratedThread != null) {
         threads.push(hydratedThread)
-
-        // todo: temp fix to upgrade data
-        if (hydratedThread.deleted == undefined) {
-          await update(threadCollection, hydratedThread.id, [
-            field("deleted", false),
-            field("deletedAt", new Date()),
-          ])
-        }
       }
     }
     return threads
