@@ -1,5 +1,5 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
-  ref, Ref, Query, startAfter, order, Doc, update, field} from "typesaurus"
+  ref, Ref, Query, startAfter, order, Doc} from "typesaurus"
 import {Board, HydratedThread, HydratedThreadPost, Thread, ThreadPost} from "./board_models"
 import {HydratedUser, User} from "../users/user_models"
 import {getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
