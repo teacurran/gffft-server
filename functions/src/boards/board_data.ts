@@ -165,7 +165,6 @@ export async function getThreads(uid: string,
 
   // todo: add this back once the deleted field is definitely populated
   queries.push(where("deleted", "==", false))
-  queries.push(order("deleted", "asc"))
   if (offset) {
     queries.push(order("updatedAt", "desc", [startAfter(offset)]))
   } else {
