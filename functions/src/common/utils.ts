@@ -12,3 +12,11 @@ export const hny = new Libhoney({
   writeKey: "160965349838cd907f5532a79ee04410",
   dataset: "gffft",
 })
+
+export interface EnumObject {
+  [enumValue: number]: string;
+}
+
+export function getEnumValues(e: EnumObject): string[] {
+  return Object.keys(e).map((_, index) => e[index])
+}

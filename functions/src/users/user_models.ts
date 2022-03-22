@@ -10,7 +10,7 @@ export type User = {
   }
 
 export interface HydratedUser extends User {
-  handle: string | undefined
+  handle: string
 }
 
 export type UsernameChange = {

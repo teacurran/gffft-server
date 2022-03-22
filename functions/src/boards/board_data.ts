@@ -100,7 +100,7 @@ async function hydrateUser(uid: string,
 
   return {
     ...user,
-    handle: gffftMembership ? gffftMembership.handle : undefined,
+    handle: gffftMembership ? gffftMembership.handle ?? user.id : user.id,
   }
 }
 
