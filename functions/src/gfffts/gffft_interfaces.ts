@@ -30,6 +30,7 @@ export interface IGffftMember {
   type: string
   createdAt?: Date
   updateCounters?: IGffftMemberUpdateCounters
+  updateCount: number
 }
 
 export interface IGffftType {
@@ -166,6 +167,7 @@ export function gffftMemberToJson(
     handle: membership.handle,
     createdAt: membership.createdAt,
     updateCounters: gffftMemberCountersToJson(membership.updateCounters),
+    updateCount: membership.updateCount ?? 0,
   } as IGffftMember
 }
 
