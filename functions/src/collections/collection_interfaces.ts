@@ -4,7 +4,8 @@ import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
 import {ILink, linkToJson} from "../link-sets/link_set_interfaces"
 import {IUserRef} from "../users/user_interfaces"
 import {WHO_MEMBER, WHO_PUBLIC} from "./collection_data"
-import {AttachmentType, Collection, CollectionType, HydratedPost, HydratedReply, PostType} from "./collection_models"
+import {AttachmentType, Collection, CollectionType, HydratedCollection,
+  HydratedPost, HydratedReply, PostType} from "./collection_models"
 
 export interface ICollection {
   id: string
@@ -147,7 +148,7 @@ export function postToJson(
 }
 
 
-export function CollectionToJson(
+export function collectionToJson(
   collection: Collection,
 ): ICollection | null {
   if (collection == null || collection.id == null) {
@@ -158,11 +159,11 @@ export function CollectionToJson(
     name: collection.name,
     description: collection.description,
     type: collection.type,
-    audioCount: collection.updateCounters.audios ?? 0,
-    videoCount: collection.updateCounters.videos ?? 0,
-    photoCount: collection.updateCounters.photos ?? 0,
-    postCount: collection.updateCounters.posts ?? 0,
-    replyCount: collection.updateCounters.replies ?? 0,
+    audioCount: collection.counts.audios ?? 0,
+    videoCount: collection.counts.videos ?? 0,
+    photoCount: collection.counts.photos ?? 0,
+    postCount: collection.counts.posts ?? 0,
+    replyCount: collection.counts.replies ?? 0,
     createdAt: collection.createdAt ?? new Date(),
     updatedAt: collection.updatedAt ?? new Date(),
     whoCanView: collection.whoCanView ?? WHO_PUBLIC,
@@ -170,6 +171,33 @@ export function CollectionToJson(
     whoCanReply: collection.whoCanReply ?? WHO_MEMBER,
   }
   return item
+}
+
+export function collectionToJsonWithItems(
+  collection: HydratedCollection,
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
+): ICollection {
+  const itemsJson = collection.items?.map((item) => postToJson(loggedInUser,
+    gffftMembership,
+    item)).filter(notEmpty)
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    type: collection.type,
+    audioCount: collection.counts.audios ?? 0,
+    videoCount: collection.counts.videos ?? 0,
+    photoCount: collection.counts.photos ?? 0,
+    postCount: collection.counts.posts ?? 0,
+    replyCount: collection.counts.replies ?? 0,
+    createdAt: collection.createdAt ?? new Date(),
+    updatedAt: collection.updatedAt ?? new Date(),
+    whoCanView: collection.whoCanView ?? WHO_PUBLIC,
+    whoCanPost: collection.whoCanPost ?? WHO_MEMBER,
+    whoCanReply: collection.whoCanReply ?? WHO_MEMBER,
+    posts: itemsJson ?? [],
+  }
 }
 
 export function repliesToJson(

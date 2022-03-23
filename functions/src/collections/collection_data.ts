@@ -1,27 +1,21 @@
-import {query, subcollection, where, limit, add, pathToRef, get, upset,
-  ref, Ref, Query, startAfter, order, Doc} from "typesaurus"
-import {HydratedUser, User} from "../users/user_models"
-import {getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
-import {Gffft} from "../gfffts/gffft_models"
+import {query, where, limit, add, pathToRef, get, upset,
+  ref, Ref, Query, startAfter, order, Doc, value} from "typesaurus"
+import {getGffftUser} from "../gfffts/gffft_data"
 import {itemOrNull} from "../common/data"
 import {Link} from "../link-sets/link_set_models"
 import {getLinkByRef} from "../link-sets/link_set_data"
-import {Collection, CollectionType, HydratedPost, HydratedReply, Post, PostReaction, Reply} from "./collection_models"
+import {AttachmentType, Collection, collectionCollection, CollectionType,
+  CollectionUpdate, CollectionUpdateAudioUpset, CollectionUpdateBinaryUpset,
+  CollectionUpdatePhotoUpset, CollectionUpdateTextUpset, CollectionUpdateVideoUpset,
+  HydratedCollection, HydratedPost, HydratedReply, memberUpdateCollection,
+  Post, postCollection, PostReaction, postReactionCollection, Reply, replyCollection,
+  replyReactionCollection} from "./collection_models"
 
 const DEFAULT_COLLECTION_KEY = "default"
 
 export const WHO_OWNER = "owner"
 export const WHO_MEMBER = "member"
 export const WHO_PUBLIC = "public"
-
-export const collectionCollection = subcollection<Collection, Gffft, User>("collections", gffftsCollection)
-export const postCollection = subcollection<Post, Collection, Gffft, [string, string]>("posts", collectionCollection)
-export const postReactionCollection = subcollection<PostReaction, Post, Collection,
-  [string, string, string]>("reactions", postCollection)
-export const replyCollection = subcollection<Reply, Post, Collection,
-  [string, string, string]>("replies", postCollection)
-export const replyReactionCollection = subcollection<PostReaction, Reply, Post,
-  [string, string, string, string]>("reactions", replyCollection)
 
 export async function getOrCreateDefaultCollection(uid: string,
   gid: string,
@@ -83,28 +77,6 @@ export async function updateCollection(uid: string, gid: string, collection: Col
   return upset<Collection>(userCollections, collection.id, collection)
 }
 
-async function hydrateUser(uid: string,
-  gid: string, user: User): Promise<HydratedUser | Promise<HydratedUser | null> | null> {
-  const gffftMembership = await getGffftMembership(uid, gid, user.id)
-
-  return {
-    ...user,
-    handle: gffftMembership ? gffftMembership.handle ?? user.id : user.id,
-  }
-}
-
-export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>): Promise<HydratedUser | null> {
-  if (!userRef) {
-    return null
-  }
-  const user = await get<User>(userRef).then((snapshot) => itemOrNull(snapshot))
-  if (user == null) {
-    return null
-  }
-
-  return hydrateUser(uid, gid, user)
-}
-
 export async function getPostReaction(uid: string, gid: string,
   cid: string, pid: string, currentUid: string): Promise<PostReaction | null> {
   const reactionCollection = postReactionCollection([uid, gid, cid, pid])
@@ -119,6 +91,100 @@ export async function getReplyReaction(uid: string, gid: string,
 
   const reactionCollection = replyReactionCollection([uid, gid, cid, pid, rid])
   return get(ref(reactionCollection, currentUid)).then((snapshot) => itemOrNull(snapshot))
+}
+
+export async function getPosts(uid: string,
+  gid: string,
+  cid:string,
+  offset?: string,
+  maxResults = 200,
+  currentUid?: string): Promise<HydratedPost[]> {
+  const posts = postCollection([uid, gid, cid])
+
+  const queries: Query<Post, keyof Post>[] = []
+  queries.push(where("deleted", "==", false))
+  if (offset) {
+    queries.push(order("updatedAt", "desc", [startAfter(offset)]))
+  } else {
+    queries.push(order("updatedAt", "desc"))
+  }
+  queries.push(limit(maxResults))
+
+  const items: HydratedPost[] = []
+  return query(posts, queries).then(async (results) => {
+    for (const snapshot of results) {
+      const hydratedThread = await hydratePost(uid, gid, cid, snapshot, currentUid)
+      if (hydratedThread != null) {
+        items.push(hydratedThread)
+      }
+    }
+    return items
+  })
+}
+
+export async function getPostByRef(itemRef: Ref<Post>): Promise<Post | null> {
+  return get(itemRef).then((snapshot) => itemOrNull(snapshot))
+}
+
+export async function getPostByRefString(refId: string): Promise<Post | null> {
+  const itemRef = pathToRef<Post>(refId)
+  return getPostByRef(itemRef)
+}
+
+export async function getPost(uid: string,
+  gid: string,
+  cid: string,
+  pid: string,
+  offset?: string,
+  maxResults = 200): Promise<HydratedPost | null> {
+  const posts = postCollection([uid, gid, cid])
+  const postRef = ref(posts, pid)
+  const replies = replyCollection(postRef)
+
+  const post = await get(postRef)
+  const hydratedPost = await hydratePost(uid, gid, cid, post)
+
+  if (hydratedPost == null) {
+    return null
+  }
+
+  if (maxResults > 0) {
+    const queries: Query<Reply, keyof Reply>[] = []
+    queries.push(where("deleted", "==", false))
+    if (offset) {
+      queries.push(order("createdAt", "asc", [startAfter(offset)]))
+    } else {
+      queries.push(order("createdAt", "asc"))
+    }
+    queries.push(limit(maxResults))
+
+    const results = await query(replies, queries)
+
+    const posts: HydratedReply[] = []
+    for (const snapshot of results) {
+      const hydratedReply = await hydrateReply(uid, gid, cid, pid, snapshot)
+      if (hydratedReply != null) {
+        posts.push(hydratedReply)
+      }
+    }
+    hydratedPost.replies = posts
+  }
+
+  return hydratedPost
+}
+
+export async function hydrateCollection(uid: string, gid: string, collection: Collection,
+  items: HydratedPost[]): Promise<HydratedCollection | null> {
+  if (collection == null) {
+    return null
+  }
+  const latestPostUser = await getGffftUser(uid, gid, collection.latestPost)
+
+  return {
+    ...collection,
+    latestPostUser: latestPostUser ?? undefined,
+    items: items,
+  }
 }
 
 export async function hydratePost(uid: string, gid: string, cid: string,
@@ -166,83 +232,46 @@ export async function hydrateReply(uid: string, gid: string, cid: string, pid: s
   }
 }
 
-export async function getPosts(uid: string,
-  gid: string,
-  cid:string,
-  offset?: string,
-  maxResults = 200): Promise<HydratedPost[]> {
-  const posts = postCollection([uid, gid, cid])
-
-  const queries: Query<Post, keyof Post>[] = []
-  queries.push(where("deleted", "==", false))
-  if (offset) {
-    queries.push(order("updatedAt", "desc", [startAfter(offset)]))
-  } else {
-    queries.push(order("updatedAt", "desc"))
+export async function resetCollectionUpdate(uid: string, gid: string, cid: string, memberId?: string): Promise<void> {
+  if (!memberId) {
+    return
   }
-  queries.push(limit(maxResults))
+  const memberUpdates = memberUpdateCollection([uid, gid, cid])
+  const memberUpdateRef = ref(memberUpdates, memberId)
+  return resetCollectionUpdateByRef(memberUpdateRef)
+}
 
-  const items: HydratedPost[] = []
-  return query(posts, queries).then(async (results) => {
-    for (const snapshot of results) {
-      const hydratedThread = await hydratePost(uid, gid, cid, snapshot)
-      if (hydratedThread != null) {
-        items.push(hydratedThread)
-      }
-    }
-    return items
+export async function resetCollectionUpdateByRef(ref: Ref<CollectionUpdate>): Promise<void> {
+  return upset<CollectionUpdate>(ref, {
+    photoCount: 0,
   })
 }
 
-export async function getPostByRef(itemRef: Ref<Post>): Promise<Post | null> {
-  return get(itemRef).then((snapshot) => itemOrNull(snapshot))
-}
-
-export async function getPostByRefString(refId: string): Promise<Post | null> {
-  const itemRef = pathToRef<Post>(refId)
-  return getPostByRef(itemRef)
-}
-
-
-export async function getPost(uid: string,
-  gid: string,
-  cid: string,
-  pid: string,
-  offset?: string,
-  maxResults = 200): Promise<HydratedPost | null> {
-  const posts = postCollection([uid, gid, cid])
-  const postRef = ref(posts, pid)
-  const replies = replyCollection(postRef)
-
-  const post = await get(postRef)
-  const hydratedPost = await hydratePost(uid, gid, cid, post)
-
-  if (hydratedPost == null) {
-    return null
+export async function updateCollectionUpdate(ref: Ref<CollectionUpdate>,
+  type: AttachmentType, changeValue: number): Promise<void> {
+  switch (type) {
+  case AttachmentType.PHOTO:
+    return upset<CollectionUpdatePhotoUpset>(ref, {
+      photoCount: value("increment", changeValue),
+    })
+  case AttachmentType.VIDEO:
+    return upset<CollectionUpdateVideoUpset>(ref, {
+      videoCount: value("increment", changeValue),
+    })
+  case AttachmentType.AUDIO:
+    return upset<CollectionUpdateAudioUpset>(ref, {
+      audioCount: value("increment", changeValue),
+    })
+  case AttachmentType.BINARY:
+    return upset<CollectionUpdateBinaryUpset>(ref, {
+      binaryCount: value("increment", changeValue),
+    })
+  case AttachmentType.TEXT:
+    return upset<CollectionUpdateTextUpset>(ref, {
+      textCount: value("increment", changeValue),
+    })
+  default:
+    break
   }
-
-  if (maxResults > 0) {
-    const queries: Query<Reply, keyof Reply>[] = []
-    queries.push(where("deleted", "==", false))
-    if (offset) {
-      queries.push(order("createdAt", "asc", [startAfter(offset)]))
-    } else {
-      queries.push(order("createdAt", "asc"))
-    }
-    queries.push(limit(maxResults))
-
-    const results = await query(replies, queries)
-
-    const posts: HydratedReply[] = []
-    for (const snapshot of results) {
-      const hydratedReply = await hydrateReply(uid, gid, cid, pid, snapshot)
-      if (hydratedReply != null) {
-        posts.push(hydratedReply)
-      }
-    }
-    hydratedPost.replies = posts
-  }
-
-  return hydratedPost
 }
 

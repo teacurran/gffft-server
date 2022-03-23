@@ -66,9 +66,9 @@ export function galleryToJson(
 }
 
 export function galleryToJsonWithItems(
+  gallery: HydratedGallery,
   loggedInUser: LoggedInUser | null,
   gffftMembership: GffftMember | undefined,
-  gallery: HydratedGallery
 ): IGallery {
   const itemsJson = gallery.items?.map((item) => galleryItemToJson(loggedInUser,
     gffftMembership,

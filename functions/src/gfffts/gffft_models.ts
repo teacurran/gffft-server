@@ -3,7 +3,7 @@ import {User} from "../users/user_models"
 
 export type Gffft = {
     id: string
-    uid?: string,
+    uid?: string
     key: string
     name: string
     fruitCode?: string
@@ -29,6 +29,7 @@ export type GffftMemberParams = {
     mid: string
   }
 
+
 export type GffftMemberUpdateCounters = {
   galleryPhotos?: number
   galleryVideos?: number
@@ -41,31 +42,32 @@ export type GffftMember = {
     user: Ref<User>
     type: string
     updateCounters: GffftMemberUpdateCounters
+    updateCount: number
     handle?: string
     createdAt?: Date
     updatedAt?: Date
   }
 
 export type GffftStats = {
-  ownerCount: number,
-  adminCount: number,
-  memberCount: number,
-  anonCount: number,
+  ownerCount: number
+  adminCount: number
+  memberCount: number
+  anonCount: number
 }
 
-export type GffftOwnerCounter = {
+export type GffftOwnerCountUpset = {
   ownerCount: number
 }
 
-export type GffftAdminCounter = {
+export type GffftAdminCountUpset = {
   adminCount: number
 }
 
-export type GffftMemberCounter = {
+export type GffftMemberCountUpset = {
   memberCount: number
 }
 
-export type GffftAnonCounter = {
+export type GffftAnonCountUpset = {
   anonCount: number
 }
 

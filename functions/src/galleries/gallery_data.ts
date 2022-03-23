@@ -3,9 +3,8 @@ import {query, subcollection, where, limit, add, pathToRef, get, ref, Ref, Query
 import {Gallery, GalleryItem, HydratedGallery, HydratedGalleryItem} from "./gallery_models"
 import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
-import {gffftsCollection} from "../gfffts/gffft_data"
+import {getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
-import {getGffftUser} from "../boards/board_data"
 
 const DEFAULT_BOARD_KEY = "default"
 
