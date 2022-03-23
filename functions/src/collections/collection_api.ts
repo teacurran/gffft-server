@@ -1,15 +1,16 @@
 import express, {Response} from "express"
 
-import {LoggedInUser, requiredAuthentication} from "../auth"
-import {Post, PostType} from "./collection_models"
-import {getGffft, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
+import {collectionCollection, Post, postCollection, PostType} from "./collection_models"
+import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {add, get, Ref, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
 import * as Joi from "@hapi/joi"
 import {getEnumValues} from "../common/utils"
-import {collectionCollection, postCollection} from "./collection_data"
+import {getCollection, getPosts, hydrateCollection, resetCollectionUpdate} from "./collection_data"
+import {collectionToJsonWithItems} from "./collection_interfaces"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -34,6 +35,90 @@ export interface CreatePostRequest extends ValidatedRequestSchema {
     body?: string
   }
 }
+
+export const getCollectionPathParams = Joi.object({
+  uid: Joi.string().required(),
+  gid: Joi.string().required(),
+  cid: Joi.string().required(),
+})
+export const getCollectionQueryParams = Joi.object({
+  max: Joi.string().optional(),
+  offset: Joi.string().optional(),
+})
+export interface GetCollectionRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Params]: {
+    uid: string
+    gid: string
+    cid: string
+  }
+  [ContainerTypes.Query]: {
+    max?: number
+    offset?: string
+  };
+}
+
+router.get(
+  "/:uid/g/:gid/c/:cid",
+  optionalAuthentication,
+  validator.params(getCollectionPathParams),
+  validator.query(getCollectionQueryParams),
+  async (req: ValidatedRequest<GetCollectionRequest>, res: Response) => {
+    const iamUser: LoggedInUser | null = res.locals.iamUser
+
+    let uid = req.params.uid
+    let gid = req.params.gid
+    const cid = req.params.cid
+
+    if (uid == "me") {
+      if (iamUser == null) {
+        res.sendStatus(404)
+        return
+      }
+      uid = iamUser.id
+    }
+    const posterUid = iamUser?.id
+
+    // const gfffts = gffftsCollection(ref(usersCollection, uid))
+    // `const galleries = galleryCollection(ref(gfffts, gid))
+    // const galleryRef = ref(galleries, mid)
+    // const galleryItems = galleryItemsCollection(galleryRef)
+
+    const gffftPromise = getGffft(uid, gid)
+    const membershipPromise = getGffftMembership(uid, gid, posterUid)
+    const collectionPromise = getCollection(uid, gid, cid)
+    const postsPromise = getPosts(uid, gid, cid, req.query.offset, req.query.max, iamUser?.id)
+
+    const resetCounterPromise = await resetCollectionUpdate(uid, gid, cid, posterUid)
+
+    const gffft = await gffftPromise
+    // make sure the gffft exists
+    if (!gffft) {
+      console.log(`gffft not found, gid: ${gid}`)
+      res.sendStatus(404)
+      return
+    }
+    gid = gffft.id
+
+    const membership = await membershipPromise
+    const collection = await collectionPromise
+
+    if (!collection) {
+      res.sendStatus(404)
+      return
+    }
+
+    await resetCounterPromise
+    const items = await postsPromise
+
+    const hc = await hydrateCollection(gid, uid, collection, items)
+    if (hc == null) {
+      res.sendStatus(404)
+      return
+    }
+
+    res.json(collectionToJsonWithItems(hc, iamUser, membership))
+  }
+)
 
 router.post(
   "/createPost",
@@ -90,7 +175,6 @@ router.post(
     const collections = collectionCollection(ref(gfffts, gid))
     const collectionRef = ref(collections, cid)
     const posts = postCollection(collectionRef)
-
 
     let postRef: Ref<Post>
 

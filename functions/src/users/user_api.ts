@@ -667,7 +667,7 @@ router.get(
       return
     }
 
-    res.json(galleryToJsonWithItems(iamUser, membership, hydratedGallery))
+    res.json(galleryToJsonWithItems(hydratedGallery, iamUser, membership))
   }
 )
 

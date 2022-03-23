@@ -1,8 +1,10 @@
-import {Ref} from "typesaurus"
+import {Ref, subcollection} from "typesaurus"
+import {gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
+import {Gffft, GffftMember} from "../gfffts/gffft_models"
 import {Link} from "../link-sets/link_set_models"
 import {HydratedUser, User} from "../users/user_models"
 
-export type CollectionUpdateCounters = {
+export type CollectionCounters = {
   photos?: number
   videos?: number
   posts?: number
@@ -10,27 +12,69 @@ export type CollectionUpdateCounters = {
   replies?: number
 }
 
-export type CollectionType = "feed" | "board" | "gallery" | "linkSet" | "notebook"
+export enum CollectionType {
+  FEED,
+  BOARD,
+  GALLERY,
+  LINKSET,
+  NOTEBOOK,
+}
 export type Collection = {
-    id: string
-    type: CollectionType
-    key?: string
-    name?: string
-    description?: string
-    whoCanView?: string
-    whoCanPost?: string
-    whoCanReply?: string
-    latestPost?: Ref<HydratedUser>
-    updateCounters: CollectionUpdateCounters
-    createdAt: Date
-    updatedAt: Date
-  }
+  id: string
+  type: CollectionType
+  key?: string
+  name?: string
+  description?: string
+  whoCanView?: string
+  whoCanPost?: string
+  whoCanReply?: string
+  latestPost?: Ref<HydratedUser>
+  counts: CollectionCounters
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface HydratedCollection extends Collection {
+  latestPostUser: HydratedUser | undefined
+  items?: HydratedPost[]
+}
 
 export enum PostType {
-    MEDIA,
-    THREAD,
-    LINK,
-    PAGE
+  MEDIA,
+  THREAD,
+  LINK,
+  PAGE,
+}
+export type CollectionUpdate = {
+  photoCount?: number
+  videoCount?: number
+  audioCount?: number
+  textCount?: number
+  binaryCount?: number
+  postCount?: number
+  replyCount?: number
+}
+
+export type CollectionUpdatePhotoUpset = {
+  photoCount: number
+}
+export type CollectionUpdateVideoUpset = {
+  videoCount: number
+}
+export type CollectionUpdateAudioUpset = {
+  audioCount: number
+}
+export type CollectionUpdateTextUpset = {
+  textCount: number
+}
+export type CollectionUpdateBinaryUpset = {
+  binaryCount: number
+}
+export type CollectionUpdatePostUpset = {
+  postCount: number
+}
+export type CollectionUpdateReplyUpset = {
+  replyCount: number
 }
 
 export type Post = {
@@ -53,7 +97,13 @@ export type Post = {
   deletedAt?: Date
 }
 
-export type AttachmentType = "photo" | "video" | "audio" | "text" | "binary"
+export enum AttachmentType {
+  PHOTO,
+  VIDEO,
+  AUDIO,
+  TEXT,
+  BINARY
+}
 export type Attachment = {
   id: string
   type: AttachmentType
@@ -114,3 +164,14 @@ export type ThreadPostCounterWithAuthor = {
   latestPost: Ref<User>
   updatedAt: Date
 }
+
+export const collectionCollection = subcollection<Collection, Gffft, User>("collections", gffftsCollection)
+export const postCollection = subcollection<Post, Collection, Gffft, [string, string]>("posts", collectionCollection)
+export const postReactionCollection = subcollection<PostReaction, Post, Collection,
+  [string, string, string]>("reactions", postCollection)
+export const replyCollection = subcollection<Reply, Post, Collection,
+  [string, string, string]>("replies", postCollection)
+export const replyReactionCollection = subcollection<PostReaction, Reply, Post,
+  [string, string, string, string]>("reactions", replyCollection)
+export const memberUpdateCollection = subcollection<CollectionUpdate, GffftMember, Gffft,
+  [string, string]>("updates", gffftsMembersCollection)

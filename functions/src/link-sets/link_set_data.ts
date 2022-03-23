@@ -3,7 +3,7 @@ import axios from "axios"
 import {add, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
   subcollection, update, upset, where} from "typesaurus"
 import {itemOrNull} from "../common/data"
-import {gffftsCollection} from "../gfffts/gffft_data"
+import {getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
@@ -16,7 +16,7 @@ import {uuid} from "uuidv4"
 import urlParser from "url-parse"
 import {hny} from "../common/utils"
 import {parse as parseHtml, HTMLElement} from "node-html-parser"
-import {getGffftUser, getThreadByRef} from "../boards/board_data"
+import {getThreadByRef} from "../boards/board_data"
 
 
 const DEFAULT_LINK_SET_KEY = "default"

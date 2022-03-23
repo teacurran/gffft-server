@@ -1,7 +1,7 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query,
-  startAfter, get, ref, pathToRef, remove, getRefPath} from "typesaurus"
+  startAfter, get, ref, pathToRef, remove, getRefPath, Ref} from "typesaurus"
 import {Gffft, GffftMember, GffftStats, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
-import {User} from "../users/user_models"
+import {HydratedUser, User} from "../users/user_models"
 import {itemOrNull} from "../common/data"
 import {usersCollection} from "../users/user_data"
 import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
@@ -19,7 +19,6 @@ const RARE_FRUITS = [..."🍅🫑🍆🥑"]
 const ULTRA_RARE_FRUITS = [..."🥨🐈💾🧀"]
 const PI_DAY_FRUITS = [..."🥧🍕𝜋"]
 const FRUIT_CODE_LENGTH = 9
-
 
 export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
@@ -171,6 +170,9 @@ export async function getGffftMembership(uid: string, gid: string, memberId?: st
   let snapshot: GffftMember | undefined
   if (memberDoc != null) {
     snapshot = memberDoc.data
+    if (!snapshot.updateCount) {
+      snapshot.updateCount = 0
+    }
     if (cacheContainer) {
       cacheContainer.setItem(cacheKey, snapshot, {ttl: 20})
     }
@@ -440,5 +442,37 @@ export async function getGffftByRef(refId: string): Promise<Gffft | null> {
     }
     return null
   })
+}
+
+async function hydrateUser(uid: string,
+  gid: string, user: User): Promise<HydratedUser | Promise<HydratedUser | null> | null> {
+  const gffftMembership = await getGffftMembership(uid, gid, user.id)
+
+  return {
+    ...user,
+    handle: gffftMembership ? gffftMembership.handle ?? `X-${user.id}` : `Y-${user.id}`,
+  }
+}
+
+export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>): Promise<HydratedUser | null> {
+  if (!userRef) {
+    return null
+  }
+  const cacheKey = `${getRefPath(userRef)}`
+  const cachedItem = await cacheContainer?.getItem<User>(cacheKey)
+
+  const user = cachedItem ?? await get<User>(userRef).then((snapshot) => {
+    const item = itemOrNull(snapshot)
+    if (cacheContainer) {
+      cacheContainer.setItem(cacheKey, item, {ttl: 20})
+    }
+
+    return item
+  })
+  if (user == null) {
+    return null
+  }
+
+  return hydrateUser(uid, gid, user)
 }
 

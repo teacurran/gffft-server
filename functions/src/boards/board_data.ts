@@ -1,8 +1,8 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
   ref, Ref, Query, startAfter, order, Doc} from "typesaurus"
 import {Board, HydratedThread, HydratedThreadPost, Thread, ThreadPost} from "./board_models"
-import {HydratedUser, User} from "../users/user_models"
-import {getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
+import {User} from "../users/user_models"
+import {getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {itemOrNull} from "../common/data"
 import {Link} from "../link-sets/link_set_models"
@@ -94,27 +94,6 @@ export async function updateBoard(userId: string, gffftId: string, board: Board)
   return upset<Board>(userBoards, board.id, board)
 }
 
-async function hydrateUser(uid: string,
-  gid: string, user: User): Promise<HydratedUser | Promise<HydratedUser | null> | null> {
-  const gffftMembership = await getGffftMembership(uid, gid, user.id)
-
-  return {
-    ...user,
-    handle: gffftMembership ? gffftMembership.handle ?? user.id : user.id,
-  }
-}
-
-export async function getGffftUser(uid: string, gid: string, userRef: Ref<User>): Promise<HydratedUser | null> {
-  if (!userRef) {
-    return null
-  }
-  const user = await get<User>(userRef).then((snapshot) => itemOrNull(snapshot))
-  if (user == null) {
-    return null
-  }
-
-  return hydrateUser(uid, gid, user)
-}
 
 export async function hydrateThread(uid: string, gid: string,
   snapshot: Doc<Thread> | null): Promise<HydratedThread | null> {
