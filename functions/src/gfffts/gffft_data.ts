@@ -467,7 +467,7 @@ export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>
       cacheContainer.setItem(cacheKey, item, {ttl: 20})
     }
 
-    return item``
+    return item
   })
   if (user == null) {
     return null
