@@ -40,16 +40,21 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
   let uid: string | undefined
   if (cacheContainer) {
     uid = await cacheContainer.getItem<string>(idToken)
-    if (uid) {
-      console.debug(`got cache hit: ${uid}`)
-    } else {
+  }
+  if (uid) {
+    console.debug(`got cache hit: ${uid}`)
+  } else {
+    try {
       const userRecord = await firebaseAdmin.auth().getUser(userId)
       uid = userRecord.uid
-      await cacheContainer.setItem(idToken, uid, {ttl: 60})
+      if (cacheContainer) {
+        await cacheContainer.setItem(idToken, uid, {ttl: 60})
+      }
+    } catch (e) {
+      ""
+      console.debug(`error getting user record: ${e}`)
+      return null
     }
-  } else {
-    const userRecord = await firebaseAdmin.auth().getUser(userId)
-    uid = userRecord.uid
   }
 
   observeUserId(uid)
