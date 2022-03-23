@@ -12,6 +12,6 @@ steps:
     dir: 'functions'
     
   - name: "gcr.io/cloud-builders/gcloud"
-    args: ["app", "deploy", "app-beta.yaml"]
+    args: ["app", "deploy", "./app-beta.yaml"]
     timeout: "1600s"
     dir: 'functions'
