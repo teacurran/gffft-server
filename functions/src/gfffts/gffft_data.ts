@@ -450,7 +450,7 @@ async function hydrateUser(uid: string,
 
   return {
     ...user,
-    handle: gffftMembership ? gffftMembership.handle ?? user.id : user.id,
+    handle: gffftMembership ? gffftMembership.handle ?? `X-${user.id}` : `Y-${user.id}`,
   }
 }
 
