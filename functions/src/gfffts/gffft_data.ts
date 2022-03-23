@@ -462,11 +462,12 @@ export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>
   const cachedItem = await cacheContainer?.getItem<User>(cacheKey)
 
   const user = cachedItem ?? await get<User>(userRef).then((snapshot) => {
+    const item = itemOrNull(snapshot)
     if (cacheContainer) {
-      cacheContainer.setItem(cacheKey, snapshot, {ttl: 20})
+      cacheContainer.setItem(cacheKey, item, {ttl: 20})
     }
 
-    return itemOrNull(snapshot)
+    return item``
   })
   if (user == null) {
     return null
