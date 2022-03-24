@@ -51,7 +51,6 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
         await cacheContainer.setItem(idToken, uid, {ttl: 60})
       }
     } catch (e) {
-      ""
       console.debug(`error getting user record: ${e}`)
       return null
     }
@@ -92,10 +91,13 @@ export const requiredAuthentication = async (
   try {
     const tracer = trace.getTracer("gffft-tracer")
     const span = tracer.startSpan("firebase-auth")
-
     const iamUser = await authenticateAndFetchUser(idToken)
-
     span.end()
+
+    if (!iamUser) {
+      res.status(403).send("Unauthorized: Token expired")
+      return
+    }
 
     res.locals.iamUser = iamUser
   } catch (error) {
