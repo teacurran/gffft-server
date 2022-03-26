@@ -1,7 +1,7 @@
-import express, {Request, Response} from "express"
+import express, {Response} from "express"
 
-import {getGffft, getGfffts, getOrCreateDefaultGffft,
-  getUniqueFruitCode, gffftsCollection, gffftsMembersCollection, updateGffft} from "./gffft_data"
+import {createGffft, getGffft, getGfffts,
+  getUniqueFruitCode, gffftsCollection, gffftsMembersCollection, hydrateGffft, updateGffft} from "./gffft_data"
 
 import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
 import {Gffft, TYPE_OWNER} from "./gffft_models"
@@ -17,7 +17,6 @@ import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/noteb
 import {Calendar} from "../calendars/calendar_models"
 import {calendarsCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
 import * as Joi from "@hapi/joi"
-import {getUser} from "../users/user_data"
 import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
@@ -85,7 +84,8 @@ const gffftUpdateRequestParams = Joi.object({
 })
 export interface GffftUpdateRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
-    id?: string
+    uid: string
+    gid: string
     name: string;
     description: string;
     intro?: string,
@@ -307,9 +307,14 @@ router.put(
     res: Response,
   ) => {
     const iamUser: LoggedInUser = res.locals.iamUser
-    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
 
     const item = req.body
+
+    const gffft = await getGffft(item.uid, item.gid)
+    if (gffft == null) {
+      res.sendStatus(404)
+      return
+    }
 
     gffft.description = item.description
     gffft.enableAltHandles = item.enableAltHandles
@@ -357,17 +362,6 @@ router.put(
     updateGffft(iamUser.id, gffft.id, gffft).then(() => {
       res.sendStatus(204)
     })
-  }
-)
-
-router.get(
-  "/default",
-  requiredAuthentication,
-  async (req: Request, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
-    const gffft: Gffft = await getOrCreateDefaultGffft(iamUser.id)
-    const user = await getUser(iamUser.id)
-    res.json(gffftToJson(gffft, user, undefined, undefined, [], [], [], [], [], []))
   }
 )
 
@@ -453,6 +447,56 @@ router.put(
     res.json(fruitCodeToJson(gffft.fruitCode ?? ""))
   }
 )
+
+const gffftCreateRequestParams = Joi.object({
+  id: Joi.string().allow(null),
+  name: Joi.string().required(),
+  description: Joi.string(),
+  intro: Joi.string().allow(null),
+  initialHandle: Joi.string().required(),
+})
+export interface GffftCreateRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Body]: {
+    id?: string
+    name: string;
+    description: string;
+    intro?: string,
+    initialHandle: string;
+  };
+}
+
+router.post(
+  "/",
+  requiredAuthentication,
+  validator.body(gffftCreateRequestParams),
+  async (
+    req: ValidatedRequest<GffftCreateRequest>,
+    res: Response,
+  ) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const item = req.body
+
+    let gffft: Gffft = {
+      name: item.name,
+      description: item.description,
+      intro: item.intro,
+      enabled: false,
+      allowMembers: false,
+      requireApproval: false,
+    } as Gffft
+
+    gffft = await createGffft(iamUser.id, gffft, item.initialHandle)
+    const hydratedGffft = await hydrateGffft(iamUser.id, gffft)
+
+    if (hydratedGffft == null) {
+      res.status(500).send(`error creating gffft: uid: ${iamUser.id}`)
+      return
+    }
+
+    res.json(gffftToJson(hydratedGffft))
+  }
+)
+
 
 export default router
 

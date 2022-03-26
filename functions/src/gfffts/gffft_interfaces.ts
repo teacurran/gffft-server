@@ -1,12 +1,10 @@
 import {IBoardType} from "../boards/board_interfaces"
-import {ICalendarType} from "../calendars/calendar_interfaces"
 import {notEmpty} from "../common/utils"
 import {IGalleryType} from "../galleries/gallery_interfaces"
 import {ILinkSet} from "../link-sets/link_set_interfaces"
 import {INotebookType} from "../notebooks/notebook_interfaces"
 import {bookmarkToJson, iamUserToJson, IUserBookmark, IUserType} from "../users/user_interfaces"
-import {User, UserBookmark} from "../users/user_models"
-import {Gffft, GffftMember, GffftMemberUpdateCounters} from "./gffft_models"
+import {Gffft, GffftMember, GffftMemberUpdateCounters, HydratedGffft} from "./gffft_models"
 
 export interface IGffftId {
   uid: string
@@ -52,7 +50,6 @@ export interface IGffftType {
     enableAltHandles: boolean
     features?: IGffftFeatureRef[]
     boards: IBoardType[]
-    calendars: ICalendarType[]
     galleries: IGalleryType[]
     notebooks: INotebookType[]
     linkSets: ILinkSet[]
@@ -172,16 +169,7 @@ export function gffftMemberToJson(
 }
 
 export function gffftToJson(
-  gffft: Gffft,
-  me: User | undefined,
-  membership: GffftMember | undefined,
-  bookmark: UserBookmark | undefined,
-  features: IGffftFeatureRef[],
-  boards: IBoardType[],
-  calendars: ICalendarType[],
-  galleries: IGalleryType[],
-  notebooks: INotebookType[],
-  linkSets: ILinkSet[],
+  gffft: HydratedGffft,
 ): IGffftType | null {
   if (gffft == null || gffft.uid == null || gffft.id == null) {
     return null
@@ -189,8 +177,8 @@ export function gffftToJson(
   const item: IGffftType = {
     uid: gffft.uid,
     gid: gffft.id,
-    membership: gffftMemberToJson(membership),
-    bookmark: bookmarkToJson(bookmark),
+    membership: gffftMemberToJson(gffft.membership),
+    bookmark: bookmarkToJson(gffft.bookmark),
     name: gffft.name,
     fruitCode: gffft.fruitCode ? [...gffft.fruitCode] : [],
     rareFruits: gffft.rareFruits ?? 0,
@@ -202,18 +190,17 @@ export function gffftToJson(
     allowMembers: gffft.allowMembers,
     requireApproval: gffft.requireApproval,
     enableAltHandles: gffft.enableAltHandles,
-    features: features,
-    boards: boards,
-    calendars: calendars,
-    galleries: galleries,
-    notebooks: notebooks,
-    linkSets: linkSets,
+    features: gffft.featureSet,
+    boards: gffft.boards,
+    galleries: gffft.galleries,
+    notebooks: gffft.notebooks,
+    linkSets: gffft. linkSets,
     createdAt: gffft.createdAt,
     updatedAt: gffft.updatedAt,
   }
 
-  if (me) {
-    item.me = iamUserToJson(me)
+  if (gffft.me) {
+    item.me = iamUserToJson(gffft.me)
   }
   return item
 }
