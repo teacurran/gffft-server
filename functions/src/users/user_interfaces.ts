@@ -16,7 +16,6 @@ export interface IUserRef {
 export interface IUserBookmark {
     id: string,
     name: string,
-    gid: string,
     gffft?: IGffftMinimalType | undefined
     createdAt: Date
 }
@@ -51,7 +50,6 @@ export function bookmarkToJson(
   }
   return {
     id: item.id,
-    gid: item.gffftRef.id,
     name: item.name,
     createdAt: item.createdAt,
   }
@@ -62,8 +60,7 @@ export function hydratedBookmarkToJson(
 ): IUserBookmark {
   return {
     id: item.id,
-    gid: item.gffftRef.id,
-    name: item.name,
+``    name: item.name,
     gffft: gffftToJsonMinimal(item.gffft),
     createdAt: item.createdAt,
   }

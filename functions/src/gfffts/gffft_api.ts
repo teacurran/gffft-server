@@ -135,6 +135,7 @@ const gffftPatchRequestParams = Joi.object({
   fruitCodeReset: Joi.boolean().optional(),
   fruitCodeEnabled: Joi.boolean().optional(),
 })
+
 export interface GffftPatchRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     uid: string

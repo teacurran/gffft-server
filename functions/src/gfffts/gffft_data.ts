@@ -237,6 +237,7 @@ async function ensureOwnership(gffft: Gffft, userId: string, handle: string): Pr
 export async function createGffft(uid: string, gffft: Gffft, initialHandle: string): Promise<Gffft> {
   const userGfffts = gffftsCollection(uid)
 
+  gffft.uid = uid
   gffft.createdAt = new Date()
   gffft.updatedAt = new Date()
 
@@ -393,6 +394,8 @@ export async function hydrateGffft(uid: string, gffft: Gffft): Promise<HydratedG
   if (gffft == null) {
     return null
   }
+
+  gffft.uid = uid
 
   const boards: Board[] = []
   const galleries: Gallery[] = []
