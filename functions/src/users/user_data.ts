@@ -3,7 +3,7 @@ import * as firebaseAdmin from "firebase-admin"
 import {collection, get, query, where, limit, subcollection, all, ref, upset, remove} from "typesaurus"
 import {itemOrNull, itemOrUndefined} from "../common/data"
 import {randomInt} from "../common/utils"
-import {getDefaultGffft, getGffft, getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
+import {getGffft, getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
 
@@ -61,21 +61,24 @@ export async function getUserBookmarks(uid: string): Promise<UserBookmark[]> {
 
 export async function getHydratedUserBookmarks(memberId: string): Promise<HydratedUserBookmark[]> {
   const resultsPromise = all(bookmarksCollection(memberId))
-  const defaultGffftPromise = getDefaultGffft(memberId)
+
+  const gffftResultPromise = all(gffftsCollection(memberId))
+
 
   const bookmarks: HydratedUserBookmark[] = []
-  const defaultGffft = await defaultGffftPromise
-  if (defaultGffft) {
-    if (defaultGffft.uid && defaultGffft.id) {
-      defaultGffft.membership = await getGffftMembership(defaultGffft.uid, defaultGffft.id, memberId)
-    }
+  const gffftResults = await gffftResultPromise
+  for (const snapshot of gffftResults) {
+    const item = snapshot.data
+    item.id = snapshot.ref.id
+    item.uid = memberId
+    item.membership = await getGffftMembership(memberId, item.id, memberId)
 
     const hub: HydratedUserBookmark = {
-      id: defaultGffft.id,
-      createdAt: defaultGffft.createdAt ?? new Date(),
-      gffftRef: ref(gffftsCollection(memberId), defaultGffft.id),
-      name: defaultGffft.name,
-      gffft: defaultGffft,
+      id: item.id,
+      createdAt: item.createdAt ?? new Date(),
+      gffftRef: ref(gffftsCollection(memberId), item.id),
+      name: item.name,
+      gffft: item,
     }
     bookmarks.push(hub)
   }
@@ -85,7 +88,15 @@ export async function getHydratedUserBookmarks(memberId: string): Promise<Hydrat
     const item = snapshot.data
     item.id = snapshot.ref.id
 
-    if (item.gffftRef.id != defaultGffft?.id) {
+    let itemFound = false
+    for (const bm of bookmarks) {
+      if (bm.id == item.gffftRef.id) {
+        itemFound = true
+        break
+      }
+    }
+
+    if (!itemFound) {
       const gffft = await get<Gffft>(item.gffftRef).then((snapshot) => itemOrUndefined(snapshot))
 
       if (gffft && gffft.uid && gffft.id) {

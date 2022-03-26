@@ -3,41 +3,32 @@ import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {field, ref, remove, update, upset, value} from "typesaurus"
 import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
-import {getBoard, getBoardByRefString, getThread, getThreads, threadsCollection} from "../boards/board_data"
-import {boardToJson, IBoardType, threadsToJson, threadToJson} from "../boards/board_interfaces"
-import {Board} from "../boards/board_models"
-import {getCalendarByRef} from "../calendars/calendar_data"
-import {calendarToJson, ICalendarType} from "../calendars/calendar_interfaces"
+import {getBoard, getThread, getThreads, threadsCollection} from "../boards/board_data"
+import {threadsToJson, threadToJson} from "../boards/board_interfaces"
 import {resetMemberCounter} from "../counters/common"
 import {
   galleryCollection,
   galleryItemsCollection,
-  getGallery, getGalleryByRefString, getGalleryItem,
+  getGallery, getGalleryItem,
   getGalleryItems, hydrateGallery,
 } from "../galleries/gallery_data"
-import {galleryItemToJson, galleryToJson, galleryToJsonWithItems, IGalleryType} from "../galleries/gallery_interfaces"
-import {Gallery} from "../galleries/gallery_models"
+import {galleryItemToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
 import {
-  checkGffftHandle, createGffftMembership, deleteGffftMembership, getGffft,
+  checkGffftHandle, createGffftMembership, deleteGffftMembership, getFullGffft, getGffft,
   getGffftMembership,
-  getOrCreateGffftMembership,
   gffftsCollection,
 } from "../gfffts/gffft_data"
-import {gffftToJson, IGffftFeatureRef} from "../gfffts/gffft_interfaces"
+import {gffftToJson} from "../gfffts/gffft_interfaces"
 import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
-import {getLinkSet, getLinkSetByRefString, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
-import {ILinkSet, linkSetToJson, linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
-import {LinkSet} from "../link-sets/link_set_models"
-import {getNotebookByRef} from "../notebooks/notebook_data"
-import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
-import {Notebook} from "../notebooks/notebook_models"
+import {getLinkSet, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
+import {linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
 import {
-  createBookmark, deleteBookmark, getBookmark, getHydratedUserBookmarks,
+  createBookmark, deleteBookmark, getHydratedUserBookmarks,
   getUniqueUsername,
   getUser, usersCollection,
 } from "./user_data"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
-import {User, UserBookmark, UsernameChange} from "./user_models"
+import {User, UsernameChange} from "./user_models"
 
 // const userUpdateRequestParams = Joi.object({
 //   uid: Joi.string().required(),
@@ -98,7 +89,7 @@ router.get(
     const iamUser: LoggedInUser | null = res.locals.iamUser
 
     let uid = req.params.uid
-    let gid = req.params.gid
+    const gid = req.params.gid
 
     if (uid == "me") {
       if (iamUser == null) {
@@ -109,136 +100,13 @@ router.get(
       }
     }
 
-    const gffft = await getGffft(uid, gid)
+    const gffft = await getFullGffft(uid, gid)
     if (!gffft) {
       res.sendStatus(404)
       return
     }
-    gid = gffft.id
 
-    const boards: Board[] = []
-    const calendars: ICalendarType[] = []
-    const galleries: Gallery[] = []
-    const notebooks: Notebook[] = []
-    const features: IGffftFeatureRef[] = []
-    const linkSets: LinkSet[] = []
-
-    if (gffft.features) {
-      const featurePromises: Promise<void>[] = []
-      for (let i=0; i<gffft.features.length; i++) {
-        const feature = gffft.features[i]
-        console.log(`looking at feature: ${feature}`)
-        if (feature.indexOf("/boards/") != -1) {
-          featurePromises.push(getBoardByRefString(feature).then((board) => {
-            if (board) {
-              boards.push(board)
-              if (board.id) {
-                features.push({
-                  type: "board",
-                  id: board.id,
-                })
-              }
-            }
-          }))
-        } else if (feature.indexOf("/calendars/") != -1) {
-          featurePromises.push(getCalendarByRef(feature).then((calendar) => {
-            const calendarJson = calendarToJson(calendar)
-            if (calendarJson != null) {
-              calendars.push(calendarJson)
-              features.push({
-                type: "calendar",
-                id: calendarJson.id,
-              })
-            }
-          }))
-        } else if (feature.indexOf("/galleries/") != -1) {
-          featurePromises.push(getGalleryByRefString(feature).then((gallery) => {
-            if (gallery) {
-              galleries.push(gallery)
-              features.push({
-                type: "gallery",
-                id: gallery.id,
-              })
-            }
-          }))
-        } else if (feature.indexOf("/notebooks/") != -1) {
-          featurePromises.push(getNotebookByRef(feature).then((notebook) => {
-            if (notebook) {
-              notebooks.push(notebook)
-              if (notebook.id) {
-                features.push({
-                  type: "notebook",
-                  id: notebook.id,
-                })
-              }
-            }
-          }))
-        } else if (feature.indexOf("/link-sets/") != -1) {
-          featurePromises.push(getLinkSetByRefString(feature).then((item) => {
-            if (item) {
-              linkSets.push(item)
-              if (item.id) {
-                features.push({
-                  type: "linkSet",
-                  id: item.id,
-                })
-              }
-            }
-          }))
-        } else if (feature == "fruitCode") {
-          features.push({
-            type: "fruitCode",
-            id: "fruitCode",
-          })
-        }
-
-        await Promise.all(featurePromises)
-      }
-    }
-
-    const boardJson: IBoardType[] = []
-    boards.forEach((board) => {
-      const json = boardToJson(board)
-      if (json != null) {
-        boardJson.push(json)
-      }
-    })
-
-    const notebookJson: INotebookType[] = []
-    notebooks.forEach((notebook) => {
-      const json = notebookToJson(notebook)
-      if (json != null) {
-        notebookJson.push(json)
-      }
-    })
-
-    const galleryJson: IGalleryType[] = []
-    galleries.forEach((gallery) => {
-      const json = galleryToJson(gallery)
-      if (json != null) {
-        galleryJson.push(json)
-      }
-    })
-
-    const linkSetJson: ILinkSet[] = []
-    linkSets.forEach((linkSet) => {
-      const json = linkSetToJson(linkSet)
-      if (json != null) {
-        linkSetJson.push(json)
-      }
-    })
-
-    let membership: GffftMember | undefined
-    let bookmark: UserBookmark | undefined
-    let user: User | undefined
-    if (iamUser != null) {
-      membership = await getOrCreateGffftMembership(uid, gid, iamUser.id)
-      bookmark = await getBookmark(uid, gid, iamUser.id)
-      user = await getUser(iamUser.id)
-    }
-
-    res.json(gffftToJson(gffft, user, membership, bookmark, features,
-      boardJson, calendars, galleryJson, notebookJson, linkSetJson))
+    res.json(gffftToJson(gffft))
   }
 )
 

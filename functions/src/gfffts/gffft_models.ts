@@ -1,5 +1,10 @@
 import {Ref} from "typesaurus"
-import {User} from "../users/user_models"
+import {IBoardType} from "../boards/board_interfaces"
+import {IGalleryType} from "../galleries/gallery_interfaces"
+import {ILinkSet} from "../link-sets/link_set_interfaces"
+import {INotebookType} from "../notebooks/notebook_interfaces"
+import {User, UserBookmark} from "../users/user_models"
+import {IGffftFeatureRef} from "./gffft_interfaces"
 
 export type Gffft = {
     id: string
@@ -21,13 +26,25 @@ export type Gffft = {
     createdAt?: Date
     updatedAt?: Date
     membership?: GffftMember
-  }
+}
+
+export interface HydratedGffft extends Gffft {
+  me: User | undefined
+  membership: GffftMember | undefined
+  bookmark: UserBookmark | undefined
+  featureSet: IGffftFeatureRef[]
+  boards: IBoardType[],
+  galleries: IGalleryType[],
+  notebooks: INotebookType[],
+  linkSets: ILinkSet[],
+}
+
 
 export type GffftMemberParams = {
     uid: string
     gid: string
     mid: string
-  }
+}
 
 
 export type GffftMemberUpdateCounters = {

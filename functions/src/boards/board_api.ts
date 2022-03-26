@@ -1,13 +1,11 @@
-import express, {Request, Response} from "express"
+import express, {Response} from "express"
 
-
-import {getOrCreateDefaultBoard, threadPostsCollection, threadsCollection} from "./board_data"
+import {threadPostsCollection, threadsCollection} from "./board_data"
 
 import {LoggedInUser, requiredAuthentication} from "../auth"
-import {Board, Thread} from "./board_models"
-import {boardToJson} from "./board_interfaces"
-import {getGffft, getOrCreateDefaultGffft, gffftsMembersCollection} from "../gfffts/gffft_data"
-import {Gffft, TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
+import {Thread} from "./board_models"
+import {getGffft, gffftsMembersCollection} from "../gfffts/gffft_data"
+import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {add, get, Ref, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
@@ -16,19 +14,6 @@ import * as Joi from "@hapi/joi"
 // eslint-disable-next-line new-cap
 const router = express.Router()
 const validator = createValidator()
-
-router.get(
-  "/default",
-  requiredAuthentication,
-  async (req: Request, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
-    const userId = iamUser.id
-    const gffft: Gffft = await getOrCreateDefaultGffft(userId)
-    const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
-
-    res.json(boardToJson(board))
-  }
-)
 
 const createPostParams = Joi.object({
   uid: Joi.string().required(),

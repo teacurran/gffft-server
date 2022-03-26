@@ -1,19 +1,25 @@
 import {query, subcollection, where, limit, add, upset, group, order, Query,
   startAfter, get, ref, pathToRef, remove, getRefPath, Ref} from "typesaurus"
-import {Gffft, GffftMember, GffftStats, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
-import {HydratedUser, User} from "../users/user_models"
+import {Gffft, GffftMember, GffftStats, HydratedGffft, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
+import {HydratedUser, User, UserBookmark} from "../users/user_models"
 import {itemOrNull} from "../common/data"
-import {usersCollection} from "../users/user_data"
-import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
+import {getBookmark, getUser, usersCollection} from "../users/user_data"
+import {getBoardByRefString} from "../boards/board_data"
 import {Board} from "../boards/board_models"
-import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
+import {getGalleryByRefString} from "../galleries/gallery_data"
 import {Gallery} from "../galleries/gallery_models"
 import {LinkSet} from "../link-sets/link_set_models"
-import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
+import {getLinkSetByRefString} from "../link-sets/link_set_data"
 import cacheContainer from "../common/redis"
+import {Notebook} from "../notebooks/notebook_models"
+import {IGffftFeatureRef} from "./gffft_interfaces"
+import {getNotebookByRef} from "../notebooks/notebook_data"
+import {boardToJson, IBoardType} from "../boards/board_interfaces"
+import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
+import {galleryToJson, IGalleryType} from "../galleries/gallery_interfaces"
+import {ILinkSet, linkSetToJson} from "../link-sets/link_set_interfaces"
 
 const DEFAULT_GFFFT_KEY = "default"
-const DEFAULT_STRING = "{default}"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
 const RARE_FRUITS = [..."🍅🫑🍆🥑"]
 const ULTRA_RARE_FRUITS = [..."🥨🐈💾🧀"]
@@ -204,13 +210,14 @@ export async function getOrCreateGffftMembership(
   })
 }
 
-async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
+async function ensureOwnership(gffft: Gffft, userId: string, handle: string): Promise<void> {
   const gffftMembers = gffftsMembersCollection([userId, gffft.id])
   const userRef = ref(usersCollection, userId)
   const memberRef = ref(gffftMembers, userId)
   return getGffftMembership(userId, gffft.id, userId).then(async (m) => {
     if (m == null) {
       const member = {
+        handle: handle,
         user: userRef,
         type: TYPE_OWNER,
         createdAt: new Date(),
@@ -227,85 +234,25 @@ async function ensureOwnership(gffft: Gffft, userId: string): Promise<void> {
   })
 }
 
-/**
- * Gets a user from firestore if already exists
- * @param {string} userId user to look up
- * @return {Promise<Gffft>}
- */
-export async function getOrCreateDefaultGffft(userId: string): Promise<Gffft> {
-  const userGfffts = gffftsCollection(userId)
+export async function createGffft(uid: string, gffft: Gffft, initialHandle: string): Promise<Gffft> {
+  const userGfffts = gffftsCollection(uid)
 
-  let gffft = await query(userGfffts, [
-    where("key", "==", DEFAULT_GFFFT_KEY),
-    limit(1),
-  ]).then(async (results) => {
-    if (results.length > 0) {
-      const gffft = results[0].data
-      gffft.id = results[0].ref.id
+  gffft.uid = uid
+  gffft.createdAt = new Date()
+  gffft.updatedAt = new Date()
 
-      // below this are hacks to upgrade data as I've changed my mind about it.
-      if (!gffft.fruitCode) {
-        [gffft.fruitCode,
-          gffft.rareFruits,
-          gffft.ultraRareFruits] = await getUniqueFruitCode()
-        await updateGffft(userId, gffft.id, gffft)
-      } else if (gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
-        [gffft.fruitCode,
-          gffft.rareFruits,
-          gffft.ultraRareFruits] = await getUniqueFruitCode()
-        await updateGffft(userId, gffft.id, gffft)
-      }
-      if (!gffft.uid) {
-        gffft.uid = userId
-        await updateGffft(userId, gffft.id, gffft)
-      }
-      // await ensureOwnership(gffft, userId)
-      return gffft
-    }
-    return null
-  })
+  const features: string[] = []
+  features.push("fruitCode")
+  gffft.features = features;
 
-  if (gffft == null) {
-    gffft = {
-      key: DEFAULT_GFFFT_KEY,
-      uid: userId,
-      name: "My gffft",
-      description: "Change this text in settings",
-      intro: DEFAULT_STRING,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as Gffft
-    [gffft.fruitCode,
-      gffft.rareFruits,
-      gffft.ultraRareFruits] = await getUniqueFruitCode()
-    const result = await add<Gffft>(userGfffts, gffft)
-    gffft.id = result.id
+  [gffft.fruitCode,
+    gffft.rareFruits,
+    gffft.ultraRareFruits] = await getUniqueFruitCode()
 
-    const features: string[] = []
-    const board: Board = await getOrCreateDefaultBoard(userId, gffft.id)
-    const userBoards = boardsCollection([userId, gffft.id])
-    const itemRef = getRefPath(ref(userBoards, board.id))
-    features.push(itemRef)
+  const result = await add<Gffft>(userGfffts, gffft)
+  gffft.id = result.id
 
-    const gallery: Gallery = await getOrCreateDefaultGallery(userId, gffft.id)
-    const gfffts = gffftsCollection(ref(usersCollection, userId))
-    const galleries = galleryCollection(ref(gfffts, gffft.id))
-    const galleryRef = getRefPath(ref(galleries, gallery.id))
-    features.push(galleryRef)
-
-    const linkSet: LinkSet = await getOrCreateDefaultLinkSet(userId, gffft.id)
-    const linkSets = linkSetCollection(ref(gfffts, gffft.id))
-    const linkSetRef = getRefPath(ref(linkSets, linkSet.id))
-    features.push(linkSetRef)
-
-    features.push("fruitCode")
-
-    gffft.features = features
-
-    updateGffft(userId, gffft.id, gffft)
-  }
-
-  await ensureOwnership(gffft, userId)
+  await ensureOwnership(gffft, uid, initialHandle)
 
   return gffft
 }
@@ -423,14 +370,153 @@ export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promi
 }
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
-  if (gid == "default") {
-    return getOrCreateDefaultGffft(uid)
-  }
   console.log(`looking for gffft:${gid} uid:${uid}`)
   const userGfffts = gffftsCollection(uid)
   const gffftRef = ref(userGfffts, gid)
 
   return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
+}
+
+export async function getFullGffft(uid: string, gid: string): Promise<HydratedGffft | null> {
+  console.log(`looking for gffft:${gid} uid:${uid}`)
+  const userGfffts = gffftsCollection(uid)
+  const gffftRef = ref(userGfffts, gid)
+  const gffft = await get(gffftRef).then((snapshot) => itemOrNull(snapshot))
+
+  if (gffft == null) {
+    return null
+  }
+
+  return hydrateGffft(uid, gffft)
+}
+
+export async function hydrateGffft(uid: string, gffft: Gffft): Promise<HydratedGffft | null> {
+  if (gffft == null) {
+    return null
+  }
+
+  gffft.uid = uid
+
+  const boards: Board[] = []
+  const galleries: Gallery[] = []
+  const notebooks: Notebook[] = []
+  const features: IGffftFeatureRef[] = []
+  const linkSets: LinkSet[] = []
+
+  if (gffft.features) {
+    const featurePromises: Promise<void>[] = []
+    for (let i=0; i<gffft.features.length; i++) {
+      const feature = gffft.features[i]
+      console.log(`looking at feature: ${feature}`)
+      if (feature.indexOf("/boards/") != -1) {
+        featurePromises.push(getBoardByRefString(feature).then((board) => {
+          if (board) {
+            boards.push(board)
+            if (board.id) {
+              features.push({
+                type: "board",
+                id: board.id,
+              })
+            }
+          }
+        }))
+      } else if (feature.indexOf("/galleries/") != -1) {
+        featurePromises.push(getGalleryByRefString(feature).then((gallery) => {
+          if (gallery) {
+            galleries.push(gallery)
+            features.push({
+              type: "gallery",
+              id: gallery.id,
+            })
+          }
+        }))
+      } else if (feature.indexOf("/notebooks/") != -1) {
+        featurePromises.push(getNotebookByRef(feature).then((notebook) => {
+          if (notebook) {
+            notebooks.push(notebook)
+            if (notebook.id) {
+              features.push({
+                type: "notebook",
+                id: notebook.id,
+              })
+            }
+          }
+        }))
+      } else if (feature.indexOf("/link-sets/") != -1) {
+        featurePromises.push(getLinkSetByRefString(feature).then((item) => {
+          if (item) {
+            linkSets.push(item)
+            if (item.id) {
+              features.push({
+                type: "linkSet",
+                id: item.id,
+              })
+            }
+          }
+        }))
+      } else if (feature == "fruitCode") {
+        features.push({
+          type: "fruitCode",
+          id: "fruitCode",
+        })
+      }
+
+      await Promise.all(featurePromises)
+    }
+  }
+
+  const boardJson: IBoardType[] = []
+  boards.forEach((board) => {
+    const json = boardToJson(board)
+    if (json != null) {
+      boardJson.push(json)
+    }
+  })
+
+  const notebookJson: INotebookType[] = []
+  notebooks.forEach((notebook) => {
+    const json = notebookToJson(notebook)
+    if (json != null) {
+      notebookJson.push(json)
+    }
+  })
+
+  const galleryJson: IGalleryType[] = []
+  galleries.forEach((gallery) => {
+    const json = galleryToJson(gallery)
+    if (json != null) {
+      galleryJson.push(json)
+    }
+  })
+
+  const linkSetJson: ILinkSet[] = []
+  linkSets.forEach((linkSet) => {
+    const json = linkSetToJson(linkSet)
+    if (json != null) {
+      linkSetJson.push(json)
+    }
+  })
+
+  let membership: GffftMember | undefined
+  let bookmark: UserBookmark | undefined
+  let user: User | undefined
+  if (uid != null) {
+    membership = await getOrCreateGffftMembership(uid, gffft.id, uid)
+    bookmark = await getBookmark(uid, gffft.id, uid)
+    user = await getUser(uid)
+  }
+
+  return {
+    ...gffft,
+    me: user,
+    membership: membership,
+    bookmark: bookmark,
+    featureSet: features,
+    boards: boardJson,
+    galleries: galleryJson,
+    notebooks: notebookJson,
+    linkSets: linkSetJson,
+  } as HydratedGffft
 }
 
 export async function getGffftByRef(refId: string): Promise<Gffft | null> {
@@ -474,5 +560,9 @@ export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>
   }
 
   return hydrateUser(uid, gid, user)
+}
+
+function HydratedGffft(): HydratedGffft | PromiseLike<HydratedGffft | null> | null {
+  throw new Error("Function not implemented.")
 }
 
