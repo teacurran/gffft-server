@@ -60,7 +60,7 @@ export function hydratedBookmarkToJson(
 ): IUserBookmark {
   return {
     id: item.id,
-``    name: item.name,
+    name: item.name,
     gffft: gffftToJsonMinimal(item.gffft),
     createdAt: item.createdAt,
   }
