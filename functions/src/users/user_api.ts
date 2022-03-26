@@ -100,7 +100,7 @@ router.get(
       }
     }
 
-    const gffft = await getFullGffft(uid, gid)
+    const gffft = await getFullGffft(uid, gid, iamUser?.id)
     if (!gffft) {
       res.sendStatus(404)
       return

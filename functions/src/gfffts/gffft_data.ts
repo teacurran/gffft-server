@@ -377,7 +377,7 @@ export async function getGffft(uid: string, gid: string): Promise<Gffft | null> 
   return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
 }
 
-export async function getFullGffft(uid: string, gid: string): Promise<HydratedGffft | null> {
+export async function getFullGffft(uid: string, gid: string, currentUid?: string): Promise<HydratedGffft | null> {
   console.log(`looking for gffft:${gid} uid:${uid}`)
   const userGfffts = gffftsCollection(uid)
   const gffftRef = ref(userGfffts, gid)
@@ -387,10 +387,10 @@ export async function getFullGffft(uid: string, gid: string): Promise<HydratedGf
     return null
   }
 
-  return hydrateGffft(uid, gffft)
+  return hydrateGffft(uid, gffft, currentUid)
 }
 
-export async function hydrateGffft(uid: string, gffft: Gffft): Promise<HydratedGffft | null> {
+export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: string): Promise<HydratedGffft | null> {
   if (gffft == null) {
     return null
   }
@@ -500,9 +500,9 @@ export async function hydrateGffft(uid: string, gffft: Gffft): Promise<HydratedG
   let membership: GffftMember | undefined
   let bookmark: UserBookmark | undefined
   let user: User | undefined
-  if (uid != null) {
-    membership = await getOrCreateGffftMembership(uid, gffft.id, uid)
-    bookmark = await getBookmark(uid, gffft.id, uid)
+  if (currentUid) {
+    membership = await getOrCreateGffftMembership(uid, gffft.id, currentUid)
+    bookmark = await getBookmark(uid, gffft.id, currentUid)
     user = await getUser(uid)
   }
 

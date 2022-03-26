@@ -120,7 +120,7 @@ export async function getBookmark(uid: string, gid: string, memberId: string): P
   const bookmarkRef = ref(bc, gid)
 
   return get(bookmarkRef).then((snapshot) => {
-    return snapshot == null ? undefined : snapshot.data
+    return itemOrUndefined(snapshot)
   })
 }
 
