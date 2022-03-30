@@ -22,6 +22,7 @@ export enum CollectionType {
 export type Collection = {
   id: string
   type: CollectionType
+  allowedPostTypes: Array<PostType>
   key?: string
   name?: string
   description?: string
@@ -40,10 +41,12 @@ export interface HydratedCollection extends Collection {
 }
 
 export enum PostType {
-  MEDIA,
-  THREAD,
+  AUDIO,
+  VIDEO,
+  PHOTO,
+  FILE,
+  TEXT,
   LINK,
-  PAGE,
 }
 export type CollectionUpdate = {
   photoCount?: number
