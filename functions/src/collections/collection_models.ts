@@ -22,6 +22,7 @@ export enum CollectionType {
 export type Collection = {
   id: string
   type: CollectionType
+  allowedPostTypes: Array<PostType>
   key?: string
   name?: string
   description?: string
@@ -40,10 +41,12 @@ export interface HydratedCollection extends Collection {
 }
 
 export enum PostType {
-  MEDIA,
-  THREAD,
+  AUDIO,
+  VIDEO,
+  PHOTO,
+  FILE,
+  TEXT,
   LINK,
-  PAGE,
 }
 export type CollectionUpdate = {
   photoCount?: number
@@ -79,6 +82,7 @@ export type CollectionUpdateReplyUpset = {
 
 export type Post = {
   id: string
+  parent: string
   type: PostType
   subject?: string
   author: Ref<User>
@@ -89,7 +93,6 @@ export type Post = {
   thumbnail: boolean
   latestReply?: Ref<User>
   topReaction: string
-  reactions?: Map<string, number>
   replyCount: number
   createdAt: Date
   updatedAt: Date
@@ -120,7 +123,7 @@ export interface HydratedPost extends Post {
   latestReplyUser: HydratedUser | undefined
   body?: string
   attachments?: Attachment[]
-  replies: HydratedReply[]
+  replies: HydratedPost[]
   link?: Link | undefined
   reaction?: PostReaction
 }
@@ -132,46 +135,11 @@ export type PostReaction = {
   createdAt: Date
 }
 
-export type Reply = {
-  id?: string
-  body: string
-  author: Ref<User>
-  linkRef?: Ref<Link>
-  fileName: string
-  filePath: string
-  thumbnail: boolean
-  urls?: Array<string>
-  topReaction: string
-  reactions?: Map<string, number>
-  createdAt: Date
-  deleted: boolean
-  deletedAt?: Date
-}
-
-export interface HydratedReply extends Reply {
-  authorUser: HydratedUser | undefined
-  link?: Link | undefined
-  reaction?: PostReaction
-  attachments?: Attachment[]
-}
-
-export type ThreadPostCounter = {
-  postCount: number
-}
-
-export type ThreadPostCounterWithAuthor = {
-  postCount: number
-  latestPost: Ref<User>
-  updatedAt: Date
-}
-
 export const collectionCollection = subcollection<Collection, Gffft, User>("collections", gffftsCollection)
 export const postCollection = subcollection<Post, Collection, Gffft, [string, string]>("posts", collectionCollection)
 export const postReactionCollection = subcollection<PostReaction, Post, Collection,
   [string, string, string]>("reactions", postCollection)
-export const replyCollection = subcollection<Reply, Post, Collection,
+export const postAttachmentCollection = subcollection<Attachment, Post, Collection,
   [string, string, string]>("replies", postCollection)
-export const replyReactionCollection = subcollection<PostReaction, Reply, Post,
-  [string, string, string, string]>("reactions", replyCollection)
-export const memberUpdateCollection = subcollection<CollectionUpdate, GffftMember, Gffft,
+export const collUpdateCollection = subcollection<CollectionUpdate, GffftMember, Gffft,
   [string, string]>("updates", gffftsMembersCollection)

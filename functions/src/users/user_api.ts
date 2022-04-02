@@ -346,7 +346,7 @@ router.get(
 const createMemberParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
-  handle: Joi.string().optional().allow(null),
+  handle: Joi.string(),
 })
 export interface CreateMemberRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {

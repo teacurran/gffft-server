@@ -94,7 +94,6 @@ export async function updateBoard(userId: string, gffftId: string, board: Board)
   return upset<Board>(userBoards, board.id, board)
 }
 
-
 export async function hydrateThread(uid: string, gid: string,
   snapshot: Doc<Thread> | null): Promise<HydratedThread | null> {
   if (snapshot == null) {

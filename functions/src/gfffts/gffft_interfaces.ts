@@ -41,7 +41,7 @@ export interface IGffftType {
     fruitCode: string[]
     rareFruits: number
     ultraRareFruits: number
-    description: string
+    description?: string
     intro?: string
     tags?: string[]
     enabled: boolean
@@ -77,7 +77,7 @@ export interface IGffftMinimalType {
     gid?: string
     name: string
     membership?: IGffftMember
-    description: string
+    description?: string
     allowMembers: boolean
     requireApproval: boolean
     createdAt: Date

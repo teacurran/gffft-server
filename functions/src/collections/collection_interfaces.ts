@@ -5,7 +5,7 @@ import {ILink, linkToJson} from "../link-sets/link_set_interfaces"
 import {IUserRef} from "../users/user_interfaces"
 import {WHO_MEMBER, WHO_PUBLIC} from "./collection_data"
 import {AttachmentType, Collection, CollectionType, HydratedCollection,
-  HydratedPost, HydratedReply, PostType} from "./collection_models"
+  HydratedPost, PostType} from "./collection_models"
 
 export interface ICollection {
   id: string
@@ -141,7 +141,6 @@ export function postToJson(
     canEdit: canEdit,
     type: post.type,
     thumbnail: post.thumbnail,
-    reactions: post.reactions,
     reaction: post.reaction?.reaction,
   }
   return item
@@ -203,7 +202,7 @@ export function collectionToJsonWithItems(
 export function repliesToJson(
   loggedInUser: LoggedInUser | null,
   gffftMembership: GffftMember | undefined,
-  items: HydratedReply[]
+  items: HydratedPost[]
 ): IReply[] {
   return items.map((item) => replyToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
 }
@@ -211,7 +210,7 @@ export function repliesToJson(
 export function replyToJson(
   loggedInUser: LoggedInUser | null,
   gffftMembership: GffftMember | undefined,
-  item: HydratedReply): IReply | null {
+  item: HydratedPost): IReply | null {
   if (item == null || item.id == null) {
     return null
   }
@@ -239,6 +238,5 @@ export function replyToJson(
     canEdit: canEdit,
     deleted: item.deleted ?? false,
     reaction: item.reaction ?? undefined,
-    reactions: item.reactions,
   } as IReply
 }
