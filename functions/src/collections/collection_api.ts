@@ -21,9 +21,9 @@ const createPostParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
   cid: Joi.string().required(),
-  pid: Joi.string().optional().allow(null),
-  subject: Joi.string().optional().allow(null),
-  body: Joi.string().optional().allow(null)})
+  pid: Joi.string().optional().allow(null, ""),
+  subject: Joi.string().optional().allow(null, ""),
+  body: Joi.string().optional().allow(null, "")})
 export interface CreatePostRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     type: PostType

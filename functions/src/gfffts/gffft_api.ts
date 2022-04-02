@@ -68,8 +68,8 @@ const gffftListRequestParams = Joi.object({
 const gffftUpdateRequestParams = Joi.object({
   id: Joi.string().allow(null),
   name: Joi.string().required(),
-  description: Joi.string(),
-  intro: Joi.string().allow(null),
+  description: Joi.string().optional().allow(null, ""),
+  intro: Joi.string().optional().allow(null, ""),
   tags: Joi.array().items(Joi.string()).allow(null),
   enabled: Joi.bool().default(false),
   allowMembers: Joi.bool().default(false),
@@ -122,8 +122,8 @@ const gffftPatchRequestParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
   name: Joi.string().optional(),
-  description: Joi.string().optional().allow(null),
-  intro: Joi.string().optional().allow(null),
+  description: Joi.string().optional().allow(null, ""),
+  intro: Joi.string().optional().allow(null, ""),
   tags: Joi.array().items(Joi.string()).optional(),
   enabled: Joi.boolean().optional(),
   allowMembers: Joi.boolean().optional(),
@@ -184,12 +184,10 @@ router.patch(
       if (body.name != undefined) {
         gffft.name = body.name
       }
-      if (body.intro != undefined) {
-        gffft.intro = body.intro
-      }
-      if (body.description != undefined) {
-        gffft.description = body.description
-      }
+
+      gffft.intro = body.intro != undefined && body.intro.length > 0 ? body.intro : undefined
+      gffft.description = body.description != undefined && body.description.length > 0 ? body.description : undefined
+
       if (body.enabled != undefined) {
         gffft.enabled = body.enabled
       }
@@ -452,15 +450,15 @@ router.put(
 const gffftCreateRequestParams = Joi.object({
   id: Joi.string().allow(null),
   name: Joi.string().required(),
-  description: Joi.string(),
-  intro: Joi.string().allow(null),
+  description: Joi.string().optional().allow(null, ""),
+  intro: Joi.string().optional().allow(null, ""),
   initialHandle: Joi.string().required(),
 })
 export interface GffftCreateRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     id?: string
     name: string;
-    description: string;
+    description?: string;
     intro?: string,
     initialHandle: string;
   };
@@ -479,8 +477,8 @@ router.post(
 
     let gffft: Gffft = {
       name: item.name,
-      description: item.description,
-      intro: item.intro,
+      description: item.description && item.description.length > 0 ? item.description : undefined,
+      intro: item.intro && item.intro.length > 0 ? item.intro : undefined,
       enabled: false,
       allowMembers: false,
       requireApproval: false,

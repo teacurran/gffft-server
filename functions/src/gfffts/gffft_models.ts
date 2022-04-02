@@ -15,7 +15,7 @@ export type Gffft = {
     rareFruits?: number
     ultraRareFruits?: number
     nameLower: string
-    description: string
+    description?: string
     intro?: string
     tags?: string[]
     features?: Array<string>
