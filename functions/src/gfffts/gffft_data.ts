@@ -1,12 +1,12 @@
-import {query, subcollection, where, limit, add, upset, group, order, Query,
-  startAfter, get, ref, pathToRef, remove, getRefPath, Ref} from "typesaurus"
+import {query, subcollection, where, limit, upset, group, order, Query,
+  startAfter, get, ref, pathToRef, remove, getRefPath, Ref, id, set} from "typesaurus"
 import {Gffft, GffftMember, GffftStats, HydratedGffft, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
 import {HydratedUser, User, UserBookmark} from "../users/user_models"
 import {itemOrNull} from "../common/data"
 import {getBookmark, getUser, usersCollection} from "../users/user_data"
-import {getBoardByRefString} from "../boards/board_data"
+import {boardsCollection, getBoardByRefString, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
-import {getGalleryByRefString} from "../galleries/gallery_data"
+import {galleryCollection, getGalleryByRefString, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 import {Gallery} from "../galleries/gallery_models"
 import {LinkSet} from "../link-sets/link_set_models"
 import {getLinkSetByRefString} from "../link-sets/link_set_data"
@@ -239,18 +239,37 @@ export async function createGffft(uid: string, gffft: Gffft, initialHandle: stri
 
   gffft.uid = uid
   gffft.createdAt = new Date()
-  gffft.updatedAt = new Date()
-
-  const features: string[] = []
-  features.push("fruitCode")
-  gffft.features = features;
+  gffft.updatedAt = new Date();
 
   [gffft.fruitCode,
     gffft.rareFruits,
     gffft.ultraRareFruits] = await getUniqueFruitCode()
 
-  const result = await add<Gffft>(userGfffts, gffft)
-  gffft.id = result.id
+  const gid = await id()
+  const gffftRef = ref(userGfffts, gid)
+
+  const features: string[] = []
+
+  console.log(`uid: ${uid} gid: ${gid}`)
+
+  const gfffts = gffftsCollection(ref(usersCollection, uid))
+
+  const board: Board = await getOrCreateDefaultBoard(uid, gid)
+  const userBoards = boardsCollection([uid, gid])
+  const boardRef = getRefPath(ref(userBoards, board.id))
+  features.push(boardRef)
+
+  const gallery: Gallery = await getOrCreateDefaultGallery(uid, gid)
+  const galleries = galleryCollection(ref(gfffts, gid))
+  const galleryRef = getRefPath(ref(galleries, gallery.id))
+  features.push(galleryRef)
+
+  features.push("fruitCode")
+  gffft.features = features
+
+  await set<Gffft>(gffftRef, gffft)
+
+  gffft.id = gid
 
   await ensureOwnership(gffft, uid, initialHandle)
 
