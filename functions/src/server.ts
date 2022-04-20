@@ -19,8 +19,9 @@ async function start() {
     storageBucket: "gffft-auth.appspot.com",
   })
 
-
   const app = express()
+
+  app.disable("x-powered-by")
 
   // TODO: restrict for prod
   const corsOptions: cors.CorsOptions = {
