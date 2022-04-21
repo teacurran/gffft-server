@@ -1,0 +1,13 @@
+= 2022 Plan for gffft
+
+Backend:
+- ActivityPub inbox/outbox endpoints
+- Webfinger support
+
+Front-End:
+- usernames, profiles
+- following?
+- collections
+
+Next:
+- federation worker jobs
