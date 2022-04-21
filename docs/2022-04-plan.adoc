@@ -1,13 +1,29 @@
 = 2022 Plan for gffft
 
-Backend:
+. federated instagram clone, hosting service
+.. search engine
+... find all the photos on existing mastodon instances
+.. content moderation abilities
+.. private chat
+. verification centers
+.. call center where people can video verify
+.. in person centers in cities
+.. verification protocol for activitypub
+. federate verification to other apps
+. pressure twitter, instagram to federate
+
+== April/May 2022
+
+=== Backend:
+- Mastodon instance crawler, indexer
 - ActivityPub inbox/outbox endpoints
 - Webfinger support
 
-Front-End:
+=== Front-End:
 - usernames, profiles
 - following?
 - collections
 
-Next:
+=== Next:
 - federation worker jobs
+
