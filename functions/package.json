@@ -14,7 +14,7 @@
     "env-local": "firebase functions:config:get > .runtimeconfig.json"
   },
   "engines": {
-    "node": ">=14"
+    "node": "16"
   },
   "main": "lib/index.js",
   "dependencies": {
@@ -60,7 +60,6 @@
     "set-script": "^1.0.1",
     "sharp": "^0.29.3",
     "typesafe-functions": "^1.0.0",
-    "typesafe-node-firestore": "^1.4.0",
     "typesaurus": "^7.2.0",
     "unfurl.js": "^5.6.3",
     "url-parse": "^1.5.10",
