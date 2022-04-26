@@ -14,7 +14,7 @@
     "env-local": "firebase functions:config:get > .runtimeconfig.json"
   },
   "engines": {
-    "node": "14"
+    "node": ">=14"
   },
   "main": "lib/index.js",
   "dependencies": {
