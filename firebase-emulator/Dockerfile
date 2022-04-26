@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update -y
 RUN apt-get install -y libvips libvips-dev libvips-tools
 
-RUN yarn global add firebase-tools
+RUN npm install -g firebase-tools
 
 # Install app dependencies
 COPY ./functions/package.json ./functions/package-lock.json ./
