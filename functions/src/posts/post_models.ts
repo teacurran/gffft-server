@@ -1,5 +1,5 @@
-import {collection, Ref, subcollection} from "typesaurus"
-import {Account} from "../accounts/account_models"
+import {Ref, subcollection} from "typesaurus"
+import {Account, accountsCollection} from "../accounts/account_models"
 import {PostType} from "./post_type"
 
 export type Post = {
@@ -24,5 +24,5 @@ export type PostAttachment = {
     createdAt: Date
 }
 
-export const postsCollection = collection<Post>("posts")
-export const attachmentCollection = subcollection<PostAttachment, Post>("attachments", postsCollection)
+export const postsCollection = subcollection<Post, Account>("posts", accountsCollection)
+export const attachmentCollection = subcollection<PostAttachment, Post, Account>("attachments", postsCollection)

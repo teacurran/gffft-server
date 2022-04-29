@@ -5,7 +5,8 @@ import {ILink, linkToJson} from "../link-sets/link_set_interfaces"
 import {IUserRef} from "../users/user_interfaces"
 import {WHO_MEMBER, WHO_PUBLIC} from "./collection_data"
 import {AttachmentType, Collection, CollectionType, HydratedCollection,
-  HydratedPost, PostType} from "./collection_models"
+  HydratedPost} from "./collection_models"
+import {PostType} from "../posts/post_type";
 
 export interface ICollection {
   id: string

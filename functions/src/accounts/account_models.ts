@@ -1,3 +1,5 @@
+import {collection} from "typesaurus"
+
 export type Account = {
     id: string
     createdAt: Date
@@ -8,4 +10,5 @@ export type Account = {
     header: string
 }
 
+export const accountsCollection = collection<Account>("accounts")
 
