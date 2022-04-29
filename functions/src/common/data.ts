@@ -4,12 +4,20 @@ export interface ItemWithId {
     id: string
 }
 
-export const itemOrNull = <T extends ItemWithId>(snapshot: Doc<T> | null): T | null => {
+export const itemOrNull = <T extends ItemWithId>(snapshot: Doc<T> | Doc<T>[] | null): T | null => {
   if (snapshot == null) {
     return null
   }
-  const item = snapshot.data
-  item.id = snapshot.ref.id
+  let item: T | null = null
+  if (Array.isArray(snapshot)) {
+    if (snapshot.length > 0) {
+      item = snapshot[0].data
+      item.id = snapshot[0].ref.id
+    }
+  } else {
+    item = snapshot.data
+    item.id = snapshot.ref.id
+  }
   return item
 }
 
