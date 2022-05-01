@@ -29,7 +29,7 @@ webfingerRouter.get(
     }
 
     let handle: string | null = null
-    const matches = resource.match(/acct:(\.+)@.*/)
+    const matches = resource.match(/^acct:(\.+)@.*/)
     if (matches) {
       handle = matches[1]
     }

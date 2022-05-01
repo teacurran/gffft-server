@@ -1,9 +1,15 @@
 import {Account} from "./account_models"
 
-export interface IFingerResponse {
-    subject: string
+export interface IFingerLink {
+  rel: string,
+  type: string,
+  href: string
 }
 
+export interface IFingerResponse {
+  subject: string
+  links: IFingerLink[]
+}
 
 export function accountToWebfinger(
   account: Account | null): IFingerResponse | null {
@@ -11,7 +17,16 @@ export function accountToWebfinger(
     return null
   }
 
+  const accountLink = `https://${process.env.DOMAIN_NAME}/users/${account.handle}`
+
   return {
-    "subject": `acct:${account}@gffft.app`,
+    subject: `acct:${account.handle}@${process.env.DOMAIN_NAME}`,
+    links: [
+      {
+        rel: "self",
+        type: "application/activity+json",
+        href: accountLink,
+      },
+    ],
   }
 }

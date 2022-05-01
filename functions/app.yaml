@@ -8,3 +8,4 @@ inbound_services:
 env_variables:
   REDIS_PORT: '6378'
   REDIS_PASSWORD: '70bea022-a9d1-4254-96ab-6b6b8c348d98'
+  DOMAIN_NAME: 'gffft.app'
