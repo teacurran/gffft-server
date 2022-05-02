@@ -1,7 +1,7 @@
 import express, {Response} from "express"
 
 import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
-import {collectionCollection, Post, postCollection, PostType} from "./collection_models"
+import {collectionCollection, Post, postCollection} from "./collection_models"
 import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
@@ -11,6 +11,7 @@ import * as Joi from "@hapi/joi"
 import {getEnumValues} from "../common/utils"
 import {getCollection, getPosts, hydrateCollection, resetCollectionUpdate} from "./collection_data"
 import {collectionToJsonWithItems} from "./collection_interfaces"
+import {PostType} from "../posts/post_type"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -23,17 +24,19 @@ const createPostParams = Joi.object({
   cid: Joi.string().required(),
   pid: Joi.string().optional().allow(null, ""),
   subject: Joi.string().optional().allow(null, ""),
-  body: Joi.string().optional().allow(null, "")})
+  body: Joi.string().optional().allow(null, ""),
+})
+
 export interface CreatePostRequest extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: {
-    type: PostType
-    uid: string
-    gid: string
-    cid: string
-    pid?: string
-    subject?: string
-    body?: string
-  }
+    [ContainerTypes.Body]: {
+        type: PostType
+        uid: string
+        gid: string
+        cid: string
+        pid?: string
+        subject?: string
+        body?: string
+    }
 }
 
 export const getCollectionPathParams = Joi.object({
@@ -45,16 +48,17 @@ export const getCollectionQueryParams = Joi.object({
   max: Joi.string().optional(),
   offset: Joi.string().optional(),
 })
+
 export interface GetCollectionRequest extends ValidatedRequestSchema {
-  [ContainerTypes.Params]: {
-    uid: string
-    gid: string
-    cid: string
-  }
-  [ContainerTypes.Query]: {
-    max?: number
-    offset?: string
-  };
+    [ContainerTypes.Params]: {
+        uid: string
+        gid: string
+        cid: string
+    }
+    [ContainerTypes.Query]: {
+        max?: number
+        offset?: string
+    };
 }
 
 router.get(
@@ -185,7 +189,7 @@ router.post(
 
       // make sure the existing thread exists
       if (post == null) {
-        // todo, send more desriptive errors
+        // todo, send more descriptive errors
         res.sendStatus(404)
         return
       }

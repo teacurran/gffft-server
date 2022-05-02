@@ -1,0 +1,20 @@
+= 2022 May Todo
+
+=== Backend:
+
+- Account create, edit, update
+- ActivityPub create, update, list
+- Webfinger support
+- Postgresql setup
+- Redis Setup
+
+=== Front-End:
+
+- account create, profile, update
+- timeline response
+- create post dialog - quill?
+
+=== Next:
+
+- activity pub API compatibility
+

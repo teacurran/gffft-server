@@ -1,4 +1,4 @@
-FROM node
+FROM node:16
 
 # Create app directory
 RUN mkdir -p /app
