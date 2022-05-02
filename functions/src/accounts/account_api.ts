@@ -1,47 +1,55 @@
 import express, {Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
+import {LoggedInUser, requiredAuthentication} from "../auth"
+import router from "../gfffts/gffft_api"
 import * as Joi from "@hapi/joi"
-import {getAccountByHandle} from "./account_data"
+import {Account} from "./account_models"
 import {accountToWebfinger} from "./account_interfaces"
 
 // eslint-disable-next-line new-cap
-const webfingerRouter = express.Router()
+const accountRouter = express.Router()
 const validator = createValidator()
 
-export const getWebfingerPrams = Joi.object({
-  resource: Joi.string().required(),
+const accountCreateRequestParams = Joi.object({
+  handle: Joi.string().required(),
+  name: Joi.string().required(),
+  note: Joi.string().optional().allow(null, ""),
 })
 
-export interface GetWebfingerRequest extends ValidatedRequestSchema {
-    [ContainerTypes.Params]: {
-        resource: string
-    }
+export interface AccountCreateRequest extends ValidatedRequestSchema {
+  [ContainerTypes.Body]: {
+    handle: string;
+    name: string;
+    note?: string,
+  };
 }
 
-webfingerRouter.get(
-  "/webfinger",
-  validator.params(getWebfingerPrams),
-  async (req: ValidatedRequest<GetWebfingerRequest>, res: Response) => {
-    const resource = req.params.resource
-    if (!resource.startsWith("acct:")) {
-      res.sendStatus(404)
-      return
+router.post(
+  "/",
+  requiredAuthentication,
+  validator.body(accountCreateRequestParams),
+  async (
+    req: ValidatedRequest<AccountCreateRequest>,
+    res: Response,
+  ) => {
+    const iamUser: LoggedInUser = res.locals.iamUser
+    const item = req.body
+
+    // todo use SQL to ensure username is unique
+
+    const account: Account = {
+      handle: item.handle,
+      name: item.name,
+      note: item.note,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
-    let handle: string | null = null
-    const matches = resource.match(/^acct:(\.+)@.*/)
-    if (matches) {
-      handle = matches[1]
-    }
-    if (handle == null) {
-      res.sendStatus(404)
-      return
-    }
-
-    const account = await getAccountByHandle(handle)
+    // todo: create account here
 
     res.json(accountToWebfinger(account))
   }
 )
 
-export {webfingerRouter}
+
+export {accountRouter}

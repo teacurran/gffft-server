@@ -8,3 +8,4 @@ export async function getAccountByHandle(handle: string): Promise<Account | null
     limit(1),
   ]).then(itemOrNull)
 }
+
