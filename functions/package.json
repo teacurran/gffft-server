@@ -63,7 +63,8 @@
     "typesaurus": "^7.2.0",
     "unfurl.js": "^5.6.3",
     "url-parse": "^1.5.10",
-    "uuidv4": "^6.2.12"
+    "uuidv4": "^6.2.12",
+    "zod": "^3.14.4"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.31",
