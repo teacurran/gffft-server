@@ -18,3 +18,12 @@
 
 - activity pub API compatibility
 
+
+== features
+
+* users can have paid followers
+* users offering subscriptions can offer integrations with their existing userbase via API
+** subscibe-now flow will always go through our payment processor
+** existing-membership flow can optionally use users
+** minimum, $1 per year
+** for example, wired magazine can have an "existing subscribers" button that will authenticate with their website.  If they want to support "subscribe now" it will have to go through our flow (apple, android supported).
