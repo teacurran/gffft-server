@@ -28,4 +28,7 @@
 ** existing-membership flow can optionally use users
 ** minimum, $1 per year
 ** for example, wired magazine can have an "existing subscribers" button that will authenticate with their website.  If they want to support "subscribe now" it will have to go through our flow (apple, android supported).
+* users can have paid posts - maybe only offered to their subscribers. Paid posts all go through our payment processing.
+* adult paid posts and subscriptions will not be available for purchase on ios
+
 
