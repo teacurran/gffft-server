@@ -4,6 +4,7 @@ export type Account = {
   createdAt: Date
   updatedAt: Date
   handle: string
+  domain: string
   name: string
   note?: string
   icon?: string
