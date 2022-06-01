@@ -58,7 +58,7 @@
     "node-ts-cache-storage-memory": "^4.4.0",
     "page-metadata-parser": "^1.1.4",
     "set-script": "^1.0.1",
-    "sharp": "^0.29.3",
+    "sharp": "^0.30.5",
     "typesafe-functions": "^1.0.0",
     "typesaurus": "^7.2.0",
     "unfurl.js": "^5.6.3",
