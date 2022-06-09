@@ -1,6 +1,7 @@
 import {collection} from "typesaurus"
 
 export type Account = {
+  id: string
   createdAt: Date
   updatedAt: Date
   handle: string
