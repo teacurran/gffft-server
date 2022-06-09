@@ -5,7 +5,7 @@ import {getGffft, gffftsCollection, gffftsMembersCollection} from "../gfffts/gff
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {add, get, ref, update, value} from "typesaurus"
-import * as Joi from "@hapi/joi"
+import * as Joi from "joi"
 import multer from "multer"
 import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem,
   linksCollection, getOrCreateLink} from "./link_set_data"

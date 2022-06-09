@@ -5,7 +5,7 @@ import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection}
 import {TYPE_OWNER, TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, ref, upset} from "typesaurus"
-import * as Joi from "@hapi/joi"
+import * as Joi from "joi"
 import multer from "multer"
 import {uuid} from "uuidv4"
 import * as firebaseAdmin from "firebase-admin"

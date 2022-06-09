@@ -1,6 +1,6 @@
 import express, {Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import * as Joi from "@hapi/joi"
+import * as Joi from "joi"
 import {getAccountByHandle} from "../accounts/account_data"
 import {accountToWebfinger} from "../accounts/account_interfaces"
 

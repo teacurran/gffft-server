@@ -1,8 +1,8 @@
 import express, {Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {LoggedInUser, requiredAuthentication} from "../auth"
+import {requiredAuthentication} from "../auth"
 import router from "../gfffts/gffft_api"
-import * as Joi from "@hapi/joi"
+import * as Joi from "joi"
 import {Account} from "./account_models"
 import {accountToWebfinger} from "./account_interfaces"
 
@@ -32,12 +32,13 @@ router.post(
     req: ValidatedRequest<AccountCreateRequest>,
     res: Response,
   ) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
     const item = req.body
 
     // todo use SQL to ensure username is unique
 
     const account: Account = {
+      id: "1234",
+      domain: "local",
       handle: item.handle,
       name: item.name,
       note: item.note,

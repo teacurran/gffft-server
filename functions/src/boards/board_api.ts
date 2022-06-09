@@ -9,7 +9,7 @@ import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {add, get, Ref, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
-import * as Joi from "@hapi/joi"
+import * as Joi from "joi"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()

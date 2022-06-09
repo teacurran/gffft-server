@@ -1,4 +1,4 @@
-import * as Joi from "@hapi/joi"
+import * as Joi from "joi"
 import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {field, ref, remove, update, upset, value} from "typesaurus"

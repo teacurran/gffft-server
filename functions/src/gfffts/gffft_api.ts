@@ -16,7 +16,7 @@ import {Notebook} from "../notebooks/notebook_models"
 import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/notebook_data"
 import {Calendar} from "../calendars/calendar_models"
 import {calendarsCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
-import * as Joi from "@hapi/joi"
+import * as Joi from "joi"
 import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
