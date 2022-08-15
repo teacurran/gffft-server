@@ -38,6 +38,8 @@ services:
 
   api:
     image: gffft-api
+    depends_on:
+      - firebase-emulator
     build:
       context: ./functions
       dockerfile: ../functions/Dockerfile

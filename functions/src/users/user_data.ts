@@ -281,3 +281,7 @@ const addToCollection = async (collection: string, value: string): Promise<Write
   }
   return Promise.resolve("word is invalid")
 }
+
+export const exportedForTesting = {
+  getUsername, getRandomItem, addToCollection,
+}
