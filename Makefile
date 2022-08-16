@@ -23,6 +23,9 @@ test-api:
 rebuild:
 	docker-compose build --no-cache --parallel
 
+rebuild-test:
+	docker-compose -f docker-compose.yml -f docker-compose.test.yml build e2e-test
+
 clean:
 	@docker-compose down --remove-orphans --rmi all 2>/dev/null \
 	&& echo 'Image(s) removed.' \

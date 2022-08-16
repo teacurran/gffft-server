@@ -23,4 +23,4 @@ services:
       WAIT_HOSTS: firebase-emulator:9199,redis:6379
       WAIT_TIMEOUT: 240
     command: >
-      bash -c "/wait  && npm run test"
+      bash -c "/wait && npm install && npm run test:coverage"

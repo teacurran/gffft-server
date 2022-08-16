@@ -13,6 +13,7 @@
     "env": "test -f env.json && firebase functions:config:unset env && firebase functions:config:set env=\"$(cat env.json)\" || echo \"Please add the file env.json before deploy.\"",
     "env-local": "firebase functions:config:get > .runtimeconfig.json",
     "test": "cross-env TS_NODE_FILES=true mocha --exit --require ts-node/register --colors \"{,!(node_modules)/**}/*.spec.ts\" --timeout 5000",
+    "test:coverage": "nyc npm run test",
     "test:api": "ts-mocha -p tsconfig.json \"**/*.spec.api.ts\"",
     "test:db": "ts-mocha -p tsconfig.json \"**/*.spec.db.ts\"",
     "test:e2e": "ts-mocha -p tsconfig.json \"{,!(node_modules)/**}/*.spec.ts\" \"**/*.spec.api.ts\" \"**/*.spec.db.ts\" --timeout 5000"
@@ -71,6 +72,7 @@
     "uuidv4": "^6.2.12"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/chai": "^4.3.3",
     "@types/cheerio": "^0.22.31",
     "@types/faker": "^5.5.9",
