@@ -6,7 +6,7 @@ import {IUserRef} from "../users/user_interfaces"
 import {WHO_MEMBER, WHO_PUBLIC} from "./collection_data"
 import {AttachmentType, Collection, CollectionType, HydratedCollection,
   HydratedPost} from "./collection_models"
-import {PostType} from "../posts/post_type";
+import {PostType} from "../posts/post_type"
 
 export interface ICollection {
   id: string

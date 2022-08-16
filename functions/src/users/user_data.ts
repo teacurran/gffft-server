@@ -12,7 +12,7 @@ export const COLLECTION_ADJECTIVES = "username_adjectives"
 export const COLLECTION_NOUNS = "username_nouns"
 export const COLLECTION_VERBS = "username_verbs"
 
-export const usersCollection = collection<User>("users")
+export const usersCollection = collection<User>(COLLECTION_USERS)
 export const bookmarksCollection = subcollection<UserBookmark, User>("bookmarks", usersCollection)
 
 
@@ -97,7 +97,7 @@ export async function getHydratedUserBookmarks(memberId: string): Promise<Hydrat
     }
 
     if (!itemFound) {
-      const gffft = await get<Gffft>(item.gffftRef).then((snapshot) => itemOrUndefined(snapshot))
+      const gffft = await get<Gffft>(item.gffftRef).then((gffftSnapshot) => itemOrUndefined(gffftSnapshot))
 
       if (gffft && gffft.uid && gffft.id) {
         gffft.membership = await getGffftMembership(gffft.uid, item.id, memberId)
@@ -187,7 +187,7 @@ export async function getUniqueUsername(isNpc: boolean): Promise<string> {
   throw new Error("unable to find a unique username")
 }
 
-async function getUsername() {
+async function getUsername(): Promise<string> {
   const [noun, verb, adjective] = await Promise.all([
     getRandomItem(COLLECTION_NOUNS),
     getRandomItem(COLLECTION_VERBS),
@@ -237,14 +237,14 @@ async function getUsername() {
       },
       {merge: true}
     )
-  return usernameRaw
+  return Promise.resolve(usernameRaw)
 }
 
-const getRandomItem = async (collection: string): Promise<QueryDocumentSnapshot<FirebaseFirestore.DocumentData>> => {
+const getRandomItem = async (coll: string): Promise<QueryDocumentSnapshot<FirebaseFirestore.DocumentData>> => {
   const firestore = firebaseAdmin.firestore()
 
   return firestore
-    .collection(collection)
+    .collection(coll)
     .orderBy("random", "asc")
     .offset(Math.floor(Math.random() * 500))
     .limit(1)
@@ -258,7 +258,7 @@ const getRandomItem = async (collection: string): Promise<QueryDocumentSnapshot<
     })
 }
 
-const addToCollection = async (collection: string, value: string): Promise<WriteResult | string> => {
+const addToCollection = async (coll: string, value: string): Promise<WriteResult | string> => {
   const firestore = firebaseAdmin.firestore()
 
   if (!value) {
@@ -272,7 +272,7 @@ const addToCollection = async (collection: string, value: string): Promise<Write
   const word = lineSplit[0]
   console.log(`word: ${word}`)
   if (!word.includes("_") && !word.includes("-")) {
-    return firestore.collection(collection)
+    return firestore.collection(coll)
       .doc(word)
       .set({
         count: 0,

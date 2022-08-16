@@ -18,19 +18,19 @@ import {logger} from "firebase-functions"
 import {getConfig} from "./config"
 const config = getConfig()
 
-export const complete = () => {
+export const complete = ():void => {
   logger.log("Completed execution of extension")
 }
 
-export const noContentType = () => {
+export const noContentType = ():void => {
   logger.log("File has no Content-Type, no processing is required")
 }
 
-export const gzipContentEncoding = () => {
+export const gzipContentEncoding = ():void => {
   logger.log("Images encoded with 'gzip' are not supported by this extension")
 }
 
-export const contentTypeInvalid = (contentType: string) => {
+export const contentTypeInvalid = (contentType: string):void => {
   logger.log(
     `File of type '${contentType}' is not an image, no processing is required`
   )
@@ -39,7 +39,7 @@ export const contentTypeInvalid = (contentType: string) => {
 export const unsupportedType = (
   unsupportedTypes: string[],
   contentType: string
-) => {
+):void => {
   logger.log(
     `Image type '${contentType}' is not supported, here are the supported file types: ${unsupportedTypes.join(
       ", "
@@ -47,26 +47,26 @@ export const unsupportedType = (
   )
 }
 
-export const error = (err: Error) => {
+export const error = (err: Error):void => {
   logger.error("Error when resizing image", err)
 }
 
-export const errorDeleting = (err: Error) => {
+export const errorDeleting = (err: Error):void => {
   logger.warn("Error when deleting temporary files", err)
 }
 
-export const failed = () => {
+export const failed = ():void => {
   logger.error("Failed execution of extension")
 }
 
-export const imageAlreadyResized = () => {
+export const imageAlreadyResized = ():void => {
   logger.log("File is already a resized image, no processing is required")
 }
 
 export const imageOutsideOfPaths = (
   absolutePaths: string[],
   imagePath: string
-) => {
+):void => {
   logger.log(
     `Image path '${imagePath}' is not supported, these are the supported absolute paths: ${absolutePaths.join(
       ", "
@@ -77,7 +77,7 @@ export const imageOutsideOfPaths = (
 export const imageInsideOfExcludedPaths = (
   absolutePaths: string[],
   imagePath: string
-) => {
+):void => {
   logger.log(
     `Image path '${imagePath}' is not supported, these are the not supported absolute paths: ${absolutePaths.join(
       ", "
@@ -85,79 +85,79 @@ export const imageInsideOfExcludedPaths = (
   )
 }
 
-export const imageDownloaded = (remotePath: string, localPath: string) => {
+export const imageDownloaded = (remotePath: string, localPath: string):void => {
   logger.log(`Downloaded image file: '${remotePath}' to '${localPath}'`)
 }
 
-export const imageDownloading = (path: string) => {
+export const imageDownloading = (path: string):void => {
   logger.log(`Downloading image file: '${path}'`)
 }
 
 export const imageConverting = (
   originalImageType: string,
   imageType: string
-) => {
+):void => {
   logger.log(
     `Converting image from type, ${originalImageType}, to type ${imageType}.`
   )
 }
 
-export const imageConverted = (imageType: string) => {
+export const imageConverted = (imageType: string):void => {
   logger.log(`Converted image to ${imageType}`)
 }
 
-export const imageResized = (path: string) => {
+export const imageResized = (path: string):void => {
   logger.log(`Resized image created at '${path}'`)
 }
 
-export const imageResizing = (path: string, size: string) => {
+export const imageResizing = (path: string, size: string):void => {
   logger.log(`Resizing image at path '${path}' to size: ${size}`)
 }
 
-export const imageUploaded = (path: string) => {
+export const imageUploaded = (path: string):void => {
   logger.log(`Uploaded resized image to '${path}'`)
 }
 
-export const imageUploading = (path: string) => {
+export const imageUploading = (path: string):void => {
   logger.log(`Uploading resized image to '${path}'`)
 }
 
-export const init = () => {
+export const init = ():void => {
   logger.log("Initializing extension with configuration", config)
 }
 
-export const start = () => {
+export const start = ():void => {
   logger.log("Started execution of extension with configuration", config)
 }
 
-export const tempDirectoryCreated = (directory: string) => {
+export const tempDirectoryCreated = (directory: string):void => {
   logger.log(`Created temporary directory: '${directory}'`)
 }
 
-export const tempDirectoryCreating = (directory: string) => {
+export const tempDirectoryCreating = (directory: string):void => {
   logger.log(`Creating temporary directory: '${directory}'`)
 }
 
-export const tempOriginalFileDeleted = (path: string) => {
+export const tempOriginalFileDeleted = (path: string):void => {
   logger.log(`Deleted temporary original file: '${path}'`)
 }
 
-export const tempOriginalFileDeleting = (path: string) => {
+export const tempOriginalFileDeleting = (path: string):void => {
   logger.log(`Deleting temporary original file: '${path}'`)
 }
 
-export const tempResizedFileDeleted = (path: string) => {
+export const tempResizedFileDeleted = (path: string):void => {
   logger.log(`Deleted temporary resized file: '${path}'`)
 }
 
-export const tempResizedFileDeleting = (path: string) => {
+export const tempResizedFileDeleting = (path: string):void => {
   logger.log(`Deleting temporary resized file: '${path}'`)
 }
 
-export const remoteFileDeleted = (path: string) => {
+export const remoteFileDeleted = (path: string):void => {
   logger.log(`Deleted original file from storage bucket: '${path}'`)
 }
 
-export const remoteFileDeleting = (path: string) => {
+export const remoteFileDeleting = (path: string):void => {
   logger.log(`Deleting original file from storage bucket: '${path}'`)
 }

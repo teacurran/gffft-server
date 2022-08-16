@@ -1,17 +1,69 @@
 steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: 'pull cache'
+    entrypoint: "bash"
+    args:
+      - -c
+      - docker pull gcr.io/$PROJECT_ID/gffft-api:compose || exit 0
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "docker build"
+    waitFor: ['pull cache']
+    args:
+      [
+        "build",
+        "--cache-from", "gcr.io/$PROJECT_ID/gffft-api:compose",
+        "-t", "gcr.io/$PROJECT_ID/gffft-api:compose",
+        "-t", "gffft-api",
+        "--file", "./Dockerfile",
+        "./functions",
+      ]
+
+  - name: 'docker/compose:1.29.2'
+    id: 'check build'
+    args: [ 'run','gffft-api','npm','run','build' ]
+    env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
+
+  - name: 'docker/compose:1.29.2'
+    id: "tests in docker-compose"
+    args: [
+      '-f', 'docker-compose.yml',
+      '-f', 'docker-compose.test.yml',
+      '-f', 'docker-compose.cb.yml',
+      'up',
+      '--exit-code-from','  api-integration-test',
+      'api-integration-test'
+    ]
+    env: [ 'COMPOSE_HTTP_TIMEOUT=400' ]
+
+  # Check linting
+  - name: 'docker/compose:1.27.4'
+    id: 'lint check'
+    args: [ 'run','gffft-api','npm','run','lint' ]
+    env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
+
   - name: 'gcr.io/cloud-builders/npm'
     args: ['install']
     dir: 'functions'
-    
+
   - name: 'gcr.io/cloud-builders/npm'
     args: ['run', 'build']
     dir: 'functions'
 
-  - name: 'gcr.io/cloud-builders/npm'
-    args: ['test']
-    dir: 'functions'
-    
+  #  - name: 'gcr.io/cloud-builders/npm'
+  #    args: ['test']
+  #    dir: 'functions'
+
   - name: "gcr.io/cloud-builders/gcloud"
     args: ["app", "deploy"]
     timeout: "1600s"
     dir: 'functions'
+
+timeout: 2400s
+
+# Mark the images to be saved so future builds reuse them as cache
+images:
+  - "gcr.io/$PROJECT_ID/restor-cloud:compose"
+
+
+

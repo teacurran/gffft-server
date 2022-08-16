@@ -3,7 +3,7 @@ import {gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {Gffft, GffftMember} from "../gfffts/gffft_models"
 import {Link} from "../link-sets/link_set_models"
 import {HydratedUser, User} from "../users/user_models"
-import {PostType} from "../posts/post_type";
+import {PostType} from "../posts/post_type"
 
 export type CollectionCounters = {
   photos?: number

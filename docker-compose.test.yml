@@ -1,5 +1,5 @@
 services:
-  e2e-test:
+  api-integration-test:
     image: gffft-api
     depends_on:
       - firebase-emulator
