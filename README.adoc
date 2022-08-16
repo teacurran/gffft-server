@@ -1,3 +1,8 @@
+# Gffft Server
+
+[https://sonarcloud.io/summary/new_code?id=teacurran_gffft-server]
+image::https://sonarcloud.io/api/project_badges/measure?project=teacurran_gffft-server&metric=alert_status[Sunset,200,100]
+
 running npc:
 
 ```

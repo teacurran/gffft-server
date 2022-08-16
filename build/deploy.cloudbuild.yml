@@ -78,8 +78,7 @@ steps:
         -e SONAR_LOGIN="$$SONAR_TOKEN" \
         -v "/$(pwd)/functions:/usr/src" \
         sonarsource/sonar-scanner-cli \
-        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-        --debug
+        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
     secretEnv: ['SONAR_TOKEN']
 
   # Check linting
