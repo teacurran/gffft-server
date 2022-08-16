@@ -1,4 +1,4 @@
-FROM timbru31/java-node:17-alpine-gallium
+FROM timbru31/java-node:17-alpine
 
 WORKDIR /app
 

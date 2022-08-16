@@ -27,9 +27,6 @@ clean:
 	@docker-compose down --remove-orphans --rmi all 2>/dev/null \
 	&& echo 'Image(s) removed.' \
 	|| echo 'Image(s) already removed.'
-	# Remove volumes
-	docker volume rm $(PROJECT_NAME)_restor_db
-	docker volume rm $(PROJECT_NAME)_build
 
 prune:
 	# Clean all that is not actively used
