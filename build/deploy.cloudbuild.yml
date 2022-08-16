@@ -21,7 +21,7 @@ steps:
 
   - name: 'docker/compose:1.29.2'
     id: 'check build'
-    args: [ 'run','gffft-api','npm','run','build' ]
+    args: [ 'run','api','npm','run','build' ]
     env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
 
   - name: 'docker/compose:1.29.2'
