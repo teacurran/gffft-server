@@ -76,7 +76,7 @@ steps:
         --rm \
         -e SONAR_HOST_URL="https://sonarcloud.io" \
         -e SONAR_LOGIN="$$SONAR_TOKEN" \
-        -v "/$(pwd):/usr/src" \
+        -v "/$(pwd)/functions:/usr/src" \
         sonarsource/sonar-scanner-cli \
         -Dsonar.javascript.lcov.reportPaths=functions/coverage/lcov.info
     secretEnv: ['SONAR_TOKEN']
