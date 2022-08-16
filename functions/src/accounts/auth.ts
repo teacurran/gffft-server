@@ -2,32 +2,37 @@ import * as firebaseAdmin from "firebase-admin"
 import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
 import {trace, context} from "@opentelemetry/api"
-import cacheContainer from "./common/redis"
+import cacheContainer from "../common/redis"
 
 export type LoggedInUser = {
   id: string
 }
 
-async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
-  console.log(`authenticating user: ${idToken}`)
-  let userId: string
+async function checkForNpc(idToken: string): Promise<string|null> {
   if (idToken.startsWith("npc-")) {
     console.log("token appears to be npc")
     const splitToken = idToken.split("-")
     if (splitToken.length == 3) {
       const npc = await getNpc(splitToken[1])
       if (npc != null) {
-        userId = splitToken[2]
+        const userId = splitToken[2]
         observeUserId(userId)
-        return {
-          id: userId,
-        }
+        return userId
       }
-      return null
-    } else {
-      return null
     }
-  } else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+  }
+  return null
+}
+
+async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
+  console.log(`authenticating user: ${idToken}`)
+  const npcUserId = await checkForNpc(idToken)
+  if (npcUserId) {
+    return {id: npcUserId}
+  }
+
+  let userId: string
+  if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
     const base64String = idToken.split(".")[1]
     const jsonString = Buffer.from(base64String, "base64").toString("ascii")
     userId = JSON.parse(jsonString).user_id

@@ -3,7 +3,7 @@ import express, {Response} from "express"
 import {createGffft, getGffft, getGfffts,
   getUniqueFruitCode, gffftsCollection, gffftsMembersCollection, hydrateGffft, updateGffft} from "./gffft_data"
 
-import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
 import {Gffft, TYPE_OWNER} from "./gffft_models"
 import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_interfaces"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"

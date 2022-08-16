@@ -2,7 +2,7 @@ import express, {Response} from "express"
 
 import {threadPostsCollection, threadsCollection} from "./board_data"
 
-import {LoggedInUser, requiredAuthentication} from "../auth"
+import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
 import {Thread} from "./board_models"
 import {getGffft, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"

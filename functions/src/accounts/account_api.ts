@@ -1,6 +1,6 @@
 import express, {Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {requiredAuthentication} from "../auth"
+import {requiredAuthentication} from "../accounts/auth"
 import router from "../gfffts/gffft_api"
 import * as Joi from "joi"
 import {Account} from "./account_models"

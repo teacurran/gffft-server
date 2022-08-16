@@ -1,4 +1,4 @@
-import {LoggedInUser} from "../auth"
+import {LoggedInUser} from "../accounts/auth"
 import {notEmpty} from "../common/utils"
 import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
 import {ILink, linkToJson} from "../link-sets/link_set_interfaces"

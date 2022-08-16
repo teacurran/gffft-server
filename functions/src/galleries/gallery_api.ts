@@ -1,6 +1,6 @@
 import express, {Response} from "express"
 
-import {LoggedInUser, requiredAuthentication} from "../auth"
+import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
 import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_OWNER, TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"

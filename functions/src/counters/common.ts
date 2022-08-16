@@ -1,6 +1,6 @@
 
 import {all, field, get, ref, Ref, update, upset, value} from "typesaurus"
-import {LoggedInUser} from "../auth"
+import {LoggedInUser} from "../accounts/auth"
 import {gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {GffftAdminCountUpset, GffftAnonCountUpset, GffftMemberCountUpset, GffftOwnerCountUpset, GffftStats,
 } from "../gfffts/gffft_models"
@@ -18,11 +18,11 @@ export async function updateCounter(ref: Ref<GffftStats>, type: string, changeVa
       adminCount: value("increment", changeValue),
     })
   case "member":
-    return await upset<GffftMemberCountUpset>(ref, {
+    return upset<GffftMemberCountUpset>(ref, {
       memberCount: value("increment", changeValue),
     })
   case "anon":
-    return await upset<GffftAnonCountUpset>(ref, {
+    return upset<GffftAnonCountUpset>(ref, {
       anonCount: value("increment", changeValue),
     })
   default:

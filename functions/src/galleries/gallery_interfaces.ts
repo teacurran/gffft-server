@@ -1,4 +1,4 @@
-import {LoggedInUser} from "../auth"
+import {LoggedInUser} from "../accounts/auth"
 import {WHO_OWNER} from "../boards/board_data"
 import {notEmpty} from "../common/utils"
 import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"

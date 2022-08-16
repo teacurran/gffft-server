@@ -1,6 +1,6 @@
 import express, {Response} from "express"
 
-import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
 import {collectionCollection, Post, postCollection} from "./collection_models"
 import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"

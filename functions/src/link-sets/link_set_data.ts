@@ -1,14 +1,18 @@
 import fs from "fs"
 import axios from "axios"
-import {add, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
-  subcollection, update, upset, where} from "typesaurus"
+import {
+  add, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
+  subcollection, update, upset, where,
+} from "typesaurus"
 import {itemOrNull} from "../common/data"
 import {getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
-import {HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache,
-  LinkSet, LinkSetItem, LinkStat, UpdateLink} from "./link_set_models"
+import {
+  HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache,
+  LinkSet, LinkSetItem, LinkStat, UpdateLink,
+} from "./link_set_models"
 import {getMetadata, IPageMetadata} from "page-metadata-parser"
 import domino from "domino"
 import {uuid} from "uuidv4"
@@ -30,14 +34,7 @@ export const linkSetItemsCollection = subcollection<LinkSetItem, LinkSet,
   Gffft, [string, string]>("items", linkSetCollection)
 
 export async function getLinkSetByRef(itemRef: Ref<LinkSet>): Promise<LinkSet | null> {
-  return get(itemRef).then(async (snapshot) => {
-    if (snapshot != null) {
-      const data = snapshot.data
-      data.id = snapshot.ref.id
-      return data
-    }
-    return null
-  })
+  return get(itemRef).then(itemOrNull)
 }
 
 export async function getLinkSetByRefString(refId: string): Promise<LinkSet | null> {
@@ -90,7 +87,7 @@ export async function getLinkSet(uid: string, gid: string, lid: string): Promise
 
 export async function getLinkSetItems(uid: string,
   gid: string,
-  mid:string,
+  mid: string,
   offset?: string,
   maxResults = 200): Promise<HydratedLinkSetItem[]> {
   const gfffts = gffftsCollection(ref(usersCollection, uid))
@@ -129,8 +126,8 @@ export async function getLinkSetItems(uid: string,
 
 
 export async function hydrateLinkSetItem(uid: string, gid: string, snapshot: Doc<LinkSetItem> |
-    LinkSetItem |
-    null, link: Link | null): Promise<HydratedLinkSetItem | null> {
+  LinkSetItem |
+  null, link: Link | null): Promise<HydratedLinkSetItem | null> {
   let item: LinkSetItem
 
   if (snapshot == null) {
@@ -153,7 +150,7 @@ export async function hydrateLinkSetItem(uid: string, gid: string, snapshot: Doc
     ...item,
     authorUser: authorUser ? authorUser : undefined,
     link: link == null ? undefined : link,
-    thread: thread == null ? undefined: thread,
+    thread: thread == null ? undefined : thread,
   }
 }
 
@@ -302,7 +299,7 @@ export async function getOrCreateLinkCache(linkRef: Ref<Link>, url: string): Pro
 
       const imgs = $.getElementsByTagName("img")
       if (imgs.length > 0) {
-        for (let i=0; i<imgs.length; i++) {
+        for (let i = 0; i < imgs.length; i++) {
           const img = imgs[i]
           const imgSrc = img?.getAttribute("src")
 
@@ -368,9 +365,6 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
   let linkCache: LinkCache | null = null
   let link = await getLink(finalUrl)
   if (link == null) {
-    // const ref = await add(linksCollection, link)
-    // link.id = ref.id
-
     const itemId = uuid()
     const linkRef = ref(linksCollection, itemId)
     linkCache = await getOrCreateLinkCache(linkRef, url)
@@ -404,7 +398,7 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
         link.images = linkCache.images
         link.url = linkCache.url
         link.responseCode = linkCache.responseCode
-        link.updatedAt= new Date()
+        link.updatedAt = new Date()
 
         await update<UpdateLink>(linksCollection, link.id, {
           ...link,
@@ -417,14 +411,7 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
 }
 
 export async function getLinkByRef(itemRef: Ref<Link>): Promise<Link | null> {
-  return get(itemRef).then(async (snapshot) => {
-    if (snapshot != null) {
-      const data = snapshot.data
-      data.id = snapshot.ref.id
-      return data
-    }
-    return null
-  })
+  return get(itemRef).then(itemOrNull)
 }
 
 export async function getLinkByRefString(refId: string): Promise<Link | null> {

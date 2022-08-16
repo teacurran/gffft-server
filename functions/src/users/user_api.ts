@@ -2,7 +2,7 @@ import * as Joi from "joi"
 import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {field, ref, remove, update, upset, value} from "typesaurus"
-import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../auth"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
 import {getBoard, getThread, getThreads, threadsCollection} from "../boards/board_data"
 import {threadsToJson, threadToJson} from "../boards/board_interfaces"
 import {resetMemberCounter} from "../counters/common"
@@ -29,17 +29,6 @@ import {
 } from "./user_data"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import {User, UsernameChange} from "./user_models"
-
-// const userUpdateRequestParams = Joi.object({
-//   uid: Joi.string().required(),
-//   displayName: Joi.string().required(),
-// })
-// export interface UserUpdateRequest extends ValidatedRequestSchema {
-//     [ContainerTypes.Body]: {
-//       uid: string;
-//       displayName: string;
-//     };
-//   }
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -160,8 +149,6 @@ router.get(
     }
     gid = gffft.id
 
-    // const iamUser: LoggedInUser = res.locals.iamUser
-    // const gffft = await getGffft(uid, gid)
     const board = await boardProomise
 
     if (!board) {
@@ -258,7 +245,6 @@ router.delete(
     ])
 
     res.sendStatus(204)
-    return
   }
 )
 
@@ -319,8 +305,6 @@ router.get(
     }
     gid = gffft.id
 
-    // const iamUser: LoggedInUser = res.locals.iamUser
-    // const gffft = await getGffft(uid, gid)
     const board = await boardPromise
 
     if (!board) {
@@ -529,7 +513,7 @@ router.get(
 
     const items = await galleryItemsPromise
 
-    const hydratedGallery = await hydrateGallery(gid, uid, gallery, items)
+    const hydratedGallery = await hydrateGallery(uid, gid, gallery, items)
     if (hydratedGallery == null) {
       res.sendStatus(404)
       return
@@ -622,7 +606,6 @@ router.delete(
     await remove(itemRef)
 
     res.sendStatus(204)
-    return
   }
 )
 
