@@ -61,9 +61,8 @@ steps:
 
 timeout: 2400s
 
-# Mark the images to be saved so future builds reuse them as cache
 images:
-  - "gcr.io/$PROJECT_ID/restor-cloud:compose"
+  - "gcr.io/$PROJECT_ID/gffft-api:compose"
 
 
 
