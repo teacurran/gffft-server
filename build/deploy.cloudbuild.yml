@@ -36,7 +36,7 @@ steps:
         "-t", "us-docker.pkg.dev/$PROJECT_ID/gffft/firebase-emulator:compose",
         "-t", "firebase-emulator",
         "--file", "./firebase-emulator/Dockerfile",
-        "./firebase-emulator",
+        "./functions",
       ]
 
   - name: 'docker/compose:1.29.2'
