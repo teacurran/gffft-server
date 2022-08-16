@@ -41,7 +41,7 @@ steps:
         "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/firebase-emulator:compose",
         "-t", "firebase-emulator",
         "--file", "./firebase-emulator/Dockerfile",
-        "./functions",
+        "./",
       ]
 
   - name: "gcr.io/cloud-builders/docker"
