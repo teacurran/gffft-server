@@ -3,8 +3,6 @@ import {Gffft} from "../gfffts/gffft_models"
 
 export type User = {
     id: string
-    username: string
-    usernameCounter: number
     createdAt?: Date
     updatedAt?: Date
   }
@@ -12,12 +10,6 @@ export type User = {
 export interface HydratedUser extends User {
   handle: string
 }
-
-export type UsernameChange = {
-    username: string
-    usernameCounter: number
-    updatedAt?: Date
-  }
 
 export type UserBookmark = {
     id: string

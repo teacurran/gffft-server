@@ -1,7 +1,7 @@
 import * as Joi from "joi"
 import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {field, ref, remove, update, upset, value} from "typesaurus"
+import {field, ref, remove, update, upset} from "typesaurus"
 import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
 import {getBoard, getThread, getThreads, threadsCollection} from "../boards/board_data"
 import {threadsToJson, threadToJson} from "../boards/board_interfaces"
@@ -24,11 +24,10 @@ import {getLinkSet, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set
 import {linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
 import {
   createBookmark, deleteBookmark, getHydratedUserBookmarks,
-  getUniqueUsername,
   getUser, usersCollection,
 } from "./user_data"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
-import {User, UsernameChange} from "./user_models"
+import {User} from "./user_models"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -350,7 +349,7 @@ router.post(
     const handle = req.body.handle
     const memberId = res.locals.iamUser.id
 
-    if (!checkGffftHandle(uid, gid, memberId, handle)) {
+    if (!await checkGffftHandle(uid, gid, memberId, handle)) {
       res.status(400).send("handle exists")
     }
 
@@ -416,26 +415,6 @@ router.delete(
     await deleteBookmark(gid, memberId)
     res.sendStatus(204)
   })
-
-router.post(
-  "/me/change-username",
-  requiredAuthentication,
-  async (req: Request, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
-    const userId = iamUser.id
-    const user: User = await getUser(userId)
-    user.username = await getUniqueUsername(false)
-
-    user.updatedAt = new Date()
-    await upset<UsernameChange>(usersCollection, userId, {
-      username: user.username,
-      usernameCounter: value("increment", 1),
-      updatedAt: new Date(),
-    })
-
-    res.json(iamUserToJson(user))
-  }
-)
 
 export const getGalleryPathParams = Joi.object({
   uid: Joi.string().required(),

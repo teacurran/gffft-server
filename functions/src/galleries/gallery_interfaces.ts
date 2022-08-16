@@ -87,18 +87,11 @@ export function galleryToJsonWithItems(
   }
 }
 
-export function galleryItemToJson(
-  loggedInUser: LoggedInUser | null,
-  gffftMembership: GffftMember | undefined,
-  gi: HydratedGalleryItem | null): IGalleryItem | null {
-  if (gi == null || gi.id == null) {
-    return null
-  }
+export function getGalleryItemUrls(gi: HydratedGalleryItem): Map<string, string> {
   const urls = new Map<string, string>()
-
   if (gi.urls) {
-    for (let i=0; i<gi.urls.length; i++) {
-      const url = gi.urls[i].replace("http://0.0.0.0", "http://127.0.0.1")
+    for (const element of gi.urls) {
+      const url = element.replace("http://0.0.0.0", "http://127.0.0.1")
       if (url.indexOf("320x320") > -1) {
         urls.set("320", url)
       } else if (url.indexOf("640x640") > -1) {
@@ -109,6 +102,16 @@ export function galleryItemToJson(
         console.log(`not sure what to do with size: ${url}`)
       }
     }
+  }
+  return urls
+}
+
+export function galleryItemToJson(
+  loggedInUser: LoggedInUser | null,
+  gffftMembership: GffftMember | undefined,
+  gi: HydratedGalleryItem | null): IGalleryItem | null {
+  if (gi == null || gi.id == null) {
+    return null
   }
 
   let canEdit = false
@@ -123,7 +126,7 @@ export function galleryItemToJson(
     id: gi.id,
     author: gi.authorUser ? {
       id: gi.authorUser.id,
-      handle: gi.authorUser.handle ?? gi.authorUser.username,
+      handle: gi.authorUser.handle ?? "",
     } : {
       id: "deleted",
       handle: "deleted",
@@ -132,7 +135,7 @@ export function galleryItemToJson(
     fileName: gi.fileName ?? "",
     filePath: gi.filePath ?? "",
     thumbnail: gi.thumbnail ?? false,
-    urls: mapToObj(urls),
+    urls: mapToObj(getGalleryItemUrls(gi)),
     createdAt: gi.createdAt,
     likeCount: gi.likeCount ?? 0,
     liked: gi.liked,
