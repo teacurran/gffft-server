@@ -108,7 +108,7 @@ timeout: 2400s
 
 images:
   - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose"
-  - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/firebase-emulator:compose"
+  - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:compose"
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
