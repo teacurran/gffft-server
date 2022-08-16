@@ -36,17 +36,18 @@ steps:
     ]
     env: [ 'COMPOSE_HTTP_TIMEOUT=400' ]
 
-  - name: 'sonarsource/sonar-scanner-cli'
+  - name: 'gcr.io/cloud-builders/docker'
     id: 'sonar scan'
-    env: [
-        'SONAR_HOST_URL=https://sonarcloud.io',
-        'SONAR_LOGIN=$$SONAR_TOKEN',
-    ]
-    args: [
-            "-v",
-            "./:/usr/src",
-            "sonarsource/sonar-scanner-cli"
-            ]
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        docker run \
+        --rm \
+        -e SONAR_HOST_URL="https://sonarcloud.io" \
+        -e SONAR_LOGIN="$$SONAR_TOKEN" \
+        -v "./:/usr/src" \
+        sonarsource/sonar-scanner-cli
     secretEnv: ['SONAR_TOKEN']
 
   # Check linting
