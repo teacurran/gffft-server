@@ -77,13 +77,14 @@ steps:
         -e SONAR_HOST_URL="https://sonarcloud.io" \
         -e SONAR_LOGIN="$$SONAR_TOKEN" \
         -v "/$(pwd):/usr/src" \
-        sonarsource/sonar-scanner-cli
+        sonarsource/sonar-scanner-cli \
+        -Dsonar.javascript.lcov.reportPaths=./functions/coverage/lcov.info
     secretEnv: ['SONAR_TOKEN']
 
   # Check linting
   - name: 'docker/compose:1.27.4'
     id: 'lint check'
-    args: [ 'run','gffft-api','npm','run','lint' ]
+    args: [ 'run','api','npm','run','lint' ]
     env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
 
   - name: 'gcr.io/cloud-builders/npm'
