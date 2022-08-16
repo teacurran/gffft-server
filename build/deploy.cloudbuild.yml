@@ -4,14 +4,14 @@ steps:
     entrypoint: "bash"
     args:
       - -c
-      - docker pull us-central1-docker.pkg.dev/$PROJECT_ID/gffft/gffft-api:compose || exit 0
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose || exit 0
 
   - name: "gcr.io/cloud-builders/docker"
     id: 'pull firebase cache'
     entrypoint: "bash"
     args:
       - -c
-      - docker pull us-central1-docker.pkg.dev/$PROJECT_ID/gffft/firebase-emulator:compose || exit 0
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/firebase-emulator:compose || exit 0
 
   - name: "gcr.io/cloud-builders/docker"
     id: "docker build"
@@ -19,8 +19,8 @@ steps:
     args:
       [
         "build",
-        "--cache-from", "us-central1-docker.pkg.dev/$PROJECT_ID/gffft/gffft-api:compose",
-        "-t", "us-central1-docker.pkg.dev/$PROJECT_ID/gffft/gffft-api:compose",
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose",
         "-t", "gffft-api",
         "--file", "./functions/Dockerfile",
         "./functions",
@@ -32,8 +32,8 @@ steps:
     args:
       [
         "build",
-        "--cache-from", "us-central1-docker.pkg.dev/$PROJECT_ID/gffft/firebase-emulator:compose",
-        "-t", "us-central1-docker.pkg.dev/$PROJECT_ID/gffft/firebase-emulator:compose",
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/firebase-emulator:compose",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/firebase-emulator:compose",
         "-t", "firebase-emulator",
         "--file", "./firebase-emulator/Dockerfile",
         "./functions",
@@ -96,11 +96,12 @@ steps:
 timeout: 2400s
 
 images:
-  - "us-docker.pkg.dev/$PROJECT_ID/gffft/gffft-api:compose"
-  - "us-docker.pkg.dev/$PROJECT_ID/gffft/firebase-emulator:compose"
+  - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose"
+  - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/firebase-emulator:compose"
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
       env: 'SONAR_TOKEN'
-
+substitutions:
+  _ARTIFACT_REPO: us-central1-docker.pkg.dev
 
