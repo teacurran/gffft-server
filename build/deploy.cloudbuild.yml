@@ -33,7 +33,7 @@ steps:
 
   - name: "gcr.io/cloud-builders/docker"
     id: "docker build firebase"
-    waitFor: ['pull cache']
+    waitFor: ['pull firebase cache']
     args:
       [
         "build",
