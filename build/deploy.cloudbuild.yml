@@ -47,6 +47,7 @@ steps:
             "./:/usr/src",
             "sonarsource/sonar-scanner-cli"
             ]
+    secretEnv: ['SONAR_TOKEN']
 
   # Check linting
   - name: 'docker/compose:1.27.4'
