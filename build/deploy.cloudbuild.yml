@@ -27,6 +27,11 @@ steps:
       ]
 
   - name: "gcr.io/cloud-builders/docker"
+    id: "docker push"
+    waitFor: ['doker build']
+    args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose"]
+
+  - name: "gcr.io/cloud-builders/docker"
     id: "docker build firebase"
     waitFor: ['pull cache']
     args:
@@ -38,6 +43,11 @@ steps:
         "--file", "./firebase-emulator/Dockerfile",
         "./functions",
       ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "docker push firebase"
+    waitFor: ['doker build firebase']
+    args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/firebase-emulator:compose"]
 
   - name: 'docker/compose:1.29.2'
     id: 'check build'
