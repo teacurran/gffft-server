@@ -31,10 +31,26 @@ steps:
       '-f', 'docker-compose.test.yml',
       '-f', 'docker-compose.cb.yml',
       'up',
-      '--exit-code-from','  api-integration-test',
+      '--exit-code-from', 'api-integration-test',
       'api-integration-test'
     ]
     env: [ 'COMPOSE_HTTP_TIMEOUT=400' ]
+
+  - name: 'sonarsource/sonar-scanner-cli'
+    id: 'sonar scan'
+    env: [
+        'SONAR_HOST_URL=https://sonarcloud.io',
+        'SONAR_LOGIN=$$SONAR_TOKEN',
+    ]
+    args: [
+            "-v",
+            "./:/usr/src",
+            "sonarsource/sonar-scanner-cli"
+            ]
+    availableSecrets:
+      secretManager:
+        - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
+          env: 'SONAR_TOKEN'
 
   # Check linting
   - name: 'docker/compose:1.27.4'

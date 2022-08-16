@@ -18,13 +18,13 @@ test:
 	@make test-api
 
 test-api:
-	docker-compose -f docker-compose.yml -f docker-compose.test.yml up --exit-code-from e2e-test e2e-test
+	docker-compose -f docker-compose.yml -f docker-compose.test.yml up --exit-code-from api-integration-test api-integration-test
 
 rebuild:
 	docker-compose build --no-cache --parallel
 
 rebuild-test:
-	docker-compose -f docker-compose.yml -f docker-compose.test.yml build e2e-test
+	docker-compose -f docker-compose.yml -f docker-compose.test.yml build api-integration-test
 
 clean:
 	@docker-compose down --remove-orphans --rmi all 2>/dev/null \
