@@ -230,7 +230,7 @@ export function replyToJson(
     createdAt: item.createdAt,
     author: item.authorUser ? {
       id: item.authorUser.id,
-      handle: item.authorUser.handle ?? item.authorUser.username,
+      handle: item.authorUser.handle ?? "",
     } : {
       id: "deleted",
       handle: "deleted",
