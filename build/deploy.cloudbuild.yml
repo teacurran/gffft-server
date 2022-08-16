@@ -15,7 +15,7 @@ steps:
         "--cache-from", "gcr.io/$PROJECT_ID/gffft-api:compose",
         "-t", "gcr.io/$PROJECT_ID/gffft-api:compose",
         "-t", "gffft-api",
-        "--file", "./Dockerfile",
+        "--file", "./functions/Dockerfile",
         "./functions",
       ]
 
