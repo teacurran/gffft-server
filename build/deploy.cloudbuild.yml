@@ -7,11 +7,11 @@ steps:
       - docker pull us-docker.pkg.dev/$PROJECT_ID/gffft-api:compose || exit 0
 
   - name: "gcr.io/cloud-builders/docker"
-    id: 'pull firestore cache'
+    id: 'pull firebase cache'
     entrypoint: "bash"
     args:
       - -c
-      - docker pull us-docker.pkg.dev/$PROJECT_ID/firestore-emulator:compose || exit 0
+      - docker pull us-docker.pkg.dev/$PROJECT_ID/firebase-emulator:compose || exit 0
 
   - name: "gcr.io/cloud-builders/docker"
     id: "docker build"
@@ -27,16 +27,16 @@ steps:
       ]
 
   - name: "gcr.io/cloud-builders/docker"
-    id: "docker build firestore"
+    id: "docker build firebase"
     waitFor: ['pull cache']
     args:
       [
         "build",
-        "--cache-from", "us-docker.pkg.dev/$PROJECT_ID/firestore-emulator:compose",
-        "-t", "us-docker.pkg.dev/$PROJECT_ID/firestore-emulator:compose",
-        "-t", "firestore-emulator",
-        "--file", "./firestore-emulator/Dockerfile",
-        "./firestore-emulator",
+        "--cache-from", "us-docker.pkg.dev/$PROJECT_ID/firebase-emulator:compose",
+        "-t", "us-docker.pkg.dev/$PROJECT_ID/firebase-emulator:compose",
+        "-t", "firebase-emulator",
+        "--file", "./firebase-emulator/Dockerfile",
+        "./firebase-emulator",
       ]
 
   - name: 'docker/compose:1.29.2'
@@ -97,7 +97,7 @@ timeout: 2400s
 
 images:
   - "us-docker.pkg.dev/$PROJECT_ID/gffft-api:compose"
-  - "us-docker.pkg.dev/$PROJECT_ID/firestore-emulator:compose"
+  - "us-docker.pkg.dev/$PROJECT_ID/firebase-emulator:compose"
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
