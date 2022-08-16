@@ -12,7 +12,7 @@ steps:
     args:
       [
         "build",
-        "--cache-from", "gcr.io/$PROJECT_ID/gffft-api:compose",
+        "--cache-from", "us-docker.pkg.dev/$PROJECT_ID/us.gcr.io/gffft-api:compose",
         "-t", "gcr.io/$PROJECT_ID/gffft-api:compose",
         "-t", "gffft-api",
         "--file", "./functions/Dockerfile",
@@ -75,8 +75,7 @@ steps:
 timeout: 2400s
 
 images:
-  - "gcr.io/$PROJECT_ID/gffft-api:compose"
-
+  - "us-docker.pkg.dev/$PROJECT_ID/us.gcr.io/gffft-api:compose"
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
