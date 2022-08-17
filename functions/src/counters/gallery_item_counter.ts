@@ -20,10 +20,8 @@ export const galleryItemCounter = functions.firestore
     const beforeData = change.before.data()
     const afterData = change.after.data()
 
-    const users = usersCollection
-    const gfffts = gffftsCollection(ref(users, uid))
+    const gfffts = gffftsCollection(ref(usersCollection, uid))
     const galleries = galleryCollection(ref(gfffts, gid))
-    // const galleryItems = galleryItemsCollection(ref(galleries, mid))
     const galleryRef = ref(galleries, mid)
 
     if (!change.before.exists && afterData != null) {
@@ -42,6 +40,4 @@ export const galleryItemCounter = functions.firestore
       }
     }
     console.log("done")
-
-    return
   })
