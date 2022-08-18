@@ -40,6 +40,4 @@ export const gffftMemberCounter = functions.firestore
       updateCounter(totalsRef, beforeData.type, -1)
       updateCounter(todayRef, beforeData.type, -1)
     }
-
-    return
   })

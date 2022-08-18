@@ -1,10 +1,10 @@
 import {Ref} from "typesaurus"
-import {IBoardType} from "../boards/board_interfaces"
-import {IGalleryType} from "../galleries/gallery_interfaces"
-import {ILinkSet} from "../link-sets/link_set_interfaces"
-import {INotebookType} from "../notebooks/notebook_interfaces"
 import {User, UserBookmark} from "../users/user_models"
 import {IGffftFeatureRef} from "./gffft_interfaces"
+import {Board} from "../boards/board_models"
+import {Gallery} from "../galleries/gallery_models"
+import {Notebook} from "../notebooks/notebook_models"
+import {LinkSet} from "../link-sets/link_set_models"
 
 export type Gffft = {
     id: string
@@ -33,10 +33,10 @@ export interface HydratedGffft extends Gffft {
   membership: GffftMember | undefined
   bookmark: UserBookmark | undefined
   featureSet: IGffftFeatureRef[]
-  boards: IBoardType[],
-  galleries: IGalleryType[],
-  notebooks: INotebookType[],
-  linkSets: ILinkSet[],
+  boards: Board[],
+  galleries: Gallery[],
+  notebooks: Notebook[],
+  linkSets: LinkSet[],
 }
 
 

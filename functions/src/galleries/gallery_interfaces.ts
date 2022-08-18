@@ -145,4 +145,9 @@ export function galleryItemToJson(
   return item
 }
 
+export function galleriesToJson(galleries: Gallery[]): IGalleryType[] {
+  return galleries.map((gallery) => galleryToJson(gallery))
+    .filter(notEmpty)
+}
+
 

@@ -14,10 +14,6 @@ import cacheContainer from "../common/redis"
 import {Notebook} from "../notebooks/notebook_models"
 import {IGffftFeatureRef} from "./gffft_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
-import {boardToJson, IBoardType} from "../boards/board_interfaces"
-import {INotebookType, notebookToJson} from "../notebooks/notebook_interfaces"
-import {galleryToJson, IGalleryType} from "../galleries/gallery_interfaces"
-import {ILinkSet, linkSetToJson} from "../link-sets/link_set_interfaces"
 
 const DEFAULT_GFFFT_KEY = "default"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
@@ -288,12 +284,7 @@ export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
       gffft.id = results[0].ref.id
 
       // below this are hacks to upgrade data as I've changed my mind about it.
-      if (!gffft.fruitCode) {
-        [gffft.fruitCode,
-          gffft.rareFruits,
-          gffft.ultraRareFruits] = await getUniqueFruitCode()
-        await updateGffft(userId, gffft.id, gffft)
-      } else if (gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
+      if (!gffft.fruitCode || gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
         [gffft.fruitCode,
           gffft.rareFruits,
           gffft.ultraRareFruits] = await getUniqueFruitCode()
@@ -424,55 +415,16 @@ export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: strin
 
   if (gffft.features) {
     const featurePromises: Promise<void>[] = []
-    for (let i=0; i<gffft.features.length; i++) {
-      const feature = gffft.features[i]
+    for (const feature of gffft.features) {
       console.log(`looking at feature: ${feature}`)
       if (feature.indexOf("/boards/") != -1) {
-        featurePromises.push(getBoardByRefString(feature).then((board) => {
-          if (board) {
-            boards.push(board)
-            if (board.id) {
-              features.push({
-                type: "board",
-                id: board.id,
-              })
-            }
-          }
-        }))
+        featurePromises.push(getBoardPromise(features, feature, boards))
       } else if (feature.indexOf("/galleries/") != -1) {
-        featurePromises.push(getGalleryByRefString(feature).then((gallery) => {
-          if (gallery) {
-            galleries.push(gallery)
-            features.push({
-              type: "gallery",
-              id: gallery.id,
-            })
-          }
-        }))
+        featurePromises.push(getGalleryPromise(features, feature, galleries))
       } else if (feature.indexOf("/notebooks/") != -1) {
-        featurePromises.push(getNotebookByRef(feature).then((notebook) => {
-          if (notebook) {
-            notebooks.push(notebook)
-            if (notebook.id) {
-              features.push({
-                type: "notebook",
-                id: notebook.id,
-              })
-            }
-          }
-        }))
+        featurePromises.push(getNotebookPromise(features, feature, notebooks))
       } else if (feature.indexOf("/link-sets/") != -1) {
-        featurePromises.push(getLinkSetByRefString(feature).then((item) => {
-          if (item) {
-            linkSets.push(item)
-            if (item.id) {
-              features.push({
-                type: "linkSet",
-                id: item.id,
-              })
-            }
-          }
-        }))
+        featurePromises.push(getLinkSetPromise(features, feature, linkSets))
       } else if (feature == "fruitCode") {
         features.push({
           type: "fruitCode",
@@ -483,38 +435,6 @@ export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: strin
       await Promise.all(featurePromises)
     }
   }
-
-  const boardJson: IBoardType[] = []
-  boards.forEach((board) => {
-    const json = boardToJson(board)
-    if (json != null) {
-      boardJson.push(json)
-    }
-  })
-
-  const notebookJson: INotebookType[] = []
-  notebooks.forEach((notebook) => {
-    const json = notebookToJson(notebook)
-    if (json != null) {
-      notebookJson.push(json)
-    }
-  })
-
-  const galleryJson: IGalleryType[] = []
-  galleries.forEach((gallery) => {
-    const json = galleryToJson(gallery)
-    if (json != null) {
-      galleryJson.push(json)
-    }
-  })
-
-  const linkSetJson: ILinkSet[] = []
-  linkSets.forEach((linkSet) => {
-    const json = linkSetToJson(linkSet)
-    if (json != null) {
-      linkSetJson.push(json)
-    }
-  })
 
   let membership: GffftMember | undefined
   let bookmark: UserBookmark | undefined
@@ -531,10 +451,10 @@ export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: strin
     membership: membership,
     bookmark: bookmark,
     featureSet: features,
-    boards: boardJson,
-    galleries: galleryJson,
-    notebooks: notebookJson,
-    linkSets: linkSetJson,
+    boards: boards,
+    galleries: galleries,
+    notebooks: notebooks,
+    linkSets: linkSets,
   } as HydratedGffft
 }
 
@@ -581,7 +501,58 @@ export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>
   return hydrateUser(uid, gid, user)
 }
 
-function HydratedGffft(): HydratedGffft | PromiseLike<HydratedGffft | null> | null {
-  throw new Error("Function not implemented.")
+function getGalleryPromise(features: IGffftFeatureRef[], feature: string, galleries: Gallery[]): Promise<void> {
+  return getGalleryByRefString(feature).then((item) => {
+    if (item) {
+      galleries.push(item)
+      if (item.id) {
+        features.push({
+          type: "gallery",
+          id: item.id,
+        })
+      }
+    }
+  })
 }
 
+function getBoardPromise(features: IGffftFeatureRef[], feature: string, boards: Board[]): Promise<void> {
+  return getBoardByRefString(feature).then((item) => {
+    if (item) {
+      boards.push(item)
+      if (item.id) {
+        features.push({
+          type: "board",
+          id: item.id,
+        })
+      }
+    }
+  })
+}
+
+function getNotebookPromise(features: IGffftFeatureRef[], feature: string, notebooks: Notebook[]): Promise<void> {
+  return getNotebookByRef(feature).then((item) => {
+    if (item) {
+      notebooks.push(item)
+      if (item.id) {
+        features.push({
+          type: "notebook",
+          id: item.id,
+        })
+      }
+    }
+  })
+}
+
+function getLinkSetPromise(features: IGffftFeatureRef[], feature: string, linkSets: LinkSet[]): Promise<void> {
+  return getLinkSetByRefString(feature).then((item) => {
+    if (item) {
+      linkSets.push(item)
+      if (item.id) {
+        features.push({
+          type: "linkSet",
+          id: item.id,
+        })
+      }
+    }
+  })
+}

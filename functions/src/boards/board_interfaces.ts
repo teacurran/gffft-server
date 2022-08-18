@@ -107,7 +107,6 @@ export function threadToJson(
   return item
 }
 
-
 export function boardToJson(
   board: Board,
 ): IBoardType | null {
@@ -126,6 +125,11 @@ export function boardToJson(
     whoCanPost: board.whoCanPost ?? WHO_OWNER,
   }
   return item
+}
+
+export function boardsToJson(boards: Board[]): IBoardType[] {
+  return boards.map((board) => boardToJson(board))
+    .filter(notEmpty)
 }
 
 export function threadPostsToJson(

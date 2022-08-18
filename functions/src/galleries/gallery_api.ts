@@ -1,8 +1,8 @@
 import express, {Response} from "express"
 
-import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
-import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
-import {TYPE_OWNER, TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
+import {LoggedInUser, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
+import {getGffft, getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
+import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, ref, upset} from "typesaurus"
 import * as Joi from "joi"
@@ -67,6 +67,7 @@ router.post(
   upload.any(),
   validator.fields(createItemParams),
   requiredAuthentication,
+  requiredGffftMembership,
   async (req: ValidatedRequest<CreateItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
@@ -87,43 +88,18 @@ router.post(
     }
     gid = gffft.id
 
-    console.log(`uid:${uid} gid:${gid} bid:${mid} description: ${description}`)
-
-    // const gffft = await getGffft(uid, gid)
-    // const board = await getBoard(uid, gid, bid)
-
-    const gffftMembers = gffftsMembersCollection([uid, gid])
-
-    // is this poster a member of the gffft?
-    const posterUid = res.locals.iamUser.id
-    const posterRef = ref(usersCollection, posterUid)
-
-    const membershipDoc = await get(ref(gffftMembers, posterUid))
-    if (!membershipDoc) {
-      console.log("poster is not a member of this board")
-      res.sendStatus(403)
-      return
-    }
-
-    const membership = membershipDoc.data
-    if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
-      console.log("poster is not an approved member of this board")
-      res.sendStatus(403)
-      return
-    }
-
     console.log(`creating gallery item: uid:${uid} gid:${gid} bid:${mid} description: ${description}`)
+
+    const posterRef = ref(usersCollection, iamUser.id)
+    const membership: GffftMember = res.locals.gffftMembership
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const files = (req as any).files
 
     if (files == undefined) {
-      console.log("files is empty")
       res.sendStatus(500)
       return
     }
-
-    console.log(`files is: ${JSON.stringify(files)}`)
 
     const file = files[0]
     const type = file.originalname.split(".")[1]
@@ -131,7 +107,7 @@ router.post(
 
     const fileName = `${itemId}.${type}`
 
-    const filePath = `users/${posterUid}/gfffts/${gid}/galleries/${mid}/items`
+    const filePath = `users/${iamUser.id}/gfffts/${gid}/galleries/${mid}/items`
     const fullFilePath = `${filePath}/${fileName}`
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -149,9 +125,6 @@ router.post(
         metadata: md,
       })
 
-    // todo: figure out why this is no longer working, it was previously.
-    // const itemsCollection = galleryItemsCollection([uid, gid, mid])
-
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const galleries = galleryCollection(ref(gfffts, gid))
     const galleryRef = ref(galleries, mid)
@@ -168,7 +141,7 @@ router.post(
 
     item.id = itemId
 
-    const hgi = await hydrateGalleryItem(gid, uid, item)
+    const hgi = await hydrateGalleryItem(uid, gid, item)
     if (hgi == null) {
       console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
       res.sendStatus(404)
@@ -199,6 +172,7 @@ router.patch(
   "/",
   validator.fields(updateItemParams),
   requiredAuthentication,
+  requiredGffftMembership,
   async (req: ValidatedRequest<UpdateItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
@@ -212,19 +186,12 @@ router.patch(
       uid = iamUser.id
     }
 
-    const gffftMembers = gffftsMembersCollection([uid, gid])
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const galleries = galleryCollection(ref(gfffts, gid))
     const galleryRef = ref(galleries, mid)
     const galleryItems = galleryItemsCollection(galleryRef)
     const itemRef = ref(galleryItems, iid)
-
-    // is this poster a member of the gffft?
-    const posterUid = iamUser.id
-    const posterRef = ref(usersCollection, posterUid)
-
     const gffftPromise = getGffft(uid, gid)
-    const membershipPromise = get(ref(gffftMembers, posterUid))
     const itemPromise = get(itemRef)
 
     const gffft = await gffftPromise
@@ -235,22 +202,14 @@ router.patch(
     }
     gid = gffft.id
 
-    const membershipDoc = await membershipPromise
-    if (!membershipDoc) {
-      console.log("poster is not a member of this gffft")
-      res.sendStatus(403)
-      return
-    }
-
-    // todo: poster must be either the original photo poster, or a gffft owner
-
     const itemDoc = await itemPromise
     if (!itemDoc) {
       res.sendStatus(404)
       return
     }
 
-    const membership = membershipDoc.data
+    const posterRef = ref(usersCollection, iamUser.id)
+    const membership: GffftMember = res.locals.gffftMembership
     const item = itemDoc.data
     if (membership.type != TYPE_OWNER && posterRef.id != item.author.id) {
       console.log("poster is not an owner of this item")
@@ -262,7 +221,7 @@ router.patch(
 
     upset<GalleryItem>(itemRef, item)
 
-    const hgi = await hydrateGalleryItem(gid, uid, item)
+    const hgi = await hydrateGalleryItem(uid, gid, item)
     if (hgi == null) {
       console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
       res.sendStatus(404)

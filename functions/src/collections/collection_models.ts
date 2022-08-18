@@ -112,12 +112,12 @@ export type Attachment = {
 }
 
 export interface HydratedPost extends Post {
-  authorUser: HydratedUser | undefined
-  latestReplyUser: HydratedUser | undefined
+  authorUser?: HydratedUser
+  latestReplyUser?: HydratedUser
   body?: string
   attachments?: Attachment[]
   replies: HydratedPost[]
-  link?: Link | undefined
+  link?: Link
   reaction?: PostReaction
 }
 

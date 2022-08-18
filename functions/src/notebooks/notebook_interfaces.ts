@@ -1,5 +1,6 @@
 import {WHO_OWNER} from "../boards/board_data"
 import {Notebook} from "./notebook_models"
+import {notEmpty} from "../common/utils"
 
 export interface INotebookType {
     id?: string
@@ -17,7 +18,7 @@ export function notebookToJson(
   if (notebook == null) {
     return null
   }
-  const item: INotebookType = {
+  return {
     id: notebook.id,
     name: notebook.name,
     description: notebook.description,
@@ -26,6 +27,9 @@ export function notebookToJson(
     whoCanView: notebook.whoCanView ?? WHO_OWNER,
     whoCanPost: notebook.whoCanPost ?? WHO_OWNER,
   }
-  return item
 }
 
+export function notebooksToJson(notebooks: Notebook[]): INotebookType[] {
+  return notebooks.map((notebook) => notebookToJson(notebook))
+    .filter(notEmpty)
+}

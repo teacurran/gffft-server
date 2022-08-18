@@ -54,8 +54,6 @@ export const threadReplyCounter = functions.firestore
       //   postCount: value("increment", -1),
       // })
     }
-
-    return
   })
 
 

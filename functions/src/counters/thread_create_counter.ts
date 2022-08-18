@@ -40,6 +40,4 @@ export const threadCreateCounter = functions.firestore
         })
       }
     }
-
-    return
   })

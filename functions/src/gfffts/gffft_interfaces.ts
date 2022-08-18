@@ -1,8 +1,8 @@
-import {IBoardType} from "../boards/board_interfaces"
+import {boardsToJson, IBoardType} from "../boards/board_interfaces"
 import {notEmpty} from "../common/utils"
-import {IGalleryType} from "../galleries/gallery_interfaces"
-import {ILinkSet} from "../link-sets/link_set_interfaces"
-import {INotebookType} from "../notebooks/notebook_interfaces"
+import {galleriesToJson, IGalleryType} from "../galleries/gallery_interfaces"
+import {ILinkSet, linkSetsToJson} from "../link-sets/link_set_interfaces"
+import {INotebookType, notebooksToJson} from "../notebooks/notebook_interfaces"
 import {bookmarkToJson, iamUserToJson, IUserBookmark, IUserType} from "../users/user_interfaces"
 import {Gffft, GffftMember, GffftMemberUpdateCounters, HydratedGffft} from "./gffft_models"
 
@@ -191,10 +191,10 @@ export function gffftToJson(
     requireApproval: gffft.requireApproval,
     enableAltHandles: gffft.enableAltHandles,
     features: gffft.featureSet,
-    boards: gffft.boards,
-    galleries: gffft.galleries,
-    notebooks: gffft.notebooks,
-    linkSets: gffft. linkSets,
+    boards: boardsToJson(gffft.boards),
+    galleries: galleriesToJson(gffft.galleries),
+    notebooks: notebooksToJson(gffft.notebooks),
+    linkSets: linkSetsToJson(gffft. linkSets),
     createdAt: gffft.createdAt,
     updatedAt: gffft.updatedAt,
   }

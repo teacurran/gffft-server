@@ -42,6 +42,4 @@ export const linkSetItemCounter = functions.firestore
       }
     }
     console.log("done")
-
-    return
   })

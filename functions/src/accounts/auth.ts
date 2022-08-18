@@ -135,6 +135,7 @@ export const requiredGffftMembership = async (
     res.sendStatus(403)
     return
   }
+  res.locals.gffftMembership = membership
 
   next()
 }

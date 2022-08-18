@@ -125,4 +125,7 @@ export function linkSetItemToJson(
   return item
 }
 
-
+export function linkSetsToJson(linkSets: LinkSet[]) {
+  return linkSets.map((linkSet) => linkSetToJson(linkSet))
+    .filter(notEmpty)
+}
