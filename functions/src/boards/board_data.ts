@@ -23,7 +23,7 @@ export const threadPostsCollection = subcollection<ThreadPost, Thread, Board,
  * gets or creates the default board for a user
  * @param {string} userId
  * @param {string} gffftId
- * @return {IIAMUserType}
+ * @return {Promise<Board>}
  */
 export async function getOrCreateDefaultBoard(userId: string, gffftId: string): Promise<Board> {
   const userBoards = boardsCollection([userId, gffftId])

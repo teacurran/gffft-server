@@ -5,8 +5,6 @@ export class GffftClient {
     client: Http
 
     constructor(baseUrl: string, authToken?: string) {
-      // todo: generate a bearer token that will get me past the firebase auth
-
       this.client = new Http(baseUrl, authToken)
     }
 

@@ -3,6 +3,8 @@ import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
 import {trace, context} from "@opentelemetry/api"
 import cacheContainer from "../common/redis"
+import {getGffftMembership} from "../gfffts/gffft_data"
+import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 
 export type LoggedInUser = {
   id: string
@@ -111,6 +113,28 @@ export const requiredAuthentication = async (
     return
   }
 
+  next()
+}
+
+export const requiredGffftMembership = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const uid = req.body.get("uid")
+  const gid = req.body.get("gid")
+
+  const membership = await getGffftMembership(uid, gid, res.locals.iamUser.id)
+  if (!membership) {
+    console.log("poster is not a member of this gffft")
+    res.sendStatus(403)
+    return
+  }
+  if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
+    console.log("poster is not an approved member of this board")
+    res.sendStatus(403)
+    return
+  }
 
   next()
 }

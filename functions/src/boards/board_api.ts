@@ -2,10 +2,9 @@ import express, {Response} from "express"
 
 import {threadPostsCollection, threadsCollection} from "./board_data"
 
-import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
+import {LoggedInUser, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
 import {Thread} from "./board_models"
-import {getGffft, gffftsMembersCollection} from "../gfffts/gffft_data"
-import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
+import {getGffft} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {add, get, Ref, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
@@ -25,7 +24,9 @@ const createPostParams = Joi.object({
     then: Joi.string().optional().allow(null),
     otherwise: Joi.string().required(),
   }),
-  body: Joi.string().required()})
+  body: Joi.string().required(),
+})
+
 export interface CreatePostRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     uid: string
@@ -40,6 +41,7 @@ export interface CreatePostRequest extends ValidatedRequestSchema {
 router.post(
   "/createPost",
   requiredAuthentication,
+  requiredGffftMembership,
   validator.body(createPostParams),
   async (req: ValidatedRequest<CreatePostRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
@@ -63,32 +65,10 @@ router.post(
 
     console.log(`creating post: uid:${uid} gid:${gid} bid:${bid} tid:${tid} subject: ${req.body.subject}`)
 
-    // const gffft = await getGffft(uid, gid)
-    // const board = await getBoard(uid, gid, bid)
-
-    const gffftMembers = gffftsMembersCollection([uid, gid])
-
-    // is this poster a member of the gffft?
-    const posterUid = res.locals.iamUser.id
-    const posterRef = ref(usersCollection, posterUid)
-
-    const membershipDoc = await get(ref(gffftMembers, posterUid))
-    if (!membershipDoc) {
-      console.log("poster is not a member of this board")
-      res.sendStatus(403)
-      return
-    }
-
-    const membership = membershipDoc.data
-    if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
-      console.log("poster is not an approved member of this board")
-      res.sendStatus(403)
-      return
-    }
-
     const threads = threadsCollection([uid, gid, bid])
 
     let threadRef: Ref<Thread>
+    const posterRef = ref(usersCollection, res.locals.iamUser.id)
 
     // are we replying to an existing thread
     if (tid) {
@@ -97,12 +77,9 @@ router.post(
 
       // make sure the existing thread exists
       if (thread == null) {
-        // todo, send more desriptive errors
         res.sendStatus(404)
         return
       }
-
-      // todo: check for things like thread being locked, permissions, etc...
     } else {
       const thread = {
         subject: req.body.subject,

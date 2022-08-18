@@ -176,9 +176,6 @@ router.patch(
 
     const gffft = await getGffft(uid, gid)
 
-    // todo, make sure user has permissions to edit.
-    // currently only enforced in the front end
-
     if (gffft != null) {
       gid = gffft.id
       if (body.name != undefined) {
@@ -429,10 +426,7 @@ router.put(
         return false
       }
       const member = snapshot.data
-      if (member.type != TYPE_OWNER) {
-        return false
-      }
-      return true
+      return member.type == TYPE_OWNER
     })
 
     if (isOwner) {

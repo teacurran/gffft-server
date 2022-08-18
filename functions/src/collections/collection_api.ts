@@ -1,9 +1,8 @@
 import express, {Response} from "express"
 
-import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
 import {collectionCollection, Post, postCollection} from "./collection_models"
-import {getGffft, getGffftMembership, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
-import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
+import {getGffft, getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {add, get, Ref, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
@@ -92,7 +91,7 @@ router.get(
     const collectionPromise = getCollection(uid, gid, cid)
     const postsPromise = getPosts(uid, gid, cid, req.query.offset, req.query.max, iamUser?.id)
 
-    const resetCounterPromise = await resetCollectionUpdate(uid, gid, cid, posterUid)
+    const resetCounterPromise = resetCollectionUpdate(uid, gid, cid, posterUid)
 
     const gffft = await gffftPromise
     // make sure the gffft exists
@@ -114,7 +113,7 @@ router.get(
     await resetCounterPromise
     const items = await postsPromise
 
-    const hc = await hydrateCollection(gid, uid, collection, items)
+    const hc = await hydrateCollection(uid, gid, collection, items)
     if (hc == null) {
       res.sendStatus(404)
       return
@@ -127,6 +126,7 @@ router.get(
 router.post(
   "/createPost",
   requiredAuthentication,
+  requiredGffftMembership,
   validator.body(createPostParams),
   async (req: ValidatedRequest<CreatePostRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
@@ -150,30 +150,6 @@ router.post(
 
     console.log(`creating post: uid:${uid} gid:${gid} cid:${cid} pid:${pid} subject: ${req.body.subject}`)
 
-    // const gffft = await getGffft(uid, gid)
-    // const board = await getBoard(uid, gid, bid)
-
-    const gffftMembers = gffftsMembersCollection([uid, gid])
-
-    // is this poster a member of the gffft?
-    const posterUid = res.locals.iamUser.id
-    const posterRef = ref(usersCollection, posterUid)
-
-    const membershipDoc = await get(ref(gffftMembers, posterUid))
-    if (!membershipDoc) {
-      console.log("poster is not a member of this board")
-      res.sendStatus(403)
-      return
-    }
-
-    const membership = membershipDoc.data
-    if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
-      console.log("poster is not an approved member of this board")
-      res.sendStatus(403)
-      return
-    }
-
-
     // make sure the collection exists
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const collections = collectionCollection(ref(gfffts, gid))
@@ -189,17 +165,14 @@ router.post(
 
       // make sure the existing thread exists
       if (post == null) {
-        // todo, send more descriptive errors
         res.sendStatus(404)
         return
       }
-
-      // todo: check for things like thread being locked, permissions, etc...
     } else {
       const item = {
         subject: req.body.subject,
         content: req.body.body,
-        author: posterRef,
+        author: ref(usersCollection, res.locals.iamUser.id),
         latestReply: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -207,17 +180,8 @@ router.post(
         deleted: false,
       } as Post
 
-      postRef = await add(posts, item)
+      await add(posts, item)
     }
-
-    // const postsCollection = postCollection(postRef)
-
-    // await add(postsCollection, {
-    //   author: posterRef,
-    //   body: req.body.body,
-    //   createdAt: new Date(),
-    //   deleted: false,
-    // })
 
     res.sendStatus(204)
   }
