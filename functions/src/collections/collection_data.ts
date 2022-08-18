@@ -24,15 +24,7 @@ export async function getOrCreateDefaultCollection(uid: string,
     where("key", "==", DEFAULT_COLLECTION_KEY),
     where("type", "==", type),
     limit(1),
-  ]).then(async (results) => {
-    if (results.length > 0) {
-      const item = results[0].data
-      item.id = results[0].ref.id
-
-      return item
-    }
-    return null
-  })
+  ]).then(itemOrNull)
 
   if (collection == null) {
     collection = {
@@ -49,23 +41,16 @@ export async function getOrCreateDefaultCollection(uid: string,
 export async function getCollection(uid: string, gid: string, cid: string): Promise<Collection | null> {
   const userCollections = collectionCollection([uid, gid])
   const itemRef = ref(userCollections, cid)
-  return getBoardByRef(itemRef)
+  return getCollectionByRef(itemRef)
 }
 
-export async function getBoardByRef(itemRef: Ref<Collection>): Promise<Collection | null> {
-  return get(itemRef).then(async (snapshot) => {
-    if (snapshot != null) {
-      const item = snapshot.data
-      item.id = snapshot.ref.id
-      return item
-    }
-    return null
-  })
+export async function getCollectionByRef(itemRef: Ref<Collection>): Promise<Collection | null> {
+  return get(itemRef).then(itemOrNull)
 }
 
 export async function getCollectionByRefString(refId: string): Promise<Collection | null> {
   const itemRef = pathToRef<Collection>(refId)
-  return getBoardByRef(itemRef)
+  return getCollectionByRef(itemRef)
 }
 
 export async function updateCollection(uid: string, gid: string, collection: Collection): Promise<void> {

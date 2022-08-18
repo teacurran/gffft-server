@@ -6,7 +6,7 @@ import {Gffft} from "./gffft_models"
 import {User} from "../users/user_models"
 import {getUser} from "../users/user_data"
 
-describe("Users", function() {
+describe("gffft_data", function() {
   let gffft: Gffft
   let uid1: string
   let user1: User

@@ -251,7 +251,7 @@ export async function createGffft(uid: string, gffft: Gffft, initialHandle: stri
   const gfffts = gffftsCollection(ref(usersCollection, uid))
 
   const board: Board = await getOrCreateDefaultBoard(uid, gid)
-  const userBoards = boardsCollection([uid, gid])
+  const userBoards = boardsCollection(ref(gfffts, gid))
   const boardRef = getRefPath(ref(userBoards, board.id))
   features.push(boardRef)
 

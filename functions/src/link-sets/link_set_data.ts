@@ -49,14 +49,7 @@ export async function getOrCreateDefaultLinkSet(uid: string, gid: string): Promi
   let linkSet = await query(linkSets, [
     where("key", "==", DEFAULT_LINK_SET_KEY),
     limit(1),
-  ]).then((results) => {
-    if (results.length > 0) {
-      const value = results[0].data
-      value.id = results[0].ref.id
-      return value
-    }
-    return null
-  })
+  ]).then(itemOrNull)
 
   if (linkSet == null) {
     linkSet = {

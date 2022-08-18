@@ -7,6 +7,7 @@ import {Gffft} from "../gfffts/gffft_models"
 import {itemOrNull} from "../common/data"
 import {Link} from "../link-sets/link_set_models"
 import {getLinkByRef} from "../link-sets/link_set_data"
+import {usersCollection} from "../users/user_data"
 
 const DEFAULT_BOARD_KEY = "default"
 const DEFAULT_BOARD_NAME = "board"
@@ -21,30 +22,19 @@ export const threadPostsCollection = subcollection<ThreadPost, Thread, Board,
 
 /**
  * gets or creates the default board for a user
- * @param {string} userId
- * @param {string} gffftId
+ * @param {string} uid
+ * @param {string} gid
  * @return {Promise<Board>}
  */
-export async function getOrCreateDefaultBoard(userId: string, gffftId: string): Promise<Board> {
-  const userBoards = boardsCollection([userId, gffftId])
+export async function getOrCreateDefaultBoard(uid: string, gid: string): Promise<Board> {
+  const userRef = ref(usersCollection, uid)
+  const gffftRef = ref(gffftsCollection(userRef), gid)
+  const userBoards = boardsCollection(gffftRef)
 
   let board = await query(userBoards, [
     where("key", "==", DEFAULT_BOARD_KEY),
     limit(1),
-  ]).then(async (results) => {
-    if (results.length > 0) {
-      const item = results[0].data
-      item.id = results[0].ref.id
-
-      // upgrading old data
-      if (!item.name) {
-        item.name = DEFAULT_BOARD_NAME
-        await updateBoard(userId, gffftId, item)
-      }
-      return item
-    }
-    return null
-  })
+  ]).then(itemOrNull)
 
   if (board == null) {
     board = {

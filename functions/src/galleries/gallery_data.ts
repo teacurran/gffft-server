@@ -5,6 +5,7 @@ import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
 import {getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
+import {itemOrNull} from "../common/data"
 
 const DEFAULT_BOARD_KEY = "default"
 
@@ -25,14 +26,7 @@ export async function getOrCreateDefaultGallery(uid: string, gid: string): Promi
   let gallery = await query(galleries, [
     where("key", "==", DEFAULT_BOARD_KEY),
     limit(1),
-  ]).then((results) => {
-    if (results.length > 0) {
-      const value = results[0].data
-      value.id = results[0].ref.id
-      return value
-    }
-    return null
-  })
+  ]).then(itemOrNull)
 
   if (gallery == null) {
     gallery = {
@@ -61,14 +55,7 @@ export async function getGallery(uid: string, gid: string, mid: string): Promise
 }
 
 export async function getGalleryByRef(itemRef: Ref<Gallery>): Promise<Gallery | null> {
-  return get(itemRef).then(async (snapshot) => {
-    if (snapshot != null) {
-      const data = snapshot.data
-      data.id = snapshot.ref.id
-      return data
-    }
-    return null
-  })
+  return get(itemRef).then(itemOrNull)
 }
 
 export async function getGalleryByRefString(refId: string): Promise<Gallery | null> {
