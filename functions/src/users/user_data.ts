@@ -11,15 +11,51 @@ export const COLLECTION_USERS = "users"
 export const COLLECTION_ADJECTIVES = "username_adjectives"
 export const COLLECTION_NOUNS = "username_nouns"
 export const COLLECTION_VERBS = "username_verbs"
+export const COLLECTION_BOOKMARKS = "bookmarks"
 
 export const usersCollection = collection<User>(COLLECTION_USERS)
-export const bookmarksCollection = subcollection<UserBookmark, User>("bookmarks", usersCollection)
+export const bookmarksCollection = subcollection<UserBookmark, User>(COLLECTION_BOOKMARKS, usersCollection)
 
+export const addAdjective = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_ADJECTIVES, value)
+}
+
+export const addNoun = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_NOUNS, value)
+}
+
+export const addVerb = async (value: string): Promise<WriteResult | string> => {
+  return addToCollection(COLLECTION_VERBS, value)
+}
+
+export async function createBookmark(uid: string, gid: string, memberId: string): Promise<UserBookmark> {
+  const gc = gffftsCollection(ref(usersCollection, uid))
+  const gffftRef = ref(gc, gid)
+  const gffft = await getGffft(uid, gid)
+
+  // don't confuse memberId with uid (uid is always gffft creator)
+  const bc = bookmarksCollection(memberId)
+  const bookmarkRef = ref(bc, gid)
+
+  return get(bookmarkRef).then(async (snapshot) => {
+    if (snapshot != null) {
+      return snapshot.data
+    } else {
+      const bookmark = {
+        name: gffft?.name,
+        gffftRef: gffftRef,
+        createdAt: new Date(),
+      } as UserBookmark
+      await upset(bookmarkRef, bookmark)
+      return bookmark
+    }
+  })
+}
 
 /**
- * Gets a user from firestore if already exists
+ * Gets or creates a user for a given id
  * @param {string} userId user to look up
- * @return {IIAMUserType}
+ * @return {Promise<User>}
  */
 export async function getUser(userId: string): Promise<User> {
   let user = await get(usersCollection, userId).then((snapshot) => itemOrNull(snapshot))
@@ -34,18 +70,6 @@ export async function getUser(userId: string): Promise<User> {
   }
 
   return user
-}
-
-export const addAdjective = async (value: string): Promise<WriteResult | string> => {
-  return addToCollection(COLLECTION_ADJECTIVES, value)
-}
-
-export const addNoun = async (value: string): Promise<WriteResult | string> => {
-  return addToCollection(COLLECTION_NOUNS, value)
-}
-
-export const addVerb = async (value: string): Promise<WriteResult | string> => {
-  return addToCollection(COLLECTION_VERBS, value)
 }
 
 export async function getUserBookmarks(uid: string): Promise<UserBookmark[]> {
@@ -121,31 +145,6 @@ export async function getBookmark(uid: string, gid: string, memberId: string): P
 
   return get(bookmarkRef).then((snapshot) => {
     return itemOrUndefined(snapshot)
-  })
-}
-
-
-export async function createBookmark(uid: string, gid: string, memberId: string): Promise<UserBookmark> {
-  const gc = gffftsCollection(ref(usersCollection, uid))
-  const gffftRef = ref(gc, gid)
-  const gffft = await getGffft(uid, gid)
-
-  // don't confuse memberId with uid (uid is always gffft creator)
-  const bc = bookmarksCollection(memberId)
-  const bookmarkRef = ref(bc, gid)
-
-  return get(bookmarkRef).then(async (snapshot) => {
-    if (snapshot != null) {
-      return snapshot.data
-    } else {
-      const bookmark = {
-        name: gffft?.name,
-        gffftRef: gffftRef,
-        createdAt: new Date(),
-      } as UserBookmark
-      await upset(bookmarkRef, bookmark)
-      return bookmark
-    }
   })
 }
 

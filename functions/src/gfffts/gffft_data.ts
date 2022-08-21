@@ -1,7 +1,8 @@
 import {query, subcollection, where, limit, upset, group, order, Query,
   startAfter, get, ref, pathToRef, remove, getRefPath, Ref, id, set, value} from "typesaurus"
 import {Gffft, GffftMember, HydratedGffft, TYPE_ANON, TYPE_MEMBER,
-  TYPE_OWNER, GffftAdminCountUpset, GffftAnonCountUpset, GffftMemberCountUpset, GffftOwnerCountUpset, GffftStats, TYPE_ADMIN,
+  TYPE_OWNER, GffftAdminCountUpset, GffftAnonCountUpset, GffftMemberCountUpset,
+  GffftOwnerCountUpset, GffftStats, TYPE_ADMIN,
 } from "./gffft_models"
 import {HydratedUser, User, UserBookmark} from "../users/user_models"
 import {itemOrNull} from "../common/data"
