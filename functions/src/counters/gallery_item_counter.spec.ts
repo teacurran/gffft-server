@@ -84,7 +84,7 @@ describe("gallery_item_counter", function() {
       await wrappedGalleryItemCounter(changeEvent, eventParams)
 
       expect((await getOrCreateDefaultGallery(uid1, gid)).photoCount).to.equal(2)
-    }).timeout(5000)
+    })
 
     it("handles update", async function() {
       const eventParams = {
@@ -105,7 +105,7 @@ describe("gallery_item_counter", function() {
       await wrappedGalleryItemCounter(changeEvent, eventParams)
 
       expect((await getOrCreateDefaultGallery(uid1, gid)).photoCount).to.equal(2)
-    }).timeout(5000)
+    })
 
     it("handles delete", async function() {
       const eventParams = {
@@ -126,7 +126,28 @@ describe("gallery_item_counter", function() {
       await wrappedGalleryItemCounter(changeEvent, eventParams)
 
       expect((await getOrCreateDefaultGallery(uid1, gid)).photoCount).to.equal(1)
-    }).timeout(5000)
+    })
+
+    it("neither before nor after exists", async function() {
+      const eventParams = {
+        params: {
+          uid: uid1,
+          gid: gid,
+          mid: gallery.id,
+          iid: iid,
+        },
+      } as EventContextOptions
+
+      expect((await getOrCreateDefaultGallery(uid1, gid)).photoCount).to.equal(1)
+
+      const changeEvent = {
+        before: nonExistantSnapshot,
+        after: nonExistantSnapshot,
+      } as Change<DocumentSnapshot>
+      await wrappedGalleryItemCounter(changeEvent, eventParams)
+
+      expect((await getOrCreateDefaultGallery(uid1, gid)).photoCount).to.equal(1)
+    })
   })
 })
 

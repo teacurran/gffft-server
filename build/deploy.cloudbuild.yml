@@ -4,14 +4,14 @@ steps:
     entrypoint: "bash"
     args:
       - -c
-      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose || exit 0
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest || exit 0
 
   - name: "gcr.io/cloud-builders/docker"
     id: 'pull firebase cache'
     entrypoint: "bash"
     args:
       - -c
-      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:compose || exit 0
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base || exit 0
 
   - name: "gcr.io/cloud-builders/docker"
     id: "docker build"
@@ -19,8 +19,8 @@ steps:
     args:
       [
         "build",
-        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose",
-        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose",
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest",
         "-t", "gffft-api",
         "--file", "./functions/Dockerfile",
         "./functions",
@@ -29,7 +29,7 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     id: "docker push"
     waitFor: ['docker build']
-    args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:compose"]
+    args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest"]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "docker build firebase"
@@ -37,8 +37,8 @@ steps:
     args:
       [
         "build",
-        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:compose",
-        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:compose",
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest",
         "-t", "gffft-firebase-emulator",
         "--file", "./firebase-emulator/Dockerfile",
         "./",
@@ -47,7 +47,7 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     id: "docker push firebase"
     waitFor: ['docker build firebase']
-    args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:compose"]
+    args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest"]
 
   - name: 'docker/compose:1.29.2'
     id: 'check build'
