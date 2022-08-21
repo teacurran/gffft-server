@@ -82,18 +82,18 @@ steps:
     secretEnv: ['SONAR_TOKEN']
 
   # Check linting
-  - name: 'docker/compose:1.27.4'
-    id: 'lint check'
-    args: [ 'run','api','npm','run','lint' ]
-    env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
+  # - name: 'docker/compose:1.27.4'0
+  #   id: 'lint check'
+  #   args: [ 'run','api','npm','run','lint' ]
+  #   env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
 
   - name: 'gcr.io/cloud-builders/npm'
     args: ['install']
     dir: 'functions'
 
-  - name: 'gcr.io/cloud-builders/npm'
-    args: ['run', 'build']
-    dir: 'functions'
+  # - name: 'gcr.io/cloud-builders/npm'
+  #   args: ['run', 'build']
+  #   dir: 'functions'
 
   #  - name: 'gcr.io/cloud-builders/npm'
   #    args: ['test']
