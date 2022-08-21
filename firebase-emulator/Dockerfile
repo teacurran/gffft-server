@@ -1,4 +1,4 @@
-FROM us-central1-docker.pkg.dev/gffft-auth/gffft/gffft-firebase-emulator:compose
+FROM us-central1-docker.pkg.dev/gffft-auth/gffft/gffft-firebase-emulator:base
 
 # Install app dependencies
 COPY ./functions/package.json ./functions/package-lock.json ./

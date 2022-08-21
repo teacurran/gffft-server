@@ -11,7 +11,7 @@ steps:
     entrypoint: "bash"
     args:
       - -c
-      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base || exit 0
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest || exit 0
 
   - name: "gcr.io/cloud-builders/docker"
     id: "docker build"
