@@ -1,34 +1,8 @@
 
-import {all, field, get, ref, Ref, update, upset, value} from "typesaurus"
+import {all, field, get, ref, update, value} from "typesaurus"
 import {LoggedInUser} from "../accounts/auth"
 import {gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
-import {GffftAdminCountUpset, GffftAnonCountUpset, GffftMemberCountUpset, GffftOwnerCountUpset, GffftStats,
-} from "../gfffts/gffft_models"
 import {usersCollection} from "../users/user_data"
-
-
-export async function updateCounter(ref: Ref<GffftStats>, type: string, changeValue: number): Promise<void> {
-  switch (type) {
-  case "owner":
-    return upset<GffftOwnerCountUpset>(ref, {
-      ownerCount: value("increment", changeValue),
-    })
-  case "admin":
-    return upset<GffftAdminCountUpset>(ref, {
-      adminCount: value("increment", changeValue),
-    })
-  case "member":
-    return upset<GffftMemberCountUpset>(ref, {
-      memberCount: value("increment", changeValue),
-    })
-  case "anon":
-    return upset<GffftAnonCountUpset>(ref, {
-      anonCount: value("increment", changeValue),
-    })
-  default:
-    break
-  }
-}
 
 type CounterName = "galleryPhotos" | "galleryVideos" | "boardThreads" | "boardPosts" | "linkSetItems";
 export async function incrementMemberCounter(counterName: CounterName, uid: string, gid: string): Promise<void> {

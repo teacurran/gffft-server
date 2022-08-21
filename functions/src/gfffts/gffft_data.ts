@@ -1,6 +1,8 @@
 import {query, subcollection, where, limit, upset, group, order, Query,
-  startAfter, get, ref, pathToRef, remove, getRefPath, Ref, id, set} from "typesaurus"
-import {Gffft, GffftMember, GffftStats, HydratedGffft, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "./gffft_models"
+  startAfter, get, ref, pathToRef, remove, getRefPath, Ref, id, set, value} from "typesaurus"
+import {Gffft, GffftMember, HydratedGffft, TYPE_ANON, TYPE_MEMBER,
+  TYPE_OWNER, GffftAdminCountUpset, GffftAnonCountUpset, GffftMemberCountUpset, GffftOwnerCountUpset, GffftStats, TYPE_ADMIN,
+} from "./gffft_models"
 import {HydratedUser, User, UserBookmark} from "../users/user_models"
 import {itemOrNull} from "../common/data"
 import {getBookmark, getUser, usersCollection} from "../users/user_data"
@@ -379,12 +381,64 @@ export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promi
   return upset<Gffft>(gffftRef, gffft)
 }
 
+export async function updateCounter(ref: Ref<GffftStats>, type: string, changeValue: number): Promise<void> {
+  switch (type) {
+  case TYPE_OWNER:
+    return upset<GffftOwnerCountUpset>(ref, {
+      ownerCount: value("increment", changeValue),
+    })
+  case TYPE_ADMIN:
+    return upset<GffftAdminCountUpset>(ref, {
+      adminCount: value("increment", changeValue),
+    })
+  case TYPE_MEMBER:
+    return upset<GffftMemberCountUpset>(ref, {
+      memberCount: value("increment", changeValue),
+    })
+  case TYPE_ANON:
+    return upset<GffftAnonCountUpset>(ref, {
+      anonCount: value("increment", changeValue),
+    })
+  default:
+    break
+  }
+}
+
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
   console.log(`looking for gffft:${gid} uid:${uid}`)
   const userGfffts = gffftsCollection(uid)
   const gffftRef = ref(userGfffts, gid)
 
   return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
+}
+
+export function getGffftStatsRef(uid: string, gid: string, key: string): Ref<GffftStats> {
+  const userGfffts = gffftsCollection(ref(usersCollection, uid))
+  const gffftRef = ref(userGfffts, gid)
+  const gffftStats = gffftsStatsCollection(gffftRef)
+  return ref(gffftStats, key)
+}
+
+export async function getGffftStats(uid: string, gid: string, key: string): Promise<GffftStats> {
+  const statsRef = getGffftStatsRef(uid, gid, key)
+  let stats = await get(statsRef).then((snapshot) => itemOrNull(snapshot))
+  if (!stats) {
+    return Promise.resolve({
+      id: key,
+      ownerCount: 0,
+      adminCount: 0,
+      memberCount: 0,
+      anonCount: 0,
+    })
+  }
+  stats = {
+    id: stats.id,
+    anonCount: stats.anonCount || 0,
+    adminCount: stats.adminCount || 0,
+    memberCount: stats.memberCount || 0,
+    ownerCount: stats.ownerCount || 0,
+  }
+  return stats
 }
 
 export async function getFullGffft(uid: string, gid: string, currentUid?: string): Promise<HydratedGffft | null> {

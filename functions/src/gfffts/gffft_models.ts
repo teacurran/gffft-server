@@ -39,13 +39,11 @@ export interface HydratedGffft extends Gffft {
   linkSets: LinkSet[],
 }
 
-
 export type GffftMemberParams = {
     uid: string
     gid: string
     mid: string
 }
-
 
 export type GffftMemberUpdateCounters = {
   galleryPhotos?: number
@@ -56,16 +54,17 @@ export type GffftMemberUpdateCounters = {
 }
 
 export type GffftMember = {
-    user: Ref<User>
-    type: string
-    updateCounters: GffftMemberUpdateCounters
-    updateCount: number
-    handle?: string
-    createdAt?: Date
-    updatedAt?: Date
-  }
+  user: Ref<User>
+  type: string
+  updateCounters: GffftMemberUpdateCounters
+  updateCount: number
+  handle?: string
+  createdAt?: Date
+  updatedAt?: Date
+}
 
 export type GffftStats = {
+  id: string
   ownerCount: number
   adminCount: number
   memberCount: number

@@ -42,7 +42,7 @@ describe("gffft_data", function() {
       const fruitCodes:string[] = []
       let rareCount = 0
       for (let i = 0; i < 100; i++) {
-        const [code, rareFruits, _] = await getUniqueFruitCode()
+        const [code, rareFruits] = await getUniqueFruitCode()
         if (fruitCodes.includes(code)) {
           throw new Error(`Duplicate code: ${code}`)
         }
