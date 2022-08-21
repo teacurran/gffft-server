@@ -133,6 +133,25 @@ describe("gffftMemberCounter", function() {
       expect((afterStats).ownerCount).to.equal(2)
     })
 
+    it("unknown member type", async function() {
+      const unknownSnapshot = firebaseTest.firestore.makeDocumentSnapshot({
+        type: "doesn't exist",
+      }, memberPath)
+
+      const unknownChange = firebaseTest.makeChange(
+        nonExistantSnapshot,
+        unknownSnapshot,
+      )
+
+      await wrappedFunction(unknownChange, eventParams)
+
+      const afterStats = await getGffftStats(uid, gid, todayKey)
+      expect((afterStats).anonCount).to.equal(10)
+      expect((afterStats).adminCount).to.equal(2)
+      expect((afterStats).memberCount).to.equal(20)
+      expect((afterStats).ownerCount).to.equal(2)
+    })
+
     it("member type didn't change", async function() {
       const typeChange = firebaseTest.makeChange(
         ownerSnapshot,
