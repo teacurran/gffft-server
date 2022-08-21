@@ -89,9 +89,9 @@ export async function getPosts(uid: string,
   const items: HydratedPost[] = []
   return query(posts, queries).then(async (results) => {
     for (const snapshot of results) {
-      const hydratedThread = await hydratePost(uid, gid, cid, snapshot, currentUid)
-      if (hydratedThread != null) {
-        items.push(hydratedThread)
+      const hp = await hydratePost(uid, gid, cid, snapshot, currentUid)
+      if (hp != null) {
+        items.push(hp)
       }
     }
     return items

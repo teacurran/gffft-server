@@ -556,3 +556,4 @@ function getLinkSetPromise(features: IGffftFeatureRef[], feature: string, linkSe
     }
   })
 }
+

@@ -31,13 +31,11 @@ export const galleryItemCounter = functions.firestore
         updatedAt: afterData.createdAt ? afterData.createdAt.toDate() : new Date(),
       })
     } else if (change.before.exists && change.after.exists && beforeData && afterData) {
-      // do nithing for post updates
+      // do nothing for post updates
     } else if (!change.after.exists && beforeData) {
-      if (beforeData.postCount) {
-        return upset<GalleryUpdateCounter>(galleryRef, {
-          photoCount: value("increment", -1),
-        })
-      }
+      return upset<GalleryUpdateCounter>(galleryRef, {
+        photoCount: value("increment", -1),
+      })
     }
     console.log("done")
   })

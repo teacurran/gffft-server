@@ -5,7 +5,8 @@ import {Gffft} from "../gfffts/gffft_models"
 import {MockFirebaseInit} from "../test/auth"
 import {getUser} from "../users/user_data"
 import {User} from "../users/user_models"
-import {getCollection, getCollectionByRef, getCollectionByRefString, getOrCreateDefaultCollection} from "./collection_data"
+import {getCollection, getCollectionByRef, getCollectionByRefString,
+  getOrCreateDefaultCollection} from "./collection_data"
 import {CollectionType, Collection, collectionCollection} from "./collection_models"
 import {ref} from "typesaurus"
 
