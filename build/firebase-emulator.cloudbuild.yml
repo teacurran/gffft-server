@@ -1,0 +1,33 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: 'pull firebase cache'
+    entrypoint: "bash"
+    args:
+      - -c
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base || exit 0
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "docker build firebase"
+    waitFor: ['pull firebase cache']
+    args:
+      [
+        "build",
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base",
+        "-t", "gffft-firebase-emulator",
+        "--file", "./firebase-emulator/base.Dockerfile",
+        "./",
+      ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "docker push firebase"
+    waitFor: ['docker build firebase']
+    args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base"]
+
+timeout: 5000s
+
+images:
+  - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base"
+substitutions:
+  _ARTIFACT_REPO: us-central1-docker.pkg.dev
+
