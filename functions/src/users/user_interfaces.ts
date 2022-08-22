@@ -16,7 +16,7 @@ export interface IUserRef {
 export interface IUserBookmark {
     id: string,
     name: string,
-    gffft?: IGffftMinimalType | undefined
+    gffft?: IGffftMinimalType
     createdAt: Date
 }
 

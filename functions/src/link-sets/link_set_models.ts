@@ -85,8 +85,8 @@ export type LinkSetItem = {
 }
 
 export interface HydratedLinkSetItem extends LinkSetItem {
-    authorUser: HydratedUser | undefined
-    link: Link | undefined
-    thread?: Thread | undefined
+    authorUser?: HydratedUser
+    link?: Link
+    thread?: Thread
 }
 

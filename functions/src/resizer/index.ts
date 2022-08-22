@@ -183,8 +183,7 @@ export const generateResizedImage = functions.storage.object().onFinalize(
         }
 
         const urls: Array<string> = []
-        for (let index = 0; index < results.length; index++) {
-          const item = results[index]
+        for (const item of results) {
           if (item.url) {
             urls.push(item.url)
           }

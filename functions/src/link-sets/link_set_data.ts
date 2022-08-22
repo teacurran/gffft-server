@@ -165,7 +165,6 @@ export async function hydrateLinkSet(uid: string, gid: string, linkSet: LinkSet,
 }
 
 export async function getLink(url: string): Promise<Link | null> {
-  // todo
   // transform URL to make domain case insensitive
   return query(linksCollection, [
     where("url", "==", url),
@@ -265,9 +264,7 @@ export async function getOrCreateLinkCache(linkRef: Ref<Link>, url: string): Pro
 
       const metas = $.querySelectorAll("meta")
 
-      for (let i = 0; i < metas.length; i++) {
-        const el = metas[i]
-
+      for (const el of metas) {
         if (!description) {
           const val = readMT(el, "description")
           if (val) {
@@ -292,8 +289,7 @@ export async function getOrCreateLinkCache(linkRef: Ref<Link>, url: string): Pro
 
       const imgs = $.getElementsByTagName("img")
       if (imgs.length > 0) {
-        for (let i = 0; i < imgs.length; i++) {
-          const img = imgs[i]
+        for (const img of imgs) {
           const imgSrc = img?.getAttribute("src")
 
           if (imgSrc != null && imgSrc != "") {
@@ -314,7 +310,6 @@ export async function getOrCreateLinkCache(linkRef: Ref<Link>, url: string): Pro
       }
     }
 
-    // todo, html body, request info to storage
     // might as well look into downloading + writing other things (images, css, js, etc...)
     // const itemId = uuid()
   } else {

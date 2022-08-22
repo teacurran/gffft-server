@@ -170,7 +170,7 @@ describe("Users", function() {
     const userId2 = "cb-test-uid4"
     let gffft: Gffft
 
-    const actorId = "getUserBookMarks-actorId"
+    const actorId = uuid()
 
     before(async function() {
       gffft = await createGffft(uid1, {
@@ -193,6 +193,11 @@ describe("Users", function() {
 
       const bookmarks = await getUserBookmarks(actorId)
       expect(bookmarks).to.not.be.empty
+
+      bookmarks.forEach((b) => {
+        console.log(`bookmark: ${JSON.stringify(b)}`)
+      })
+
       expect(bookmarks.length).to.eq(2)
 
       bookmarks.forEach((b) => {

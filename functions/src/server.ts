@@ -23,7 +23,7 @@ async function start() {
 
   app.disable("x-powered-by")
 
-  // TODO: restrict for prod
+  // restrict for prod
   const corsOptions: cors.CorsOptions = {
     origin: true,
   }

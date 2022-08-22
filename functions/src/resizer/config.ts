@@ -22,19 +22,6 @@ export enum deleteImage {
   onSuccess,
 }
 
-// function deleteOriginalFile(deleteType: string | undefined) {
-//   switch (deleteType) {
-//   case "true":
-//     return deleteImage.always
-//   case "false":
-//     return deleteImage.never
-//   case "onsuccess":
-//     return deleteImage.onSuccess
-//   default:
-//     return deleteImage.never
-//   }
-// }
-
 function paramToArray(param: string | undefined): string[] | undefined {
   return typeof param === "string" ? param.split(",") : undefined
 }
