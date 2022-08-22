@@ -37,18 +37,17 @@ export async function createBookmark(uid: string, gid: string, memberId: string)
   const bc = bookmarksCollection(memberId)
   const bookmarkRef = ref(bc, gid)
 
-  return get(bookmarkRef).then(async (snapshot) => {
-    if (snapshot != null) {
-      return snapshot.data
-    } else {
-      const bookmark = {
-        name: gffft?.name,
-        gffftRef: gffftRef,
-        createdAt: new Date(),
-      } as UserBookmark
-      await upset(bookmarkRef, bookmark)
-      return bookmark
+  return getBookmark(uid, gid, memberId).then(async (bm) => {
+    if (bm != null) {
+      return bm
     }
+    const bookmark = {
+      name: gffft?.name,
+      gffftRef: gffftRef,
+      createdAt: new Date(),
+    } as UserBookmark
+    await upset(bookmarkRef, bookmark)
+    return bookmark
   })
 }
 
@@ -142,17 +141,13 @@ export async function getHydratedUserBookmarks(memberId: string): Promise<Hydrat
 export async function getBookmark(uid: string, gid: string, memberId: string): Promise<UserBookmark|undefined> {
   const bc = bookmarksCollection(memberId)
   const bookmarkRef = ref(bc, gid)
-
-  return get(bookmarkRef).then((snapshot) => {
-    return itemOrUndefined(snapshot)
-  })
+  return get(bookmarkRef).then(itemOrUndefined)
 }
 
 export async function deleteBookmark(gid: string, memberId: string): Promise<void> {
   // don't confuse memberId with uid (uid is always gffft creator)
   const bc = bookmarksCollection(memberId)
   const bookmarkRef = ref(bc, gid)
-
   return remove(bookmarkRef)
 }
 

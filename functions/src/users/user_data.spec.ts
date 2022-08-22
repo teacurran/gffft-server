@@ -1,7 +1,8 @@
 import "mocha"
 import {MockFirebaseInit} from "../test/auth"
 import {addAdjective, addNoun, addVerb, COLLECTION_ADJECTIVES, COLLECTION_BOOKMARKS,
-  COLLECTION_NOUNS, COLLECTION_USERS, createBookmark, exportedForTesting, getUser} from "./user_data"
+  COLLECTION_NOUNS, COLLECTION_USERS, createBookmark, deleteBookmark,
+  exportedForTesting, getUser, getUserBookmarks} from "./user_data"
 import {WriteResult} from "@google-cloud/firestore"
 import {assert, expect} from "chai"
 import * as firebaseAdmin from "firebase-admin"
@@ -9,6 +10,7 @@ import {uuid} from "uuidv4"
 import {createGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {UserBookmark} from "../users/user_models"
+import firebaseFunctionsTest from "firebase-functions-test"
 
 const {addToCollection} = exportedForTesting
 
@@ -19,6 +21,9 @@ describe("Users", function() {
   before(async function() {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
+
+    const firebaseTest = firebaseFunctionsTest()
+    firebaseTest.firestore.clearFirestoreData({projectId: "gfffft-auth"})
   })
 
   describe("addToCollection", function() {
@@ -126,6 +131,19 @@ describe("Users", function() {
 
       expect(b2.name).to.eq(gffft.name)
     })
+
+    it("will create not set name for an unknown bookmark", async function() {
+      const nonExistantGffftId = "non-existant-gffft"
+      await createBookmark(uid, nonExistantGffftId, uid2)
+
+      const b2Query = await firestore.collection(COLLECTION_USERS).doc(uid2)
+        .collection(COLLECTION_BOOKMARKS).doc(nonExistantGffftId).get()
+      expect(b2Query.exists).to.be.true
+
+      const b2 = b2Query.data() as UserBookmark
+
+      expect(b2.name).to.be.null
+    })
   })
 
   describe("getUser", function() {
@@ -141,6 +159,75 @@ describe("Users", function() {
       firestore.collection(COLLECTION_USERS).doc(userId).get().then((doc) => {
         expect(doc.exists).to.not.be.false
       })
+    })
+  })
+
+  describe("getUserBookmarks", function() {
+    const uid1 = "cb-test-uid"
+    const uid2 = "cb-test-uid2"
+
+    const gid2 = "cb-test-gid2"
+    const userId2 = "cb-test-uid4"
+    let gffft: Gffft
+
+    const actorId = "getUserBookMarks-actorId"
+
+    before(async function() {
+      gffft = await createGffft(uid1, {
+        id: "1234",
+        key: "",
+        name: "Some random name",
+        nameLower: "",
+        enabled: false,
+        allowMembers: false,
+        requireApproval: false,
+        enableAltHandles: false,
+      }, "sysop")
+    })
+
+    it("will create a bookmark for a user", async function() {
+      await createBookmark(uid1, gffft.id, actorId)
+      await createBookmark(uid2, gid2, actorId)
+      await createBookmark(uid1, gffft.id, userId2)
+      await createBookmark(uid2, gid2, userId2)
+
+      const bookmarks = await getUserBookmarks(actorId)
+      expect(bookmarks).to.not.be.empty
+      expect(bookmarks.length).to.eq(2)
+
+      bookmarks.forEach((b) => {
+        if (b.id == gffft.id) {
+          expect(b.name).to.eq(gffft.name)
+        } else {
+          expect(b.name).to.be.null
+        }
+      })
+    })
+  })
+
+  describe("deleteBookmark", function() {
+    const uid1 = "cb-test-uid"
+    const uid2 = "cb-test-uid2"
+    const gid1 = "cb-test-gid1"
+
+    const gid2 = "cb-test-gid2"
+    const userId2 = "cb-test-uid4"
+    const actorId = "deleteBookmarkActor"
+
+    it("will create a bookmark for a user", async function() {
+      await createBookmark(uid1, gid1, actorId)
+      await createBookmark(uid2, gid2, actorId)
+      await createBookmark(uid1, uid2, userId2)
+      await createBookmark(uid2, gid2, userId2)
+
+      const bookmarks = await getUserBookmarks(actorId)
+      expect(bookmarks).to.not.be.empty
+      expect(bookmarks.length).to.eq(2)
+
+      await deleteBookmark(gid1, actorId)
+      const bookmarks2 = await getUserBookmarks(actorId)
+      expect(bookmarks2).to.not.be.empty
+      expect(bookmarks2.length).to.eq(1)
     })
   })
 })
