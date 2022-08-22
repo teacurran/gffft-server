@@ -1,5 +1,5 @@
 import "mocha"
-import {checkGffftHandle, createGffft, getUniqueFruitCode} from "./gffft_data"
+import {checkGffftHandle, createGffft, createGffftMembership, getUniqueFruitCode} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft} from "./gffft_models"
@@ -13,6 +13,7 @@ describe("gffft_data", function() {
   let uid2: string
   let user2: User
   let user1Handle: string
+  let user2Handle: string
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
@@ -64,5 +65,32 @@ describe("gffft_data", function() {
       const result = await checkGffftHandle(user1.id, gffft.id, user1.id, user1Handle)
       expect(result).to.be.false
     }).timeout(5000)
+  })
+
+  describe("createGffftMembership", function() {
+    user2Handle = "peaches"
+
+    it("creates membership", async function() {
+      const membership = await createGffftMembership(user1.id, gffft.id, user2.id, user2Handle)
+      expect(membership).to.not.be.null
+      const updatedAt = membership.updatedAt
+      await new Promise((r) => setTimeout(r, 1000))
+
+      const m2 = await createGffftMembership(user1.id, gffft.id, user2.id, user2Handle)
+      expect(m2).to.not.be.null
+      expect(m2.updatedAt).to.eql(updatedAt)
+    })
+
+    it("lets users update their handle", async function() {
+      const user2HandleUpdated = "grapefruit"
+      const membership = await createGffftMembership(user1.id, gffft.id, user2.id, user2Handle)
+      expect(membership).to.not.be.null
+      const updatedAt = membership.updatedAt
+      await new Promise((r) => setTimeout(r, 1000))
+
+      const m2 = await createGffftMembership(user1.id, gffft.id, user2.id, user2HandleUpdated)
+      expect(m2).to.not.be.null
+      expect(m2.updatedAt).to.not.eql(updatedAt)
+    })
   })
 })

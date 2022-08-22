@@ -131,12 +131,6 @@ export async function createGffftMembership(uid: string,
       needsUpdate = true
     }
 
-    if (member.type == TYPE_ANON) {
-      member.type = TYPE_MEMBER
-      member.updatedAt = new Date()
-      needsUpdate = true
-    }
-
     if (member.handle != handle) {
       member.handle = handle ? handle : undefined
       member.updatedAt = new Date()
