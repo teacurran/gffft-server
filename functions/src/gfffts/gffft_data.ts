@@ -90,12 +90,7 @@ export async function checkGffftHandle(uid: string,
   const membership = await query(gffftMembers, [
     where("handle", "==", handle),
     limit(1),
-  ]).then((results) => {
-    if (results.length > 0) {
-      return results[0].data
-    }
-    return null
-  })
+  ]).then(itemOrNull)
 
   if (membership) {
     if (getRefPath(membership.user) == getRefPath(memberRef)) {
@@ -128,6 +123,13 @@ export async function createGffftMembership(uid: string,
         createdAt: new Date(),
         updatedAt: new Date(),
       } as GffftMember
+      needsUpdate = true
+    }
+
+    if (member.type == TYPE_ANON) {
+      member.type = TYPE_MEMBER
+      member.handle = handle ? handle : undefined
+      member.updatedAt = new Date()
       needsUpdate = true
     }
 
@@ -185,7 +187,7 @@ export async function getOrCreateGffftMembership(
   memberId: string): Promise<GffftMember> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const memberRef = ref(gffftMembers, memberId)
-  return get(memberRef).then((snapshot) => {
+  return get(memberRef).then(async (snapshot) => {
     let member: GffftMember
     if (snapshot != null) {
       member = snapshot.data
@@ -197,6 +199,7 @@ export async function getOrCreateGffftMembership(
         createdAt: new Date(),
         updatedAt: new Date(),
       } as GffftMember
+      await upset(memberRef, member)
     }
 
     return member
@@ -275,27 +278,7 @@ export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
   return query(userGfffts, [
     where("key", "==", DEFAULT_GFFFT_KEY),
     limit(1),
-  ]).then(async (results) => {
-    if (results.length > 0) {
-      const gffft = results[0].data
-      gffft.id = results[0].ref.id
-
-      // below this are hacks to upgrade data as I've changed my mind about it.
-      if (!gffft.fruitCode || gffft.fruitCode.length < FRUIT_CODE_LENGTH) {
-        [gffft.fruitCode,
-          gffft.rareFruits,
-          gffft.ultraRareFruits] = await getUniqueFruitCode()
-        await updateGffft(userId, gffft.id, gffft)
-      }
-      if (!gffft.uid) {
-        gffft.uid = userId
-        await updateGffft(userId, gffft.id, gffft)
-      }
-      // await ensureOwnership(gffft, userId)
-      return gffft
-    }
-    return null
-  })
+  ]).then(itemOrNull)
 }
 
 export async function getGfffts(offset?: string, maxResults = 20, q?: string, memberId?: string): Promise<Gffft[]> {

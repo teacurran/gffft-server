@@ -6,7 +6,7 @@ CMD_ARGUMENTS ?= $(cmd)
 build:
 	# Stop existing images, and build all images in parallel
 	docker-compose down --remove-orphans
-	docker-compose build --parallel
+	docker-compose build
 
 start:
 	COMPOSE_HTTP_TIMEOUT=200 docker-compose up --remove-orphans
@@ -21,7 +21,7 @@ test-api:
 	docker-compose -f docker-compose.yml -f docker-compose.test.yml up --exit-code-from api-integration-test api-integration-test
 
 rebuild:
-	docker-compose build --no-cache --parallel
+	docker-compose build --no-cache
 
 rebuild-test:
 	docker-compose -f docker-compose.yml -f docker-compose.test.yml build api-integration-test

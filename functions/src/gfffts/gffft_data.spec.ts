@@ -1,8 +1,8 @@
 import "mocha"
-import {checkGffftHandle, createGffft, createGffftMembership, getUniqueFruitCode} from "./gffft_data"
+import {checkGffftHandle, createGffft, createGffftMembership, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
-import {Gffft} from "./gffft_models"
+import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {getUser} from "../users/user_data"
 
@@ -93,4 +93,34 @@ describe("gffft_data", function() {
       expect(m2.updatedAt).to.not.eql(updatedAt)
     })
   })
+
+  describe("getOrCreateGffftMembership", function() {
+    it("creates anonymous membership", async function() {
+      const user3Id = "test-uid-3"
+      const membership = await getOrCreateGffftMembership(user1.id, gffft.id, user3Id)
+      expect(membership).to.not.be.null
+      const updatedAt = membership.updatedAt
+      await new Promise((r) => setTimeout(r, 1000))
+
+      const m2 = await getOrCreateGffftMembership(user1.id, gffft.id, user3Id)
+      expect(m2).to.not.be.null
+      expect(m2.type).to.eql(TYPE_ANON)
+      expect(m2.updatedAt).to.eql(updatedAt)
+    })
+
+    it("upgrades anonymous users to members", async function() {
+      const user4Id = "test-uid-4"
+
+      const membership = await getOrCreateGffftMembership(user1.id, gffft.id, user4Id)
+      expect(membership).to.not.be.null
+      const updatedAt = membership.updatedAt
+      await new Promise((r) => setTimeout(r, 1000))
+
+      const m2 = await createGffftMembership(user1.id, gffft.id, user4Id, "sunflower")
+      expect(m2).to.not.be.null
+      expect(m2.type).to.eql(TYPE_MEMBER)
+      expect(m2.updatedAt).to.not.eql(updatedAt)
+    })
+  })
+
 })

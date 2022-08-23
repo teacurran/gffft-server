@@ -71,21 +71,6 @@ export class MockFirebaseInit {
   private async initializeFirebase() {
     if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
       firebaseAdmin.initializeApp()
-
-      await Promise.all(
-        [MOCK_AUTH_USER, MOCK_AUTH_USER_2].map((mockAuthUser) => {
-          return firebaseAdmin
-            .auth()
-            .createUser({
-              displayName: mockAuthUser.name,
-              email: mockAuthUser.email,
-              uid: mockAuthUser.user_id,
-            })
-            .catch((error) => {
-              console.log(error.message)
-            })
-        })
-      )
     }
     this.initialized = true
     return Promise.resolve()

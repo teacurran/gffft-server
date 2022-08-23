@@ -8,6 +8,8 @@ import {boardsCollection, getBoardByRef, getBoardByRefString, getOrCreateDefault
 import {Board} from "./board_models"
 
 describe("board_data", function() {
+  this.timeout(10000);
+
   let gffft: Gffft
   let uid1: string
   let user1Handle: string
@@ -41,7 +43,7 @@ describe("board_data", function() {
       expect(g2).to.not.be.null
       expect(g2?.id).to.eq(board.id)
       expect(g2?.key).to.eq(board.key)
-    }).timeout(5000)
+    })
   })
 
   describe("getBoardByRefString", function() {
@@ -50,6 +52,6 @@ describe("board_data", function() {
       expect(g2).to.not.be.null
       expect(g2?.id).to.eq(board.id)
       expect(g2?.key).to.eq(board.key)
-    }).timeout(5000)
+    })
   })
 })

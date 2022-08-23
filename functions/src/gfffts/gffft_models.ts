@@ -54,6 +54,7 @@ export type GffftMemberUpdateCounters = {
 }
 
 export type GffftMember = {
+  id?: string
   user: Ref<User>
   type: string
   updateCounters: GffftMemberUpdateCounters

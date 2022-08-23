@@ -14,7 +14,7 @@ import firebaseFunctionsTest from "firebase-functions-test"
 
 const {addToCollection} = exportedForTesting
 
-describe("Users", function() {
+describe("users_data", function() {
   const TEST_COLLECTION = "test-collection"
   let firestore: firebaseAdmin.firestore.Firestore
 

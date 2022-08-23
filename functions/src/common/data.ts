@@ -1,7 +1,7 @@
 import {Doc} from "typesaurus"
 
 export interface ItemWithId {
-    id: string
+    id?: string
 }
 
 export const itemOrNull = <T extends ItemWithId>(snapshot: Doc<T> | Doc<T>[] | null): T | null => {
