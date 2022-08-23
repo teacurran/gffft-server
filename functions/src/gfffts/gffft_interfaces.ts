@@ -67,7 +67,6 @@ export interface IGffftPutType {
     requireApproval: boolean
     enableAltHandles: boolean
     boardEnabled: boolean
-    calendarEnabled: boolean
     galleryEnabled: boolean
     notebookEnabled: boolean
   }

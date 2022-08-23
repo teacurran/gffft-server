@@ -14,8 +14,6 @@ import {Gallery} from "../galleries/gallery_models"
 import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 import {Notebook} from "../notebooks/notebook_models"
 import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/notebook_data"
-import {Calendar} from "../calendars/calendar_models"
-import {calendarsCollection, getOrCreateDefaultCalendar} from "../calendars/calendar_data"
 import * as Joi from "joi"
 import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
 
@@ -55,8 +53,6 @@ const gffftListRequestParams = Joi.object({
  *         type: boolean
  *       requireApproval:
  *         type: boolean
- *       calendarEnabled:
- *         type: boolean
  *       notebookEnabled:
  *         type: boolean
  *       boardEnabled:
@@ -76,7 +72,6 @@ const gffftUpdateRequestParams = Joi.object({
   requireApproval: Joi.bool().default(false),
   enableAltHandles: Joi.bool().default(true),
   pagesEnabled: Joi.bool().default(false),
-  calendarEnabled: Joi.bool().default(false),
   notebookEnabled: Joi.bool().default(false),
   boardEnabled: Joi.bool().default(false),
   galleryEnabled: Joi.bool().default(false),
@@ -94,7 +89,6 @@ export interface GffftUpdateRequest extends ValidatedRequestSchema {
     allowMembers: boolean,
     requireApproval: boolean,
     enableAltHandles: boolean,
-    calendarEnabled: boolean,
     notebookEnabled: boolean,
     boardEnabled: boolean,
     galleryEnabled: boolean,
@@ -128,7 +122,6 @@ const gffftPatchRequestParams = Joi.object({
   enabled: Joi.boolean().optional(),
   allowMembers: Joi.boolean().optional(),
   boardEnabled: Joi.boolean().optional(),
-  calendarEnabled: Joi.boolean().optional(),
   galleryEnabled: Joi.boolean().optional(),
   notebookEnabled: Joi.boolean().optional(),
   linkSetEnabled: Joi.boolean().optional(),
@@ -147,7 +140,6 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     enabled?: boolean,
     allowMembers?: boolean,
     boardEnabled?: boolean,
-    calendarEnabled?: boolean,
     galleryEnabled?: boolean,
     notebookEnabled?: boolean,
     linkSetEnabled?: boolean,
@@ -205,20 +197,6 @@ router.patch(
           features.splice(itemIndex, 1)
         }
         if (body.boardEnabled) {
-          features.push(itemRef)
-        }
-      }
-      if (body.calendarEnabled != undefined) {
-        console.log(`got calendar enable:${body.calendarEnabled}`)
-        const calendar: Calendar = await getOrCreateDefaultCalendar(uid, gid)
-        const calendars = calendarsCollection([uid, gid])
-        const itemRef = getRefPath(ref(calendars, calendar.id))
-
-        const itemIndex = features.indexOf(itemRef, 0)
-        if (itemIndex > -1) {
-          features.splice(itemIndex, 1)
-        }
-        if (body.calendarEnabled) {
           features.push(itemRef)
         }
       }
@@ -341,12 +319,6 @@ router.put(
       if (notebook.id) {
         features.push(getRefPath(ref(userNotebooks, notebook.id)))
       }
-    }
-
-    if (item.calendarEnabled) {
-      const calendar: Calendar = await getOrCreateDefaultCalendar(iamUser.id, gffft.id)
-      const userCalendars = calendarsCollection([iamUser.id, gffft.id])
-      features.push(getRefPath(ref(userCalendars, calendar.id)))
     }
 
     gffft.tags = item.tags
