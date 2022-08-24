@@ -18,6 +18,8 @@ import {Notebook} from "../notebooks/notebook_models"
 import {IGffftFeatureRef} from "./gffft_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
 
+export const COLLECTION_GFFFTS = "gfffts"
+
 export const DEFAULT_GFFFT_KEY = "default"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
 const RARE_FRUITS = [..."🍅🫑🍆🥑"]
@@ -171,9 +173,6 @@ export async function getGffftMembership(uid: string, gid: string, memberId?: st
   let snapshot: GffftMember | undefined
   if (memberDoc != null) {
     snapshot = memberDoc.data
-    if (!snapshot.updateCount) {
-      snapshot.updateCount = 0
-    }
     if (cacheContainer) {
       cacheContainer.setItem(cacheKey, snapshot, {ttl: 20})
     }

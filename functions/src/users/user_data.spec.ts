@@ -10,7 +10,6 @@ import {uuid} from "uuidv4"
 import {createGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {UserBookmark} from "../users/user_models"
-import firebaseFunctionsTest from "firebase-functions-test"
 
 const {addToCollection} = exportedForTesting
 
@@ -21,9 +20,6 @@ describe("users_data", function() {
   before(async function() {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
-
-    const firebaseTest = firebaseFunctionsTest()
-    firebaseTest.firestore.clearFirestoreData({projectId: "gfffft-auth"})
   })
 
   describe("addToCollection", function() {

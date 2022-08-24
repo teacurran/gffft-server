@@ -58,7 +58,6 @@ export type GffftMember = {
   user: Ref<User>
   type: string
   updateCounters: GffftMemberUpdateCounters
-  updateCount: number
   handle?: string
   createdAt?: Date
   updatedAt?: Date

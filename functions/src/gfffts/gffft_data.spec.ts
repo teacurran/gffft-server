@@ -1,5 +1,5 @@
 import "mocha"
-import {checkGffftHandle, createGffft, createGffftMembership, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
+import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, getDefaultGffft, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
@@ -18,7 +18,6 @@ describe("gffft_data", function() {
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
-
     uid1 = "test-uid-1"
     user1 = await getUser(uid1)
 
@@ -95,6 +94,28 @@ describe("gffft_data", function() {
     })
   })
 
+  describe("getDefaultGffft", function() {
+    let g1: Gffft
+    let g2: Gffft
+    let g3: Gffft
+    before(async function() {
+      g1 = await factories.gffft.create({uid: user1.id, name: "Deer Park", key: DEFAULT_GFFFT_KEY})
+      g2 = await factories.gffft.create({uid: user1.id, name: "Scorpion Lake", key: "scorpion-lake"})
+      g3 = await factories.gffft.create({uid: user1.id, name: "Taco Grove", key: "taco-grove"})
+    })
+
+    it("gets the default gffft for a user", async function() {
+      expect(g2.id).to.not.eql(g1.id)
+      expect(g3.id).to.not.eql(g1.id)
+
+      const gffft = await getDefaultGffft(user1.id)
+      expect(gffft).to.not.be.null
+      if (gffft) {
+        expect(gffft.id).to.eql(g1.id)
+      }
+    })
+  })
+
   describe("getOrCreateGffftMembership", function() {
     it("creates anonymous membership", async function() {
       const user3Id = "test-uid-3"
@@ -128,7 +149,7 @@ describe("gffft_data", function() {
     let g1: Gffft
     let g2: Gffft
     let g3: Gffft
-    before(async function() {
+    before(async function() {         
       g1 = await factories.gffft.create({name: "Deer Park", fruitCode: "🍑🍒🥥🍇🍋🍌🫐🍊🍎"})
       g2 = await factories.gffft.create({name: "Scorpion Lake", fruitCode: "🫐🥝🍉🍐🥥🥥🥭🍎🍌"})
       g3 = await factories.gffft.create({name: "Taco Grove", fruitCode: "🍎🍉🍒🍎🍏🍑🥥🍋🍊"})
