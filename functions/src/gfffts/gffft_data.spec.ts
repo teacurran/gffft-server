@@ -1,10 +1,11 @@
 import "mocha"
-import {checkGffftHandle, createGffft, createGffftMembership, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
+import {checkGffftHandle, createGffft, createGffftMembership, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {getUser} from "../users/user_data"
+import {factories} from "../test/factories"
 
 describe("gffft_data", function() {
   let gffft: Gffft
@@ -123,4 +124,80 @@ describe("gffft_data", function() {
     })
   })
 
+  describe("getGfffts", function() {
+    let g1: Gffft
+    let g2: Gffft
+    let g3: Gffft
+    before(async function() {
+      g1 = await factories.gffft.create({name: "Deer Park", fruitCode: "🍑🍒🥥🍇🍋🍌🫐🍊🍎"})
+      g2 = await factories.gffft.create({name: "Scorpion Lake", fruitCode: "🫐🥝🍉🍐🥥🥥🥭🍎🍌"})
+      g3 = await factories.gffft.create({name: "Taco Grove", fruitCode: "🍎🍉🍒🍎🍏🍑🥥🍋🍊"})
+    })
+
+    describe("no parameters passed in", function() {
+      it("returns all gfffts", async function() {    
+        const gfffts = await getGfffts()
+        expect(gfffts).to.be.an("array")
+        expect(gfffts.length).to.eql(3)
+
+        expect(gfffts).to.have.deep.members([g1, g2, g3]);
+      })
+    })
+
+    // describe("offset parameter", function() {
+    //   it("returns gfffts after the offset", async function() {
+    //     const gfffts = await getGfffts(g2.id)
+    //     expect(gfffts).to.be.an("array")
+    //     expect(gfffts.length).to.eql(2)
+
+    //     expect(gfffts).to.have.deep.members([g2, g3]);
+    //   })
+    // })
+
+    describe("q parameter", function() {
+      it("searches by name prefix", async function() {    
+        const gfffts = await getGfffts(undefined, 20, "Taco")
+
+        expect(gfffts).to.be.an("array")
+        expect(gfffts.length).to.eql(1)
+
+        expect(gfffts).to.have.deep.members([g3]);
+      })
+
+      it("searches by name suffix", async function() {    
+        const gfffts = await getGfffts(undefined, 20, "Lake")
+
+        expect(gfffts).to.be.an("array")
+
+        // suffix not implemnted
+        expect(gfffts.length).to.eql(0)
+      })
+
+      it("searches by mid-name", async function() {    
+        const gfffts = await getGfffts(undefined, 20, "eer Par")
+
+        expect(gfffts).to.be.an("array")
+
+        // mid-name not implemented
+        expect(gfffts.length).to.eql(0)
+      })
+
+      it("searches by fruit-code", async function() {    
+        const gfffts = await getGfffts(undefined, 20, "🫐🥝🍉🍐🥥🥥🥭🍎🍌")
+
+        expect(gfffts).to.be.an("array")
+        expect(gfffts.length).to.eql(1)
+        expect(gfffts).to.have.deep.members([g2]);
+      })
+
+      it("searches by fruit-code when prefix contains exclamation", async function() {    
+        const gfffts = await getGfffts(undefined, 20, "here is a prefix! 🍎🍉🍒🍎🍏🍑🥥🍋🍊")
+
+        expect(gfffts).to.be.an("array")
+        expect(gfffts.length).to.eql(1)
+        expect(gfffts).to.have.deep.members([g3]);
+      })
+
+    })
+  })
 })

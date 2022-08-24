@@ -16,7 +16,6 @@ export const gffftFactory = Factory.define<IGffftPutType>(() => {
     enableAltHandles: faker.datatype.boolean(),
     requireApproval: faker.datatype.boolean(),
     boardEnabled: faker.datatype.boolean(),
-    calendarEnabled: faker.datatype.boolean(),
     galleryEnabled: faker.datatype.boolean(),
     notebookEnabled: faker.datatype.boolean(),
   }

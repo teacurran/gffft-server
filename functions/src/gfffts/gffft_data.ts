@@ -18,7 +18,7 @@ import {Notebook} from "../notebooks/notebook_models"
 import {IGffftFeatureRef} from "./gffft_interfaces"
 import {getNotebookByRef} from "../notebooks/notebook_data"
 
-const DEFAULT_GFFFT_KEY = "default"
+export const DEFAULT_GFFFT_KEY = "default"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
 const RARE_FRUITS = [..."🍅🫑🍆🥑"]
 const ULTRA_RARE_FRUITS = [..."🥨🐈💾🧀"]
