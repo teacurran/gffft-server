@@ -1,11 +1,12 @@
 import "mocha"
-import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, getDefaultGffft, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
+import {checkGffftHandle, COLLECTION_GFFFTS, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, getDefaultGffft, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {getUser} from "../users/user_data"
 import {factories} from "../test/factories"
+import * as firebaseAdmin from "firebase-admin"
 
 describe("gffft_data", function() {
   let gffft: Gffft
@@ -150,6 +151,16 @@ describe("gffft_data", function() {
     let g2: Gffft
     let g3: Gffft
     before(async function() {         
+    const firestore = firebaseAdmin.firestore()
+
+    await firestore.collection(COLLECTION_GFFFTS)
+      .get().then(async (snapshot) => {
+        snapshot.forEach(async (doc) => {
+          console.log(`deleting gffft: ${doc.ref.id}`)
+          await doc.ref.delete()
+        })
+      })
+ 
       g1 = await factories.gffft.create({name: "Deer Park", fruitCode: "🍑🍒🥥🍇🍋🍌🫐🍊🍎"})
       g2 = await factories.gffft.create({name: "Scorpion Lake", fruitCode: "🫐🥝🍉🍐🥥🥥🥭🍎🍌"})
       g3 = await factories.gffft.create({name: "Taco Grove", fruitCode: "🍎🍉🍒🍎🍏🍑🥥🍋🍊"})
