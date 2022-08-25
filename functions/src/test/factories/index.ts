@@ -1,5 +1,5 @@
-import * as GffftFactory from './gfffts'
+import * as GffftFactory from "./gfffts"
 
 export const factories = {
-    gffft: GffftFactory.default
+  gffft: GffftFactory.default,
 }

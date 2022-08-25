@@ -1,5 +1,5 @@
 import {expect} from "chai"
-import "mocha"
+import {Suite} from "mocha"
 import {createGffft, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {MockFirebaseInit} from "../test/auth"
@@ -7,8 +7,9 @@ import {ref} from "typesaurus"
 import {boardsCollection, getBoardByRef, getBoardByRefString, getOrCreateDefaultBoard} from "./board_data"
 import {Board} from "./board_models"
 
-describe("board_data", function() {
-  this.timeout(10000);
+describe("board_data", function(this: Suite) {
+  // eslint-disable-next-line no-invalid-this
+  this.timeout(10000)
 
   let gffft: Gffft
   let uid1: string

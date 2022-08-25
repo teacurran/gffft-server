@@ -461,14 +461,7 @@ export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: strin
 }
 
 export async function getGffftByRef(refId: string): Promise<Gffft | null> {
-  return get(pathToRef<Gffft>(refId)).then((snapshot) => {
-    if (snapshot != null) {
-      const data = snapshot.data
-      data.id = snapshot.ref.id
-      return data
-    }
-    return null
-  })
+  return get(pathToRef<Gffft>(refId)).then(itemOrNull)
 }
 
 async function hydrateUser(uid: string,

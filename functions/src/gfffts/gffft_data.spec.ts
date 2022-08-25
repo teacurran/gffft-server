@@ -1,5 +1,20 @@
 import "mocha"
-import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, deleteGffftMembership, getDefaultGffft, getFullGffft, getGffft, getGffftMembership, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode, updateGffft} from "./gffft_data"
+import {
+  checkGffftHandle,
+  createGffft,
+  createGffftMembership,
+  DEFAULT_GFFFT_KEY,
+  deleteGffftMembership,
+  getDefaultGffft,
+  getFullGffft,
+  getGffft,
+  getGffftByRef,
+  getGffftMembership,
+  getGfffts,
+  getOrCreateGffftMembership,
+  getUniqueFruitCode,
+  updateGffft,
+} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
@@ -86,7 +101,7 @@ describe("gffft_data", function() {
         const reloaded2 = await getGffftMembership(user1.id, gffft.id, user2.id)
         expect(reloaded2).to.be.undefined
       })
-    })    
+    })
   })
 
   describe("getDefaultGffft", function() {
@@ -127,6 +142,21 @@ describe("gffft_data", function() {
     })
   })
 
+  describe("getGffftByRef", function() {
+    it("returns a gffft", async function() {
+      const g2 = await getGffftByRef(`users/${uid1}/gfffts/${gffft.id}`)
+      expect(g2).to.not.be.null
+      if (g2) {
+        expect(gffft.id).to.eql(gffft.id)
+        expect(gffft.name).to.eql(gffft.name)
+        expect(gffft.description).to.eql(gffft.description)
+        expect(gffft.intro).to.eql(gffft.intro)
+        expect(gffft.enabled).to.eql(gffft.enabled)
+        expect(gffft.allowMembers).to.eql(gffft.allowMembers)
+        expect(gffft.requireApproval).to.eql(gffft.requireApproval)
+      }
+    })
+  })
 
   describe("getOrCreateGffftMembership", function() {
     it("creates anonymous membership", async function() {
@@ -164,24 +194,23 @@ describe("gffft_data", function() {
     })
   })
 
-
   describe("getGfffts", function() {
     let g1: Gffft
     let g2: Gffft
     let g3: Gffft
-    before(async function() {         
+    before(async function() {
       g1 = await factories.gffft.create({name: "Deer Park", fruitCode: "🍑🍒🥥🍇🍋🍌🫐🍊🍎"})
       g2 = await factories.gffft.create({name: "Deer Lake", fruitCode: "🫐🥝🍉🍐🥥🥥🥭🍎🍌"})
       g3 = await factories.gffft.create({name: "Taco Grove", fruitCode: "🍎🍉🍒🍎🍏🍑🥥🍋🍊"})
     })
 
     describe("no parameters passed in", function() {
-      it("returns all gfffts", async function() {    
+      it("returns all gfffts", async function() {
         const gfffts = await getGfffts()
         expect(gfffts).to.be.an("array")
         expect(gfffts.length).to.eql(3)
 
-        expect(gfffts).to.have.deep.members([g1, g2, g3]);
+        expect(gfffts).to.have.deep.members([g1, g2, g3])
       })
     })
 
@@ -191,30 +220,30 @@ describe("gffft_data", function() {
         expect(gfffts).to.be.an("array")
         expect(gfffts.length).to.eql(2)
 
-        expect(gfffts).to.have.deep.members([g1, g3]);
+        expect(gfffts).to.have.deep.members([g1, g3])
       })
     })
 
     describe("q parameter", function() {
-      it("searches by name prefix", async function() {    
+      it("searches by name prefix", async function() {
         const gfffts = await getGfffts(undefined, 20, "Taco")
 
         expect(gfffts).to.be.an("array")
         expect(gfffts.length).to.eql(1)
 
-        expect(gfffts).to.have.deep.members([g3]);
+        expect(gfffts).to.have.deep.members([g3])
       })
 
-      it("with an offset", async function() {    
+      it("with an offset", async function() {
         const gfffts = await getGfffts("Deer Lake", 20, "Deer")
 
         expect(gfffts).to.be.an("array")
         expect(gfffts.length).to.eql(1)
 
-        expect(gfffts).to.have.deep.members([g1]);
+        expect(gfffts).to.have.deep.members([g1])
       })
 
-      it("searches by name suffix", async function() {    
+      it("searches by name suffix", async function() {
         const gfffts = await getGfffts(undefined, 20, "Lake")
 
         expect(gfffts).to.be.an("array")
@@ -223,7 +252,7 @@ describe("gffft_data", function() {
         expect(gfffts.length).to.eql(0)
       })
 
-      it("searches by mid-name", async function() {    
+      it("searches by mid-name", async function() {
         const gfffts = await getGfffts(undefined, 20, "eer Par")
 
         expect(gfffts).to.be.an("array")
@@ -232,28 +261,27 @@ describe("gffft_data", function() {
         expect(gfffts.length).to.eql(0)
       })
 
-      it("searches by fruit-code", async function() {    
+      it("searches by fruit-code", async function() {
         const gfffts = await getGfffts(undefined, 20, "🫐🥝🍉🍐🥥🥥🥭🍎🍌")
 
         expect(gfffts).to.be.an("array")
         expect(gfffts.length).to.eql(1)
-        expect(gfffts).to.have.deep.members([g2]);
+        expect(gfffts).to.have.deep.members([g2])
       })
 
-      it("searches by fruit-code when prefix contains exclamation", async function() {    
+      it("searches by fruit-code when prefix contains exclamation", async function() {
         const gfffts = await getGfffts(undefined, 20, "here is a prefix! 🍎🍉🍒🍎🍏🍑🥥🍋🍊")
 
         expect(gfffts).to.be.an("array")
         expect(gfffts.length).to.eql(1)
-        expect(gfffts).to.have.deep.members([g3]);
+        expect(gfffts).to.have.deep.members([g3])
       })
-
     })
   })
 
   describe("getUniqueFruitCode", function() {
     it("it randomly generates fruit codes", async function() {
-      const fruitCodes:string[] = []
+      const fruitCodes: string[] = []
       let rareCount = 0
       for (let i = 0; i < 100; i++) {
         const [code, rareFruits] = await getUniqueFruitCode()
@@ -271,9 +299,9 @@ describe("gffft_data", function() {
   describe("updateGffft", function() {
     it("updates the nameLower field", async function() {
       gffft.name = "All City Lunch"
-      
+
       await updateGffft(uid1, gffft.id, gffft)
-      
+
       const g1Reloaded = await getGffft(uid1, gffft.id)
       expect(g1Reloaded).to.not.be.null
       if (g1Reloaded) {

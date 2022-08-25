@@ -9,7 +9,7 @@ export const MOCK_AUTH_USER = {
   name: "Peach Mountain",
   email: "peach.mountain.713@test.com",
   email_verified: true,
-  auth_time: 1607719238,
+  auth_time: 1661438657,
   user_id: "28SkWBeCNXCclihiSZkbyIAqFDrq",
   firebase: {
     identities: {
@@ -18,17 +18,17 @@ export const MOCK_AUTH_USER = {
     },
     sign_in_provider: "google.com",
   },
-  iat: 1607719238,
-  exp: "gweb-restor-dev",
-  iss: "https://securetoken.google.com/gweb-restor-dev",
-  sub: "28SkWBeCNXCclihiSZkbyIAqFDrq",
+  iat: 1661438657,
+  exp: "gffft-auth",
+  iss: "https://securetoken.google.com/gffft-auth",
+  sub: "GqsV7Odc85B75tcFgMYFcSJQgfGS",
 }
 
 export const MOCK_AUTH_USER_2 = {
   name: "Taco Salad",
   email: "taco.salad@test.com",
   email_verified: true,
-  auth_time: 1607123438,
+  auth_time: 1661438646,
   user_id: "uohkj8768hgfDrq233087",
   firebase: {
     identities: {
@@ -37,10 +37,10 @@ export const MOCK_AUTH_USER_2 = {
     },
     sign_in_provider: "google.com",
   },
-  iat: 1607719438,
+  iat: 1661438646,
   exp: "gweb-restor-dev",
-  iss: "https://securetoken.google.com/gweb-restor-dev",
-  sub: "CNXCclih28SkWBeiSZkbyIAqFDrq",
+  iss: "https://securetoken.google.com/gffft-auth",
+  sub: "GqsV7Odc85B75tcFgMYFcSJQgfGS",
 }
 
 const AUTH_HEADER_ENC = Buffer.from(
@@ -69,7 +69,7 @@ export class MockFirebaseInit {
   private constructor() {}
 
   private async initializeFirebase() {
-    if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+    if (process.env.FIREBASE_AUTH_EMULATOR_HOST && !firebaseAdmin.app) {
       firebaseAdmin.initializeApp()
     }
     this.initialized = true
