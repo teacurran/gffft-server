@@ -781,10 +781,6 @@ router.get(
     const items = await getLinkSetItems(uid, gid, lid, req.query.offset, req.query.max)
 
     const hydratedLinkSet = await hydrateLinkSet(uid, gid, linkSet, items)
-    if (hydratedLinkSet == null) {
-      res.sendStatus(404)
-      return
-    }
 
     res.json(linkSetToJsonWithItems(hydratedLinkSet))
   }

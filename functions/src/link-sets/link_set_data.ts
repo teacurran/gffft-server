@@ -148,11 +148,7 @@ export async function hydrateLinkSetItem(uid: string, gid: string, snapshot: Doc
 }
 
 export async function hydrateLinkSet(uid: string, gid: string, linkSet: LinkSet,
-  items: HydratedLinkSetItem[]): Promise<HydratedLinkSet | null> {
-  if (linkSet == null) {
-    return null
-  }
-
+  items: HydratedLinkSetItem[]): Promise<HydratedLinkSet> {
   const latestPostUser = linkSet.latestPost ?
     await getGffftUser(uid, gid, linkSet.latestPost) :
     null
