@@ -152,6 +152,9 @@ export async function deleteGffftMembership(uid: string, gid: string, memberId: 
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const memberRef = ref(gffftMembers, memberId)
 
+  const cacheKey = `${uid}-${gid}-${memberId}`
+  await cacheContainer?.setItem(cacheKey, null, {})
+
   return remove(memberRef)
 }
 

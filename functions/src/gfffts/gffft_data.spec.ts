@@ -1,5 +1,5 @@
 import "mocha"
-import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, getDefaultGffft, getGffft, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode, updateGffft} from "./gffft_data"
+import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, deleteGffftMembership, getDefaultGffft, getGffft, getGffftMembership, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode, updateGffft} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
@@ -36,23 +36,6 @@ describe("gffft_data", function() {
     } as Gffft
 
     gffft = await createGffft(uid1, gffftStub, user1Handle)
-  })
-
-  describe("getUniqueFruitCode", function() {
-    it("it randomly generates fruit codes", async function() {
-      const fruitCodes:string[] = []
-      let rareCount = 0
-      for (let i = 0; i < 100; i++) {
-        const [code, rareFruits] = await getUniqueFruitCode()
-        if (fruitCodes.includes(code)) {
-          throw new Error(`Duplicate code: ${code}`)
-        }
-        rareCount += rareFruits
-        fruitCodes.push(code)
-      }
-      // this can fail, it is random. increasing loop above will reduce
-      expect(rareCount).to.be.gt(0)
-    })
   })
 
   describe("checkGffftHandle", function() {
@@ -92,6 +75,18 @@ describe("gffft_data", function() {
       expect(m2).to.not.be.null
       expect(m2.updatedAt).to.not.eql(updatedAt)
     })
+
+    describe("deleteGffftMembership", function() {
+      it("deletes membership", async function() {
+        const reloaded1 = await getGffftMembership(user1.id, gffft.id, user2.id)
+        expect(reloaded1).to.not.be.null
+
+        await deleteGffftMembership(user1.id, gffft.id, user2.id)
+
+        const reloaded2 = await getGffftMembership(user1.id, gffft.id, user2.id)
+        expect(reloaded2).to.be.undefined
+      })
+    })    
   })
 
   describe("getDefaultGffft", function() {
@@ -142,6 +137,13 @@ describe("gffft_data", function() {
       expect(m2).to.not.be.null
       expect(m2.type).to.eql(TYPE_MEMBER)
       expect(m2.updatedAt).to.not.eql(updatedAt)
+    })
+  })
+
+  describe("getGffftMembership", function() {
+    it("returns empty if member id is empty", async function() {
+      const membership = await getGffftMembership(user1.id, gffft.id, "")
+      expect(membership).to.be.undefined
     })
   })
 
@@ -228,6 +230,23 @@ describe("gffft_data", function() {
         expect(gfffts).to.have.deep.members([g3]);
       })
 
+    })
+  })
+
+  describe("getUniqueFruitCode", function() {
+    it("it randomly generates fruit codes", async function() {
+      const fruitCodes:string[] = []
+      let rareCount = 0
+      for (let i = 0; i < 100; i++) {
+        const [code, rareFruits] = await getUniqueFruitCode()
+        if (fruitCodes.includes(code)) {
+          throw new Error(`Duplicate code: ${code}`)
+        }
+        rareCount += rareFruits
+        fruitCodes.push(code)
+      }
+      // this can fail, it is random. increasing loop above will reduce
+      expect(rareCount).to.be.gt(0)
     })
   })
 
