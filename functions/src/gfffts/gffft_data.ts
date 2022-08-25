@@ -305,12 +305,12 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string, me
     queries.push(where("nameLower", ">=", qLower))
     queries.push(where("nameLower", "<=", qLower+ "\uf8ff"))
     if (offset) {
-      queries.push(order("nameLower", "asc", [startAfter(offset)]))
+      queries.push(order("nameLower", "asc", [startAfter(offset.toLowerCase())]))
     }
   } else {
     if (offset) {
       console.log(`using non-query offset search: ${offset}`)
-      queries.push(order("nameLower", "asc", [startAfter(offset)]))
+      queries.push(order("nameLower", "asc", [startAfter(offset.toLowerCase())]))
     } else {
       queries.push(order("nameLower", "asc"))
     }
@@ -346,39 +346,6 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string, me
     }
     return gfffts
   })
-}
-
-export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promise<void> {
-  console.log(`updating gffft, uid:${uid} gid:${gid}`)
-  const userGfffts = gffftsCollection(uid)
-  const gffftRef = ref(userGfffts, gid)
-
-  gffft.nameLower = gffft.name ? gffft.name.toLowerCase() : ""
-
-  return upset<Gffft>(gffftRef, gffft)
-}
-
-export async function updateCounter(ref: Ref<GffftStats>, type: string, changeValue: number): Promise<void> {
-  switch (type) {
-  case TYPE_OWNER:
-    return upset<GffftOwnerCountUpset>(ref, {
-      ownerCount: value("increment", changeValue),
-    })
-  case TYPE_ADMIN:
-    return upset<GffftAdminCountUpset>(ref, {
-      adminCount: value("increment", changeValue),
-    })
-  case TYPE_MEMBER:
-    return upset<GffftMemberCountUpset>(ref, {
-      memberCount: value("increment", changeValue),
-    })
-  case TYPE_ANON:
-    return upset<GffftAnonCountUpset>(ref, {
-      anonCount: value("increment", changeValue),
-    })
-  default:
-    break
-  }
 }
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
@@ -588,3 +555,35 @@ function getLinkSetPromise(features: IGffftFeatureRef[], feature: string, linkSe
   })
 }
 
+export async function updateCounter(ref: Ref<GffftStats>, type: string, changeValue: number): Promise<void> {
+  switch (type) {
+  case TYPE_OWNER:
+    return upset<GffftOwnerCountUpset>(ref, {
+      ownerCount: value("increment", changeValue),
+    })
+  case TYPE_ADMIN:
+    return upset<GffftAdminCountUpset>(ref, {
+      adminCount: value("increment", changeValue),
+    })
+  case TYPE_MEMBER:
+    return upset<GffftMemberCountUpset>(ref, {
+      memberCount: value("increment", changeValue),
+    })
+  case TYPE_ANON:
+    return upset<GffftAnonCountUpset>(ref, {
+      anonCount: value("increment", changeValue),
+    })
+  default:
+    break
+  }
+}
+
+export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promise<void> {
+  console.log(`updating gffft, uid:${uid} gid:${gid}`)
+  const userGfffts = gffftsCollection(uid)
+  const gffftRef = ref(userGfffts, gid)
+
+  gffft.nameLower = gffft.name ? gffft.name.toLowerCase() : ""
+
+  return upset<Gffft>(gffftRef, gffft)
+}

@@ -1,12 +1,11 @@
 import "mocha"
-import {checkGffftHandle, COLLECTION_GFFFTS, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, getDefaultGffft, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode} from "./gffft_data"
+import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, getDefaultGffft, getGffft, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode, updateGffft} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {getUser} from "../users/user_data"
 import {factories} from "../test/factories"
-import * as firebaseAdmin from "firebase-admin"
 
 describe("gffft_data", function() {
   let gffft: Gffft
@@ -100,9 +99,9 @@ describe("gffft_data", function() {
     let g2: Gffft
     let g3: Gffft
     before(async function() {
-      g1 = await factories.gffft.create({uid: user1.id, name: "Deer Park", key: DEFAULT_GFFFT_KEY})
-      g2 = await factories.gffft.create({uid: user1.id, name: "Scorpion Lake", key: "scorpion-lake"})
-      g3 = await factories.gffft.create({uid: user1.id, name: "Taco Grove", key: "taco-grove"})
+      g1 = await factories.gffft.create({uid: user1.id, name: "Deer Park", key: DEFAULT_GFFFT_KEY, enabled: false})
+      g2 = await factories.gffft.create({uid: user1.id, name: "Scorpion Lake", key: "scorpion-lake", enabled: false})
+      g3 = await factories.gffft.create({uid: user1.id, name: "Taco Grove", key: "taco-grove", enabled: false})
     })
 
     it("gets the default gffft for a user", async function() {
@@ -151,18 +150,8 @@ describe("gffft_data", function() {
     let g2: Gffft
     let g3: Gffft
     before(async function() {         
-    const firestore = firebaseAdmin.firestore()
-
-    await firestore.collection(COLLECTION_GFFFTS)
-      .get().then(async (snapshot) => {
-        snapshot.forEach(async (doc) => {
-          console.log(`deleting gffft: ${doc.ref.id}`)
-          await doc.ref.delete()
-        })
-      })
- 
       g1 = await factories.gffft.create({name: "Deer Park", fruitCode: "🍑🍒🥥🍇🍋🍌🫐🍊🍎"})
-      g2 = await factories.gffft.create({name: "Scorpion Lake", fruitCode: "🫐🥝🍉🍐🥥🥥🥭🍎🍌"})
+      g2 = await factories.gffft.create({name: "Deer Lake", fruitCode: "🫐🥝🍉🍐🥥🥥🥭🍎🍌"})
       g3 = await factories.gffft.create({name: "Taco Grove", fruitCode: "🍎🍉🍒🍎🍏🍑🥥🍋🍊"})
     })
 
@@ -176,15 +165,15 @@ describe("gffft_data", function() {
       })
     })
 
-    // describe("offset parameter", function() {
-    //   it("returns gfffts after the offset", async function() {
-    //     const gfffts = await getGfffts(g2.id)
-    //     expect(gfffts).to.be.an("array")
-    //     expect(gfffts.length).to.eql(2)
+    describe("offset parameter", function() {
+      it("returns gfffts after the offset", async function() {
+        const gfffts = await getGfffts("Deer Lake")
+        expect(gfffts).to.be.an("array")
+        expect(gfffts.length).to.eql(2)
 
-    //     expect(gfffts).to.have.deep.members([g2, g3]);
-    //   })
-    // })
+        expect(gfffts).to.have.deep.members([g1, g3]);
+      })
+    })
 
     describe("q parameter", function() {
       it("searches by name prefix", async function() {    
@@ -194,6 +183,15 @@ describe("gffft_data", function() {
         expect(gfffts.length).to.eql(1)
 
         expect(gfffts).to.have.deep.members([g3]);
+      })
+
+      it("with an offset", async function() {    
+        const gfffts = await getGfffts("Deer Lake", 20, "Deer")
+
+        expect(gfffts).to.be.an("array")
+        expect(gfffts.length).to.eql(1)
+
+        expect(gfffts).to.have.deep.members([g1]);
       })
 
       it("searches by name suffix", async function() {    
@@ -230,6 +228,20 @@ describe("gffft_data", function() {
         expect(gfffts).to.have.deep.members([g3]);
       })
 
+    })
+  })
+
+  describe("updateGffft", function() {
+    it("updates the nameLower field", async function() {
+      gffft.name = "All City Lunch"
+      
+      await updateGffft(uid1, gffft.id, gffft)
+      
+      const g1Reloaded = await getGffft(uid1, gffft.id)
+      expect(g1Reloaded).to.not.be.null
+      if (g1Reloaded) {
+        expect(g1Reloaded.nameLower).to.eql("all city lunch")
+      }
     })
   })
 })
