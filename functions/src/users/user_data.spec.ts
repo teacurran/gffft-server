@@ -1,8 +1,19 @@
 import "mocha"
 import {MockFirebaseInit} from "../test/auth"
-import {addAdjective, addNoun, addVerb, COLLECTION_ADJECTIVES, COLLECTION_BOOKMARKS,
-  COLLECTION_NOUNS, COLLECTION_USERS, createBookmark, deleteBookmark,
-  exportedForTesting, getUser, getUserBookmarks} from "./user_data"
+import {
+  addAdjective,
+  addNoun,
+  addVerb,
+  COLLECTION_ADJECTIVES,
+  COLLECTION_BOOKMARKS,
+  COLLECTION_NOUNS,
+  COLLECTION_USERS,
+  createBookmark,
+  deleteBookmark,
+  exportedForTesting,
+  getUser,
+  getUserBookmarks,
+} from "./user_data"
 import {WriteResult} from "@google-cloud/firestore"
 import {assert, expect} from "chai"
 import * as firebaseAdmin from "firebase-admin"
@@ -28,10 +39,14 @@ describe("users_data", function() {
       expect(addResult).to.be.an.instanceof(WriteResult)
 
       if (addResult instanceof WriteResult) {
-        firestore.collection(TEST_COLLECTION).doc("test").get().then((doc) => {
-          expect(doc.get("count")).to.equal(0)
-          expect(doc.get("random")).to.be.gt(0)
-        })
+        firestore
+          .collection(TEST_COLLECTION)
+          .doc("test")
+          .get()
+          .then((doc) => {
+            expect(doc.get("count")).to.equal(0)
+            expect(doc.get("random")).to.be.gt(0)
+          })
       }
     })
 
@@ -62,10 +77,14 @@ describe("users_data", function() {
       expect(addResult).to.be.an.instanceof(WriteResult)
 
       if (addResult instanceof WriteResult) {
-        firestore.collection(COLLECTION_ADJECTIVES).doc("testAdj").get().then((doc) => {
-          expect(doc.get("count")).to.equal(0)
-          expect(doc.get("random")).to.be.gt(0)
-        })
+        return firestore
+          .collection(COLLECTION_ADJECTIVES)
+          .doc("testAdj")
+          .get()
+          .then((doc) => {
+            expect(doc.get("count")).to.equal(0)
+            expect(doc.get("random")).to.be.gt(0)
+          })
       }
     })
   })
@@ -76,10 +95,14 @@ describe("users_data", function() {
       expect(addResult).to.be.an.instanceof(WriteResult)
 
       if (addResult instanceof WriteResult) {
-        firestore.collection(COLLECTION_NOUNS).doc("testNoun").get().then((doc) => {
-          expect(doc.get("count")).to.equal(0)
-          expect(doc.get("random")).to.be.gt(0)
-        })
+        return firestore
+          .collection(COLLECTION_NOUNS)
+          .doc("testNoun")
+          .get()
+          .then((doc) => {
+            expect(doc.get("count")).to.equal(0)
+            expect(doc.get("random")).to.be.gt(0)
+          })
       }
     })
   })
@@ -90,10 +113,14 @@ describe("users_data", function() {
       expect(addResult).to.be.an.instanceof(WriteResult)
 
       if (addResult instanceof WriteResult) {
-        firestore.collection(COLLECTION_NOUNS).doc("testVerb").get().then((doc) => {
-          expect(doc.get("count")).to.equal(0)
-          expect(doc.get("random")).to.be.gt(0)
-        })
+        firestore
+          .collection(COLLECTION_NOUNS)
+          .doc("testVerb")
+          .get()
+          .then((doc) => {
+            expect(doc.get("count")).to.equal(0)
+            expect(doc.get("random")).to.be.gt(0)
+          })
       }
     })
   })
@@ -104,23 +131,31 @@ describe("users_data", function() {
     let gffft: Gffft
 
     before(async function() {
-      gffft = await createGffft(uid, {
-        id: "1234",
-        key: "",
-        name: "Some random name",
-        nameLower: "",
-        enabled: false,
-        allowMembers: false,
-        requireApproval: false,
-        enableAltHandles: false,
-      }, "sysop")
+      gffft = await createGffft(
+        uid,
+        {
+          id: "1234",
+          key: "",
+          name: "Some random name",
+          nameLower: "",
+          enabled: false,
+          allowMembers: false,
+          requireApproval: false,
+          enableAltHandles: false,
+        },
+        "sysop"
+      )
     })
 
     it("will create a bookmark for a user", async function() {
       await createBookmark(uid, gffft.id, uid2)
 
-      const b2Query = await firestore.collection(COLLECTION_USERS).doc(uid2)
-        .collection(COLLECTION_BOOKMARKS).doc(gffft.id).get()
+      const b2Query = await firestore
+        .collection(COLLECTION_USERS)
+        .doc(uid2)
+        .collection(COLLECTION_BOOKMARKS)
+        .doc(gffft.id)
+        .get()
       expect(b2Query.exists).to.be.true
 
       const b2 = b2Query.data() as UserBookmark
@@ -132,8 +167,12 @@ describe("users_data", function() {
       const nonExistantGffftId = "non-existant-gffft"
       await createBookmark(uid, nonExistantGffftId, uid2)
 
-      const b2Query = await firestore.collection(COLLECTION_USERS).doc(uid2)
-        .collection(COLLECTION_BOOKMARKS).doc(nonExistantGffftId).get()
+      const b2Query = await firestore
+        .collection(COLLECTION_USERS)
+        .doc(uid2)
+        .collection(COLLECTION_BOOKMARKS)
+        .doc(nonExistantGffftId)
+        .get()
       expect(b2Query.exists).to.be.true
 
       const b2 = b2Query.data() as UserBookmark
@@ -145,16 +184,24 @@ describe("users_data", function() {
   describe("getUser", function() {
     it("will create a user that doesn't exist", async function() {
       const userId = uuid()
-      firestore.collection(COLLECTION_USERS).doc(userId).get().then((doc) => {
-        expect(doc.exists).to.be.false
-      })
+      firestore
+        .collection(COLLECTION_USERS)
+        .doc(userId)
+        .get()
+        .then((doc) => {
+          expect(doc.exists).to.be.false
+        })
       const user = await getUser(userId)
       expect(user.id).to.equal(userId)
       expect(user.createdAt).to.not.be.null
 
-      firestore.collection(COLLECTION_USERS).doc(userId).get().then((doc) => {
-        expect(doc.exists).to.not.be.false
-      })
+      firestore
+        .collection(COLLECTION_USERS)
+        .doc(userId)
+        .get()
+        .then((doc) => {
+          expect(doc.exists).to.not.be.false
+        })
     })
   })
 
@@ -169,16 +216,20 @@ describe("users_data", function() {
     const actorId = uuid()
 
     before(async function() {
-      gffft = await createGffft(uid1, {
-        id: "1234",
-        key: "",
-        name: "Some random name",
-        nameLower: "",
-        enabled: false,
-        allowMembers: false,
-        requireApproval: false,
-        enableAltHandles: false,
-      }, "sysop")
+      gffft = await createGffft(
+        uid1,
+        {
+          id: "1234",
+          key: "",
+          name: "Some random name",
+          nameLower: "",
+          enabled: false,
+          allowMembers: false,
+          requireApproval: false,
+          enableAltHandles: false,
+        },
+        "sysop"
+      )
     })
 
     it("will create a bookmark for a user", async function() {
@@ -232,5 +283,3 @@ describe("users_data", function() {
     })
   })
 })
-
-

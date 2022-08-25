@@ -1,4 +1,4 @@
-import firebaseAdmin = require("firebase-admin");
+import firebaseAdmin = require("firebase-admin")
 
 export const MOCK_AUTH_HEADER = {
   alg: "none",
@@ -43,34 +43,40 @@ export const MOCK_AUTH_USER_2 = {
   sub: "GqsV7Odc85B75tcFgMYFcSJQgfGS",
 }
 
-const AUTH_HEADER_ENC = Buffer.from(
-  JSON.stringify(MOCK_AUTH_HEADER),
-  "ascii"
-).toString("base64")
-const AUTH_USER_ENC = Buffer.from(
-  JSON.stringify(MOCK_AUTH_USER),
-  "ascii"
-).toString("base64")
+const AUTH_HEADER_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_HEADER), "ascii").toString("base64")
+const AUTH_USER_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_USER), "ascii").toString("base64")
 export const MOCK_AUTH_BEARER = `${AUTH_HEADER_ENC}.${AUTH_USER_ENC}.`
 export const USER_1_AUTH = {Authorization: `Bearer ${MOCK_AUTH_BEARER}`}
 
-const AUTH_USER_2_ENC = Buffer.from(
-  JSON.stringify(MOCK_AUTH_USER_2),
-  "ascii"
-).toString("base64")
+const AUTH_USER_2_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_USER_2), "ascii").toString("base64")
 export const MOCK_AUTH_BEARER_2 = `${AUTH_HEADER_ENC}.${AUTH_USER_2_ENC}.`
 export const USER_2_AUTH = {Authorization: `Bearer ${MOCK_AUTH_BEARER_2}`}
 
 export class MockFirebaseInit {
-  private static instance: MockFirebaseInit;
-  private initialized = false;
+  private static instance: MockFirebaseInit
+  private initialized = false
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
 
   private async initializeFirebase() {
-    if (process.env.FIREBASE_AUTH_EMULATOR_HOST && !firebaseAdmin.app) {
-      firebaseAdmin.initializeApp()
+    if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+      if (!firebaseAdmin.app) {
+        firebaseAdmin.initializeApp()
+      }
+
+      await Promise.all(
+        [MOCK_AUTH_USER, MOCK_AUTH_USER_2].map((mockAuthUser) => {
+          return firebaseAdmin
+            .auth()
+            .createUser({
+              displayName: mockAuthUser.name,
+              email: mockAuthUser.email,
+              uid: mockAuthUser.user_id,
+            })
+            .catch((error) => console.log(error.message))
+        })
+      )
     }
     this.initialized = true
     return Promise.resolve()

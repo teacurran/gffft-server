@@ -1,8 +1,36 @@
-import {query, subcollection, where, limit, upset, group, order, Query,
-  startAfter, get, ref, pathToRef, remove, getRefPath, Ref, id, set, value} from "typesaurus"
-import {Gffft, GffftMember, HydratedGffft, TYPE_ANON, TYPE_MEMBER,
-  TYPE_OWNER, GffftAdminCountUpset, GffftAnonCountUpset, GffftMemberCountUpset,
-  GffftOwnerCountUpset, GffftStats, TYPE_ADMIN,
+import {
+  query,
+  subcollection,
+  where,
+  limit,
+  upset,
+  group,
+  order,
+  Query,
+  startAfter,
+  get,
+  ref,
+  pathToRef,
+  remove,
+  getRefPath,
+  Ref,
+  id,
+  set,
+  value,
+} from "typesaurus"
+import {
+  Gffft,
+  GffftMember,
+  HydratedGffft,
+  TYPE_ANON,
+  TYPE_MEMBER,
+  TYPE_OWNER,
+  GffftAdminCountUpset,
+  GffftAnonCountUpset,
+  GffftMemberCountUpset,
+  GffftOwnerCountUpset,
+  GffftStats,
+  TYPE_ADMIN,
 } from "./gffft_models"
 import {HydratedUser, User, UserBookmark} from "../users/user_models"
 import {itemOrNull} from "../common/data"
@@ -42,7 +70,7 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
   let ultraRareFruitEncountered = 0
 
   const todaysDate = new Date()
-  const isPiDay = (todaysDate.getMonth() == 3 && todaysDate.getDay() == 14)
+  const isPiDay = todaysDate.getMonth() == 3 && todaysDate.getDay() == 14
 
   // limit loop to prevent overflow
   for (let i = 0; i < 1000; i++) {
@@ -66,14 +94,13 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
     }
     console.log(`checking fruitcode: ${fruitCode}`)
 
-    const fruitCodeExists = await query(gffftsGroup, [
-      where("fruitCode", "==", fruitCode),
-      limit(1),
-    ]).then((results) => {
-      return (results.length > 0)
-    }).catch((reason) => {
-      console.log(`encountered error: ${reason}`)
-    })
+    const fruitCodeExists = await query(gffftsGroup, [where("fruitCode", "==", fruitCode), limit(1)])
+      .then((results) => {
+        return results.length > 0
+      })
+      .catch((reason) => {
+        console.log(`encountered error: ${reason}`)
+      })
 
     if (!fruitCodeExists) {
       return [fruitCode, rareFruitEncountered, ultraRareFruitEncountered]
@@ -82,17 +109,11 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
   throw new Error("unable to generate unique fruitcode")
 }
 
-export async function checkGffftHandle(uid: string,
-  gid: string,
-  memberId: string,
-  handle: string): Promise<boolean> {
+export async function checkGffftHandle(uid: string, gid: string, memberId: string, handle: string): Promise<boolean> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const memberRef = ref(gffftMembers, memberId)
 
-  const membership = await query(gffftMembers, [
-    where("handle", "==", handle),
-    limit(1),
-  ]).then(itemOrNull)
+  const membership = await query(gffftMembers, [where("handle", "==", handle), limit(1)]).then(itemOrNull)
 
   if (membership) {
     if (getRefPath(membership.user) == getRefPath(memberRef)) {
@@ -104,10 +125,12 @@ export async function checkGffftHandle(uid: string,
   return true
 }
 
-export async function createGffftMembership(uid: string,
+export async function createGffftMembership(
+  uid: string,
   gid: string,
   memberId: string,
-  handle: string | null): Promise<GffftMember> {
+  handle: string | null
+): Promise<GffftMember> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const userRef = ref(usersCollection, memberId)
   const memberRef = ref(gffftMembers, memberId)
@@ -187,11 +210,9 @@ export async function createGffft(uid: string, gffft: Gffft, initialHandle: stri
 
   gffft.uid = uid
   gffft.createdAt = new Date()
-  gffft.updatedAt = new Date();
+  gffft.updatedAt = new Date()
 
-  [gffft.fruitCode,
-    gffft.rareFruits,
-    gffft.ultraRareFruits] = await getUniqueFruitCode()
+  ;[gffft.fruitCode, gffft.rareFruits, gffft.ultraRareFruits] = await getUniqueFruitCode()
 
   const gid = await id()
   const gffftRef = ref(userGfffts, gid)
@@ -224,7 +245,11 @@ export async function createGffft(uid: string, gffft: Gffft, initialHandle: stri
   return gffft
 }
 
-export async function getGffftMembership(uid: string, gid: string, memberId?: string): Promise<GffftMember|undefined> {
+export async function getGffftMembership(
+  uid: string,
+  gid: string,
+  memberId?: string
+): Promise<GffftMember | undefined> {
   if (!memberId) {
     return undefined
   }
@@ -249,10 +274,7 @@ export async function getGffftMembership(uid: string, gid: string, memberId?: st
   return snapshot
 }
 
-export async function getOrCreateGffftMembership(
-  uid: string,
-  gid: string,
-  memberId: string): Promise<GffftMember> {
+export async function getOrCreateGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const memberRef = ref(gffftMembers, memberId)
   return get(memberRef).then(async (snapshot) => {
@@ -274,18 +296,17 @@ export async function getOrCreateGffftMembership(
   })
 }
 
-
 export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
   const userGfffts = gffftsCollection(userId)
 
-  return query(userGfffts, [
-    where("key", "==", DEFAULT_GFFFT_KEY),
-    limit(1),
-  ]).then(itemOrNull)
+  return query(userGfffts, [where("key", "==", DEFAULT_GFFFT_KEY), limit(1)]).then(itemOrNull)
 }
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
   console.log(`looking for gffft:${gid} uid:${uid}`)
+  if (gid == "default") {
+    return getDefaultGffft(uid)
+  }
   const userGfffts = gffftsCollection(uid)
   const gffftRef = ref(userGfffts, gid)
 
@@ -293,9 +314,7 @@ export async function getGffft(uid: string, gid: string): Promise<Gffft | null> 
 }
 
 export async function getGfffts(offset?: string, maxResults = 20, q?: string, memberId?: string): Promise<Gffft[]> {
-  const queries: Query<Gffft, keyof Gffft>[] = [
-    where("enabled", "==", true),
-  ]
+  const queries: Query<Gffft, keyof Gffft>[] = [where("enabled", "==", true)]
 
   let maybeFruit: string | null = null
   if (q) {
@@ -315,7 +334,7 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string, me
 
     console.log(`searching for: ${qLower}`)
     queries.push(where("nameLower", ">=", qLower))
-    queries.push(where("nameLower", "<=", qLower+ "\uf8ff"))
+    queries.push(where("nameLower", "<=", qLower + "\uf8ff"))
     if (offset) {
       queries.push(order("nameLower", "asc", [startAfter(offset.toLowerCase())]))
     }
@@ -331,10 +350,7 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string, me
   // try searching by fruit first, see if we get results.
   if (maybeFruit != null) {
     console.log(`looking for maybe fruit: ${maybeFruit}`)
-    const fruitResults = await query(gffftsGroup, [
-      where("fruitCode", "==", maybeFruit),
-      limit(1),
-    ])
+    const fruitResults = await query(gffftsGroup, [where("fruitCode", "==", maybeFruit), limit(1)])
     if (fruitResults != null && fruitResults.length > 0) {
       const gffft = fruitResults[0].data
       console.log(`found by fruit: ${gffft.id}`)
@@ -464,8 +480,11 @@ export async function getGffftByRef(refId: string): Promise<Gffft | null> {
   return get(pathToRef<Gffft>(refId)).then(itemOrNull)
 }
 
-async function hydrateUser(uid: string,
-  gid: string, user: User): Promise<HydratedUser | Promise<HydratedUser | null> | null> {
+async function hydrateUser(
+  uid: string,
+  gid: string,
+  user: User
+): Promise<HydratedUser | Promise<HydratedUser | null> | null> {
   const gffftMembership = await getGffftMembership(uid, gid, user.id)
 
   return {
@@ -481,14 +500,16 @@ export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>
   const cacheKey = `${getRefPath(userRef)}`
   const cachedItem = await cacheContainer?.getItem<User>(cacheKey)
 
-  const user = cachedItem ?? await get<User>(userRef).then((snapshot) => {
-    const item = itemOrNull(snapshot)
-    if (cacheContainer) {
-      cacheContainer.setItem(cacheKey, item, {ttl: 20})
-    }
+  const user =
+    cachedItem ??
+    (await get<User>(userRef).then((snapshot) => {
+      const item = itemOrNull(snapshot)
+      if (cacheContainer) {
+        cacheContainer.setItem(cacheKey, item, {ttl: 20})
+      }
 
-    return item
-  })
+      return item
+    }))
   if (user == null) {
     return null
   }

@@ -754,7 +754,7 @@ router.get(
 
     if (uid == "me") {
       if (iamUser == null) {
-        res.sendStatus(404)
+        res.sendStatus(401)
         return
       }
 
