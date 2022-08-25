@@ -6,10 +6,10 @@ import {MockFirebaseInit} from "../test/auth"
 import {EventContextOptions} from "firebase-functions-test/lib/main"
 import {DocumentSnapshot} from "@google-cloud/firestore"
 import moment from "moment"
-import {GffftStats, TYPE_ADMIN, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "../gfffts/gffft_models"
-import {getGffftStats, getGffftStatsRef} from "../gfffts/gffft_data"
+import {TYPE_ADMIN, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "../gfffts/gffft_models"
+import {getGffftStats} from "../gfffts/gffft_data"
 import {gffftMemberCounter} from "./gffft_member_counter"
-import {upset} from "typesaurus"
+//import {upset} from "typesaurus"
 
 describe("gffftMemberCounter", function() {
   const uid = "uid-1"
@@ -25,13 +25,13 @@ describe("gffftMemberCounter", function() {
   before(async function() {
     await MockFirebaseInit.getInstance().init()
 
-    await upset<GffftStats>(getGffftStatsRef(uid, gid, todayKey), {
-      id: todayKey,
-      adminCount: 0,
-      memberCount: 0,
-      ownerCount: 0,
-      anonCount: 0,
-    })
+    // await upset<GffftStats>(getGffftStatsRef(uid, gid, todayKey), {
+    //   id: todayKey,
+    //   adminCount: 0,
+    //   memberCount: 0,
+    //   ownerCount: 0,
+    //   anonCount: 0,
+    // })
   })
 
   describe("increments member counter", function() {

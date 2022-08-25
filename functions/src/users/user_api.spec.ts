@@ -64,6 +64,19 @@ describe("users API", function() {
                 throw err
             })
         })
+
+        it("will create a default link set if requested", async function() {
+            return chai
+              .request(server)
+              .get("/api/users/me/gfffts/default/links/default")
+              .set(USER_2_AUTH)
+              .then((res) => {
+                  res.should.have.status(200)
+              })
+              .catch((err) => {
+                  throw err
+              })
+          })
       })
     })
   })
