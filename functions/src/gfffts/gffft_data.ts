@@ -158,56 +158,6 @@ export async function deleteGffftMembership(uid: string, gid: string, memberId: 
   return remove(memberRef)
 }
 
-export async function getGffftMembership(uid: string, gid: string, memberId?: string): Promise<GffftMember|undefined> {
-  if (!memberId) {
-    return undefined
-  }
-  const gffftMembers = gffftsMembersCollection([uid, gid])
-  const memberRef = ref(gffftMembers, memberId)
-  const cacheKey = `${uid}-${gid}-${memberId}`
-
-  const cachedItem = await cacheContainer?.getItem<GffftMember>(cacheKey)
-  if (cachedItem) {
-    console.log(`returning cached item for memberId: ${memberId}`)
-    return cachedItem
-  }
-
-  const memberDoc = await get(memberRef)
-  let snapshot: GffftMember | undefined
-  if (memberDoc != null) {
-    snapshot = memberDoc.data
-    if (cacheContainer) {
-      cacheContainer.setItem(cacheKey, snapshot, {ttl: 20})
-    }
-  }
-  return snapshot
-}
-
-export async function getOrCreateGffftMembership(
-  uid: string,
-  gid: string,
-  memberId: string): Promise<GffftMember> {
-  const gffftMembers = gffftsMembersCollection([uid, gid])
-  const memberRef = ref(gffftMembers, memberId)
-  return get(memberRef).then(async (snapshot) => {
-    let member: GffftMember
-    if (snapshot != null) {
-      member = snapshot.data
-    } else {
-      member = {
-        user: memberRef,
-        type: TYPE_ANON,
-        updateCounters: {},
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as GffftMember
-      await upset(memberRef, member)
-    }
-
-    return member
-  })
-}
-
 async function ensureOwnership(gffft: Gffft, userId: string, handle: string): Promise<void> {
   const gffftMembers = gffftsMembersCollection([userId, gffft.id])
   const userRef = ref(usersCollection, userId)
@@ -274,6 +224,57 @@ export async function createGffft(uid: string, gffft: Gffft, initialHandle: stri
   return gffft
 }
 
+export async function getGffftMembership(uid: string, gid: string, memberId?: string): Promise<GffftMember|undefined> {
+  if (!memberId) {
+    return undefined
+  }
+  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const memberRef = ref(gffftMembers, memberId)
+  const cacheKey = `${uid}-${gid}-${memberId}`
+
+  const cachedItem = await cacheContainer?.getItem<GffftMember>(cacheKey)
+  if (cachedItem) {
+    console.log(`returning cached item for memberId: ${memberId}`)
+    return cachedItem
+  }
+
+  const memberDoc = await get(memberRef)
+  let snapshot: GffftMember | undefined
+  if (memberDoc != null) {
+    snapshot = memberDoc.data
+    if (cacheContainer) {
+      cacheContainer.setItem(cacheKey, snapshot, {ttl: 20})
+    }
+  }
+  return snapshot
+}
+
+export async function getOrCreateGffftMembership(
+  uid: string,
+  gid: string,
+  memberId: string): Promise<GffftMember> {
+  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const memberRef = ref(gffftMembers, memberId)
+  return get(memberRef).then(async (snapshot) => {
+    let member: GffftMember
+    if (snapshot != null) {
+      member = snapshot.data
+    } else {
+      member = {
+        user: memberRef,
+        type: TYPE_ANON,
+        updateCounters: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as GffftMember
+      await upset(memberRef, member)
+    }
+
+    return member
+  })
+}
+
+
 export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
   const userGfffts = gffftsCollection(userId)
 
@@ -281,6 +282,14 @@ export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
     where("key", "==", DEFAULT_GFFFT_KEY),
     limit(1),
   ]).then(itemOrNull)
+}
+
+export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
+  console.log(`looking for gffft:${gid} uid:${uid}`)
+  const userGfffts = gffftsCollection(uid)
+  const gffftRef = ref(userGfffts, gid)
+
+  return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
 }
 
 export async function getGfffts(offset?: string, maxResults = 20, q?: string, memberId?: string): Promise<Gffft[]> {
@@ -349,14 +358,6 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string, me
     }
     return gfffts
   })
-}
-
-export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
-  console.log(`looking for gffft:${gid} uid:${uid}`)
-  const userGfffts = gffftsCollection(uid)
-  const gffftRef = ref(userGfffts, gid)
-
-  return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
 }
 
 export function getGffftStatsRef(uid: string, gid: string, key: string): Ref<GffftStats> {

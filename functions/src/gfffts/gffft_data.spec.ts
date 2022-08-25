@@ -1,5 +1,5 @@
 import "mocha"
-import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, deleteGffftMembership, getDefaultGffft, getGffft, getGffftMembership, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode, updateGffft} from "./gffft_data"
+import {checkGffftHandle, createGffft, createGffftMembership, DEFAULT_GFFFT_KEY, deleteGffftMembership, getDefaultGffft, getFullGffft, getGffft, getGffftMembership, getGfffts, getOrCreateGffftMembership, getUniqueFruitCode, updateGffft} from "./gffft_data"
 import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
@@ -111,6 +111,23 @@ describe("gffft_data", function() {
     })
   })
 
+  describe("getFullGffft", function() {
+    it("returns a hydrated gffft", async function() {
+      const g2 = await getFullGffft(uid1, gffft.id)
+      expect(g2).to.not.be.null
+      if (g2) {
+        expect(gffft.id).to.eql(gffft.id)
+        expect(gffft.name).to.eql(gffft.name)
+        expect(gffft.description).to.eql(gffft.description)
+        expect(gffft.intro).to.eql(gffft.intro)
+        expect(gffft.enabled).to.eql(gffft.enabled)
+        expect(gffft.allowMembers).to.eql(gffft.allowMembers)
+        expect(gffft.requireApproval).to.eql(gffft.requireApproval)
+      }
+    })
+  })
+
+
   describe("getOrCreateGffftMembership", function() {
     it("creates anonymous membership", async function() {
       const user3Id = "test-uid-3"
@@ -146,6 +163,7 @@ describe("gffft_data", function() {
       expect(membership).to.be.undefined
     })
   })
+
 
   describe("getGfffts", function() {
     let g1: Gffft
