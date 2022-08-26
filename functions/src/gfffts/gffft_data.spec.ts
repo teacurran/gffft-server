@@ -33,10 +33,10 @@ describe("gffft_data", function() {
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
-    uid1 = "test-uid-1"
+    uid1 = "gffft_data-uid-1"
     user1 = await getUser(uid1)
 
-    uid2 = "test-uid-2"
+    uid2 = "gffft_data-uid-2"
     user2 = await getUser(uid2)
 
     user1Handle = "sysop"
@@ -208,8 +208,8 @@ describe("gffft_data", function() {
       it("returns all gfffts", async function() {
         const gfffts = await getGfffts()
         expect(gfffts).to.be.an("array")
-        expect(gfffts.length).to.eql(3)
 
+        expect(gfffts.length).to.eql(3)
         expect(gfffts).to.have.deep.members([g1, g2, g3])
       })
     })
@@ -270,6 +270,11 @@ describe("gffft_data", function() {
       })
 
       it("searches by fruit-code when prefix contains exclamation", async function() {
+        const allGfffts = await getGfffts()
+        allGfffts.forEach((gffft) => {
+          console.log(`all gffft id:${gffft.id} name:${gffft.name} fruit:${gffft.fruitCode}`)
+        })
+
         const gfffts = await getGfffts(undefined, 20, "here is a prefix! 🍎🍉🍒🍎🍏🍑🥥🍋🍊")
 
         expect(gfffts).to.be.an("array")

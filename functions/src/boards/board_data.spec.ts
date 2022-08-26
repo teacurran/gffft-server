@@ -1,15 +1,18 @@
 import {expect} from "chai"
 import {Suite} from "mocha"
-import {createGffft, gffftsCollection} from "../gfffts/gffft_data"
+import {COLLECTION_GFFFTS, createGffft, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {MockFirebaseInit} from "../test/auth"
 import {ref} from "typesaurus"
 import {boardsCollection, getBoard, getBoardByRef, getBoardByRefString, getOrCreateDefaultBoard} from "./board_data"
 import {Board} from "./board_models"
+import * as firebaseAdmin from "firebase-admin"
+import { COLLECTION_USERS } from "../users/user_data"
 
 describe("board_data", function(this: Suite) {
   // eslint-disable-next-line no-invalid-this
   this.timeout(10000)
+  let firestore: firebaseAdmin.firestore.Firestore
 
   let gffft: Gffft
   let uid1: string
@@ -18,6 +21,7 @@ describe("board_data", function(this: Suite) {
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
+    firestore = firebaseAdmin.firestore()
 
     uid1 = "test-uid-1"
 
@@ -34,6 +38,25 @@ describe("board_data", function(this: Suite) {
 
     gffft = await createGffft(uid1, gffftStub, user1Handle)
     board = await getOrCreateDefaultBoard(uid1, gffft.id)
+  })
+
+  after(async function() {
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
+      .collection(COLLECTION_GFFFTS).doc(gffft.id)
+      .get()
+      .then(async (doc) => {
+        if (doc.exists) {
+          await doc.ref.delete()
+        }
+      })
+
+      await firestore.collection(COLLECTION_USERS).doc(uid1)
+      .get()
+      .then(async (doc) => {
+        if (doc.exists) {
+          await doc.ref.delete()
+        }
+      })
   })
 
   describe("getBoard", function() {

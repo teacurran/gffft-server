@@ -3,18 +3,22 @@ import chai from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
 import server from "../server"
-import {DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
+import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import { Gffft } from "../gfffts/gffft_models"
+import * as firebaseAdmin from "firebase-admin"
+import { COLLECTION_USERS } from "./user_data"
 
 chai.use(chaiHttp)
 chai.should()
 
 describe("users API", function() {
   let gffft: Gffft
-  
+  let firestore: firebaseAdmin.firestore.Firestore
+
   before(async function() {
     await MockFirebaseInit.getInstance().init()
+    firestore = firebaseAdmin.firestore()
 
     gffft = await factories.gffft
       .create({
@@ -22,6 +26,17 @@ describe("users API", function() {
         name: "Lost in Space",
         key: DEFAULT_GFFFT_KEY,
         enabled: false,
+      })
+  })
+
+  after(async function() {
+    await firestore.collection(COLLECTION_USERS).doc(MOCK_AUTH_USER_2.user_id)
+      .collection(COLLECTION_GFFFTS).doc(gffft.id)
+      .get()
+      .then(async (doc) => {
+        if (doc.exists) {
+          await doc.ref.delete()
+        }
       })
   })
 

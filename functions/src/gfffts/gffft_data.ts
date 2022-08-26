@@ -211,10 +211,13 @@ export async function createGffft(uid: string, gffft: Gffft, initialHandle: stri
   gffft.uid = uid
   gffft.createdAt = new Date()
   gffft.updatedAt = new Date()
+  gffft.nameLower = gffft.name.toLowerCase()
 
-  ;[gffft.fruitCode, gffft.rareFruits, gffft.ultraRareFruits] = await getUniqueFruitCode()
+  if (!gffft.fruitCode) {
+    [gffft.fruitCode, gffft.rareFruits, gffft.ultraRareFruits] = await getUniqueFruitCode()
+  }
 
-  const gid = await id()
+  const gid = gffft.id || await id()
   const gffftRef = ref(userGfffts, gid)
 
   const features: string[] = []

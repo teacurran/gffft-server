@@ -3,18 +3,21 @@ import chai from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_2_AUTH} from "../test/auth"
 import server from "../server"
-import {DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
+import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import { Gffft } from "../gfffts/gffft_models"
 import { getOrCreateDefaultBoard } from "./board_data"
 import { Board } from "./board_models"
 import { Suite } from "mocha"
+import * as firebaseAdmin from "firebase-admin"
+import { COLLECTION_USERS } from "../users/user_data"
 
 chai.use(chaiHttp)
 chai.should()
 
 describe("boards API", function(this: Suite) {
   this.timeout(20000)
+  let firestore: firebaseAdmin.firestore.Firestore
 
   let uid: string
   let gid: string
@@ -24,6 +27,7 @@ describe("boards API", function(this: Suite) {
   
   before(async function() {
     await MockFirebaseInit.getInstance().init()
+    firestore = firebaseAdmin.firestore()
 
     uid = MOCK_AUTH_USER_2.user_id
 
@@ -39,6 +43,25 @@ describe("boards API", function(this: Suite) {
     bid = board.id
   })
 
+  after(async function() {
+    await firestore.collection(COLLECTION_USERS).doc(uid)
+      .collection(COLLECTION_GFFFTS).doc(gid)
+      .get()
+      .then(async (doc) => {
+        if (doc.exists) {
+          await doc.ref.delete()
+        }
+      })
+
+      await firestore.collection(COLLECTION_USERS).doc(uid)
+      .get()
+      .then(async (doc) => {
+        if (doc.exists) {
+          await doc.ref.delete()
+        }
+      })
+  })
+  
   describe("/api/boards", function() {
     describe("/api/boards/createPost", function() {
       describe("unauthenticated", function() {
