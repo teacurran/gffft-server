@@ -6,22 +6,50 @@ steps:
       - -c
       - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base || exit 0
 
-  - name: install buildx
-    id: buildx
-    uses: crazy-max/ghaction-docker-buildx@v1
-    with:
-      version: latest
-  - name: docker build firebase
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - '--privileged'
+      - 'linuxkit/binfmt:v0.7'
+    id: initialize-qemu
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - buildx
+      - create
+      - '--name'
+      - mybuilder
+    id: create-builder
+    waitFor: ['initialize-qemu']
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - buildx
+      - use
+      - mybuilder
+    id: select-builder
+    waitFor: ['create-builder']
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - buildx
+      - inspect
+      - '--bootstrap'
+    id: show-target-build-platforms
+    waitFor: ['select-builder']
+
+  - name: "gcr.io/cloud-builders/docker"
     id: "docker build firebase"
-    waitFor: ['pull firebase cache']
-    run: |
-      docker buildx build \
-      --platform $_DOCKER_BUILDX_PLATFORMS \
-      --cache-from "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base" \
-      -t "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base" \
-      -t "gffft-firebase-emulator" \
-      --file "./firebase-emulator/base.Dockerfile" \
-      .
+    waitFor: ['pull firebase cache', 'show-target-build-platforms']
+    args:
+      [
+        "buildx",
+        "build",
+        "--platform",
+        $_DOCKER_BUILDX_PLATFORMS,
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base",
+        "-t", "gffft-firebase-emulator",
+        "--file", "./firebase-emulator/base.Dockerfile",
+        "./",
+      ]
 
   - name: "gcr.io/cloud-builders/docker"
     id: "docker push firebase"
