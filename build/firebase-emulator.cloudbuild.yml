@@ -24,6 +24,9 @@ steps:
     waitFor: ['docker build firebase']
     args: ["push", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base"]
 
+options:
+  machineType: 'E2_HIGHCPU_8'
+
 timeout: 5000s
 
 images:
