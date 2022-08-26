@@ -175,7 +175,7 @@ describe("users API", function() {
       })
 
       describe("authenticated", function() {
-        it("returns user information", async function() {
+        it("gets gffft", async function() {
           return chai
             .request(server)
             .get("/api/users/me/gfffts/default")
@@ -186,6 +186,21 @@ describe("users API", function() {
             .catch((err) => {
               throw err
             })
+        })
+
+        describe("gffft id is invalid", function() {
+          it("returns 404", async function() {
+            return chai
+              .request(server)
+              .get("/api/users/me/gfffts/invalid_gid")
+              .set(USER_2_AUTH)
+              .then((res) => {
+                res.should.have.status(404)
+              })
+              .catch((err) => {
+                throw err
+              })
+          })      
         })
       })
     })
