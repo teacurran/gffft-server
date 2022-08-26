@@ -55,6 +55,8 @@ steps:
 
 options:
   machineType: 'E2_HIGHCPU_8'
+  env:
+    - DOCKER_CLI_EXPERIMENTAL=enabled
 
 timeout: 5000s
 
