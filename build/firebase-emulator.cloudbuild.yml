@@ -37,7 +37,7 @@ steps:
     waitFor: ['pull firebase cache']
     args:
       [
-        "buildx"
+        "buildx",
         "build",
         "--platform"
         $_DOCKER_BUILDX_PLATFORMS
