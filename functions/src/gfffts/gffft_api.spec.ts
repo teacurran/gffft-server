@@ -238,7 +238,7 @@ describe("gfffts API", function(this: Suite) {
             initialHandle: initialHandle,
           })
           .then(async (res) => {
-            console.log(`body:${res.body}`)
+            console.log(`body:${JSON.stringify(res.body)}`)
             res.should.have.status(204)
 
             const g2 = await getGffft(gffft.uid ?? '', gffft.id)
