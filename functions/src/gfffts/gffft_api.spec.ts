@@ -209,8 +209,7 @@ describe("gfffts API", function(this: Suite) {
             uid: gffft.uid,
             gid: gffft.id,
             name: "Clown College",
-            description: "Clowns go to college!",
-            initialHandle: "Clown King"
+            description: "Clowns go to college!"
           })
           .then((res) => {
             res.should.have.status(401)
@@ -219,11 +218,10 @@ describe("gfffts API", function(this: Suite) {
     })
 
     describe("authenticated", function() {
-      it("creates a new gffft", async function() {
-        const name = "Dog College"
-        const description = "Dogs go to college!"
-        const initialHandle = "Dog King"
+      const name = "Dog College"
+      const description = "Dogs go to college!"
 
+      it("updates gffft", async function() {
         return chai
           .request(server)
           .put("/api/gfffts")
@@ -234,8 +232,7 @@ describe("gfffts API", function(this: Suite) {
             uid: gffft.uid,
             gid: gffft.id,
             name: name,
-            description: description,
-            initialHandle: initialHandle,
+            description: description
           })
           .then(async (res) => {
             console.log(`body:${JSON.stringify(res.body)}`)
@@ -249,6 +246,116 @@ describe("gfffts API", function(this: Suite) {
             }
           })
       })
+
+      describe("gffft does not exist", function() {
+        it("404 code returned", async function() {
+          return chai.request(server)
+            .put("/api/gfffts")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: uid,
+              gid: "non-existent-gffft",
+              name: name,
+              description: description
+            })
+            .then(async (res) => {
+              res.should.have.status(404)
+            })
+        })
+      })
+
+      describe("board is enabled", function() {
+        it("puts a board in the feature set", async function() {
+          return chai
+            .request(server)
+            .put("/api/gfffts")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              name: name,
+              description: description,
+              boardEnabled: true
+            })
+            .then(async (res) => {
+              console.log(`body:${JSON.stringify(res.body)}`)
+              res.should.have.status(204)
+  
+              const g2 = await getGffft(gffft.uid ?? '', gffft.id)
+              expect(g2).to.not.be.null
+              if (g2 != null && g2.features) {
+                expect(g2.features[0]).to.contain("/boards/")
+                expect(g2.name).to.eql(name)
+                expect(g2.description).to.eql(description)
+              }
+            })
+        })
+      })
+
+      describe("gallery is enabled", function() {
+        it("puts a gallery in the feature set", async function() {
+          return chai
+            .request(server)
+            .put("/api/gfffts")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              name: name,
+              description: description,
+              galleryEnabled: true
+            })
+            .then(async (res) => {
+              console.log(`body:${JSON.stringify(res.body)}`)
+              res.should.have.status(204)
+  
+              const g2 = await getGffft(gffft.uid ?? '', gffft.id)
+              expect(g2).to.not.be.null
+              if (g2 != null && g2.features) {
+                expect(g2.features[0]).to.contain("/galleries/")
+                expect(g2.name).to.eql(name)
+                expect(g2.description).to.eql(description)
+              }
+            })
+        })
+      })
+
+      describe("notebook is enabled", function() {
+        it("puts a notebook in the feature set", async function() {
+          return chai
+            .request(server)
+            .put("/api/gfffts")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              name: name,
+              description: description,
+              notebookEnabled: true
+            })
+            .then(async (res) => {
+              console.log(`body:${JSON.stringify(res.body)}`)
+              res.should.have.status(204)
+  
+              const g2 = await getGffft(gffft.uid ?? '', gffft.id)
+              expect(g2).to.not.be.null
+              if (g2 != null && g2.features) {
+                expect(g2.features[0]).to.contain("/notebooks/")
+                expect(g2.name).to.eql(name)
+                expect(g2.description).to.eql(description)
+              }
+            })
+        })
+      })
+
     })
   })
 })
