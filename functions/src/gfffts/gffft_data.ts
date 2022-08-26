@@ -407,9 +407,7 @@ export async function getGffftStats(uid: string, gid: string, key: string): Prom
 
 export async function getFullGffft(uid: string, gid: string, currentUid?: string): Promise<HydratedGffft | null> {
   console.log(`looking for gffft:${gid} uid:${uid}`)
-  const userGfffts = gffftsCollection(uid)
-  const gffftRef = ref(userGfffts, gid)
-  const gffft = await get(gffftRef).then((snapshot) => itemOrNull(snapshot))
+  const gffft = await getGffft(uid, gid)
 
   if (gffft == null) {
     return null
@@ -418,11 +416,7 @@ export async function getFullGffft(uid: string, gid: string, currentUid?: string
   return hydrateGffft(uid, gffft, currentUid)
 }
 
-export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: string): Promise<HydratedGffft | null> {
-  if (gffft == null) {
-    return null
-  }
-
+export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: string): Promise<HydratedGffft> {
   gffft.uid = uid
 
   const boards: Board[] = []

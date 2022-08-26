@@ -84,9 +84,7 @@ export async function getUserBookmarks(uid: string): Promise<UserBookmark[]> {
 
 export async function getHydratedUserBookmarks(memberId: string): Promise<HydratedUserBookmark[]> {
   const resultsPromise = all(bookmarksCollection(memberId))
-
   const gffftResultPromise = all(gffftsCollection(memberId))
-
 
   const bookmarks: HydratedUserBookmark[] = []
   const gffftResults = await gffftResultPromise

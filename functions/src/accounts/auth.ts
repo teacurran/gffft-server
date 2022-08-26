@@ -87,7 +87,7 @@ export const requiredAuthentication = async (
     !req.headers.authorization ||
     !req.headers.authorization.startsWith("Bearer ")
   ) {
-    res.status(403).send("Unauthorized")
+    res.status(401).send("Unauthorized")
     return
   }
   const idToken = req.headers.authorization.split("Bearer ")[1]
