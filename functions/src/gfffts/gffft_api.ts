@@ -62,7 +62,8 @@ const gffftListRequestParams = Joi.object({
  *
 */
 const gffftUpdateRequestParams = Joi.object({
-  id: Joi.string().allow(null),
+  uid: Joi.string().allow(null),
+  gid: Joi.string().allow(null),
   name: Joi.string().required(),
   description: Joi.string().optional().allow(null, ""),
   intro: Joi.string().optional().allow(null, ""),
@@ -387,7 +388,7 @@ router.put(
 
     await upset(gffftRef, gffft)
 
-    res.json(fruitCodeToJson(gffft.fruitCode ?? ""))
+    res.json(fruitCodeToJson(gffft.fruitCode))
   }
 )
 
@@ -430,11 +431,6 @@ router.post(
 
     gffft = await createGffft(iamUser.id, gffft, item.initialHandle)
     const hydratedGffft = await hydrateGffft(iamUser.id, gffft)
-
-    if (hydratedGffft == null) {
-      res.status(500).send(`error creating gffft: uid: ${iamUser.id}`)
-      return
-    }
 
     res.json(gffftToJson(hydratedGffft))
   }

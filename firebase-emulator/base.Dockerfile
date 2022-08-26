@@ -1,12 +1,12 @@
-FROM timbru31/java-node:17-alpine
+FROM timbru31/java-node:17
 
 WORKDIR /app
 
-# something not working on ubuntu builds, so alpine is used
-# RUN apt-get update
-# RUN apt-get install -y libvips libvips-dev libvips-tools
+RUN apt-get update
+RUN apt-get install -y libvips libvips-dev libvips-tools
 
-RUN apk add vips vips-dev vips-tools fftw-dev gcc g++ make libc6-compat
+# for when using alpine (not compatible with AMD64)
+# RUN apk add vips vips-dev vips-tools fftw-dev gcc g++ make libc6-compat
 
 RUN npm install -g firebase-tools
 

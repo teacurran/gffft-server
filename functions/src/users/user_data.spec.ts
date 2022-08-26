@@ -18,9 +18,9 @@ import {WriteResult} from "@google-cloud/firestore"
 import {assert, expect} from "chai"
 import * as firebaseAdmin from "firebase-admin"
 import {uuid} from "uuidv4"
-import {createGffft} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {UserBookmark} from "../users/user_models"
+import {factories} from "../test/factories"
 
 const {addToCollection} = exportedForTesting
 
@@ -131,20 +131,7 @@ describe("users_data", function() {
     let gffft: Gffft
 
     before(async function() {
-      gffft = await createGffft(
-        uid,
-        {
-          id: "1234",
-          key: "",
-          name: "Some random name",
-          nameLower: "",
-          enabled: false,
-          allowMembers: false,
-          requireApproval: false,
-          enableAltHandles: false,
-        },
-        "sysop"
-      )
+      gffft = await factories.gffft.create({uid: uid, name: "Bookmark City", key: "", enabled: false})
     })
 
     it("will create a bookmark for a user", async function() {
@@ -216,20 +203,7 @@ describe("users_data", function() {
     const actorId = uuid()
 
     before(async function() {
-      gffft = await createGffft(
-        uid1,
-        {
-          id: "1234",
-          key: "",
-          name: "Some random name",
-          nameLower: "",
-          enabled: false,
-          allowMembers: false,
-          requireApproval: false,
-          enableAltHandles: false,
-        },
-        "sysop"
-      )
+      gffft = await factories.gffft.create({uid: uid1, name: "Salads", key: "", enabled: false})
     })
 
     it("will create a bookmark for a user", async function() {

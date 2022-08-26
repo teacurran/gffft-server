@@ -1,5 +1,5 @@
 import {Suite} from "mocha"
-import chai from "chai"
+import chai, { expect } from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
 import server from "../server"
@@ -57,32 +57,56 @@ describe("gfffts API", function(this: Suite) {
       })
   })
 
-  describe("/api/gfffts", function() {
-    describe("fruit-code", function() {
-      describe("unauthenticated", function() {
-        it("returns 401", async function() {
-          return chai
-            .request(server)
-            .put("/api/gfffts/fruit-code")
-            .set("Content-Type", "application/json")
-            .set("Accept", "application/json")
-            .send({
-              uid: uid,
-              gid: gid,
-            })
-            .then((res) => {
-              res.should.have.status(401)
-            })
-        })
+  describe("fruit-code", function() {
+    describe("unauthenticated", function() {
+      it("returns 401", async function() {
+        return chai
+          .request(server)
+          .put("/api/gfffts/fruit-code")
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: uid,
+            gid: gid,
+          })
+          .then((res) => {
+            res.should.have.status(401)
+          })
+      })
+    })
+
+    describe("authenticated", function() {
+      it("changes the fruit code", async function() {
+        const fcBefore = gffft.fruitCode
+        return chai
+          .request(server)
+          .put("/api/gfffts/fruit-code")
+          .set(USER_2_AUTH)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: uid,
+            gid: gid,
+          })
+          .then(async (res) => {
+            res.should.have.status(200)
+            const g2 = await getGffft(uid, gid)
+            assert(g2?.fruitCode)
+            if (g2 != null) {
+              const fcAfter = g2?.fruitCode || ""
+              assert(fcAfter.length > 0)
+              assert(g2?.fruitCode !== fcBefore)
+            }
+          })
       })
 
-      describe("authenticated", function() {
-        it("changes the fruit code", async function() {
+      describe("user does not own gffft", function() {
+        it("does not change fruitCode", async function() {
           const fcBefore = gffft.fruitCode
           return chai
             .request(server)
             .put("/api/gfffts/fruit-code")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -90,60 +114,140 @@ describe("gfffts API", function(this: Suite) {
               gid: gid,
             })
             .then(async (res) => {
-              res.should.have.status(200)
+              res.should.have.status(403)
+
               const g2 = await getGffft(uid, gid)
               assert(g2?.fruitCode)
               if (g2 != null) {
                 const fcAfter = g2?.fruitCode || ""
                 assert(fcAfter.length > 0)
-                assert(g2?.fruitCode !== fcBefore)
+                assert(g2?.fruitCode == fcBefore)
               }
             })
         })
+      })
 
-        describe("user does not own gffft", function() {
-          it("does not change fruitCode", async function() {
-            const fcBefore = gffft.fruitCode
-            return chai
-              .request(server)
-              .put("/api/gfffts/fruit-code")
-              .set(USER_1_AUTH)
-              .set("Content-Type", "application/json")
-              .set("Accept", "application/json")
-              .send({
-                uid: uid,
-                gid: gid,
-              })
-              .then(async (res) => {
-                res.should.have.status(403)
-
-                const g2 = await getGffft(uid, gid)
-                assert(g2?.fruitCode)
-                if (g2 != null) {
-                  const fcAfter = g2?.fruitCode || ""
-                  assert(fcAfter.length > 0)
-                  assert(g2?.fruitCode == fcBefore)
-                }
-              })
-          })
+      describe("gffft does not exist", function() {
+        it("404 code returned", async function() {
+          return chai.request(server)
+            .put("/api/gfffts/fruit-code")
+            .set(USER_1_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: uid,
+              gid: "non-existent-gffft",
+            })
+            .then(async (res) => {
+              res.should.have.status(404)
+            })
         })
+      })
+    })
+  })
 
-        describe("gffft does not exist", function() {
-          it("404 code returned", async function() {
-            return chai.request(server)
-              .put("/api/gfffts/fruit-code")
-              .set(USER_1_AUTH)
-              .set("Content-Type", "application/json")
-              .set("Accept", "application/json")
-              .send({
-                uid: uid,
-                gid: "non-existent-gffft",
-              })
-              .then(async (res) => {
-                res.should.have.status(404)
-              })
+  describe("POST", function() {
+    describe("unauthenticated", function() {
+      it("returns 401", async function() {
+        return chai
+          .request(server)
+          .post("/api/gfffts")
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            name: "Clown College",
+            description: "Clowns go to college!",
+            initialHandle: "Clown King"
           })
-        })
+          .then((res) => {
+            res.should.have.status(401)
+          })
+      })
+    })
+
+    describe("authenticated", function() {
+      it("creates a new gffft", async function() {
+        const name = "Dog College"
+        const description = "Dogs go to college!"
+        const initialHandle = "Dog King"
+
+        return chai
+          .request(server)
+          .post("/api/gfffts")
+          .set(USER_2_AUTH)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            name: name,
+            description: description,
+            initialHandle: initialHandle,
+          })
+          .then(async (res) => {
+            res.should.have.status(200)
+            const newGid = res.body["gid"]
+
+            const g2 = await getGffft(uid, newGid)
+            expect(g2).to.not.be.null
+            if (g2 != null) {
+                expect(g2.name).to.eql(name)
+                expect(g2.description).to.eql(description)
+            }
+          })
+      })
+    })
+  })
+
+  describe("PUT", function() {
+    describe("unauthenticated", function() {
+      it("returns 401", async function() {
+        return chai
+          .request(server)
+          .put("/api/gfffts")
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            name: "Clown College",
+            description: "Clowns go to college!",
+            initialHandle: "Clown King"
+          })
+          .then((res) => {
+            res.should.have.status(401)
+          })
+      })
+    })
+
+    describe("authenticated", function() {
+      it("creates a new gffft", async function() {
+        const name = "Dog College"
+        const description = "Dogs go to college!"
+        const initialHandle = "Dog King"
+
+        return chai
+          .request(server)
+          .put("/api/gfffts")
+          .set(USER_2_AUTH)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            name: name,
+            description: description,
+            initialHandle: initialHandle,
+          })
+          .then(async (res) => {
+            console.log(`body:${res.body}`)
+            res.should.have.status(204)
+
+            const g2 = await getGffft(gffft.uid ?? '', gffft.id)
+            expect(g2).to.not.be.null
+            if (g2 != null) {
+                expect(g2.name).to.eql(name)
+                expect(g2.description).to.eql(description)
+            }
+          })
       })
     })
   })

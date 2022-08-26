@@ -11,7 +11,7 @@ export type Gffft = {
     uid?: string
     key: string
     name: string
-    fruitCode?: string
+    fruitCode: string
     rareFruits?: number
     ultraRareFruits?: number
     nameLower: string
