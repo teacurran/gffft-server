@@ -5,9 +5,9 @@ import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../t
 import server from "../server"
 import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
-import { Gffft } from "../gfffts/gffft_models"
+import {Gffft} from "../gfffts/gffft_models"
 import * as firebaseAdmin from "firebase-admin"
-import { COLLECTION_USERS } from "./user_data"
+import {COLLECTION_USERS} from "./user_data"
 
 chai.use(chaiHttp)
 chai.should()
@@ -195,7 +195,7 @@ describe("users API", function() {
             .then((res) => {
               res.should.have.status(200)
             })
-        }) 
+        })
       })
 
       describe("authenticated", function() {
@@ -221,7 +221,7 @@ describe("users API", function() {
               .catch((err) => {
                 throw err
               })
-          })      
+          })
         })
       })
     })

@@ -1,27 +1,27 @@
-import "mocha"
+import {Suite} from "mocha"
 import chai from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, getGffft} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
-import { Gffft } from "../gfffts/gffft_models"
-import { Suite } from "mocha"
-import { assert } from "console"
-import { COLLECTION_USERS, getUser } from "../users/user_data"
+import {Gffft} from "../gfffts/gffft_models"
+import {assert} from "console"
+import {COLLECTION_USERS, getUser} from "../users/user_data"
 import * as firebaseAdmin from "firebase-admin"
 
 chai.use(chaiHttp)
 chai.should()
 
 describe("gfffts API", function(this: Suite) {
+  // eslint-disable-next-line no-invalid-this
   this.timeout(20000)
   let firestore: firebaseAdmin.firestore.Firestore
 
   let uid: string
   let gid: string
   let gffft: Gffft
-  
+
   before(async function() {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
@@ -48,7 +48,7 @@ describe("gfffts API", function(this: Suite) {
         }
       })
 
-      await firestore.collection(COLLECTION_USERS).doc(uid)
+    await firestore.collection(COLLECTION_USERS).doc(uid)
       .get()
       .then(async (doc) => {
         if (doc.exists) {
@@ -64,11 +64,11 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .put("/api/gfffts/fruit-code")
-            .set('Content-Type', 'application/json')
-            .set('Accept', 'application/json')
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
             .send({
-                uid: uid,
-                gid: gid,
+              uid: uid,
+              gid: gid,
             })
             .then((res) => {
               res.should.have.status(401)
@@ -83,11 +83,11 @@ describe("gfffts API", function(this: Suite) {
             .request(server)
             .put("/api/gfffts/fruit-code")
             .set(USER_2_AUTH)
-            .set('Content-Type', 'application/json')
-            .set('Accept', 'application/json')
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
             .send({
               uid: uid,
-              gid: gid
+              gid: gid,
             })
             .then(async (res) => {
               res.should.have.status(200)
@@ -105,26 +105,26 @@ describe("gfffts API", function(this: Suite) {
           it("does not change fruitCode", async function() {
             const fcBefore = gffft.fruitCode
             return chai
-            .request(server)
-            .put("/api/gfffts/fruit-code")
-            .set(USER_1_AUTH)
-            .set('Content-Type', 'application/json')
-            .set('Accept', 'application/json')
-            .send({
-              uid: uid,
-              gid: gid
-            })
-            .then(async (res) => {
-              res.should.have.status(403)
+              .request(server)
+              .put("/api/gfffts/fruit-code")
+              .set(USER_1_AUTH)
+              .set("Content-Type", "application/json")
+              .set("Accept", "application/json")
+              .send({
+                uid: uid,
+                gid: gid,
+              })
+              .then(async (res) => {
+                res.should.have.status(403)
 
-              const g2 = await getGffft(uid, gid)
-              assert(g2?.fruitCode)
-              if (g2 != null) {
-                const fcAfter = g2?.fruitCode || ""
-                assert(fcAfter.length > 0)
-                assert(g2?.fruitCode == fcBefore)
-              }
-            })
+                const g2 = await getGffft(uid, gid)
+                assert(g2?.fruitCode)
+                if (g2 != null) {
+                  const fcAfter = g2?.fruitCode || ""
+                  assert(fcAfter.length > 0)
+                  assert(g2?.fruitCode == fcBefore)
+                }
+              })
           })
         })
 
@@ -133,17 +133,17 @@ describe("gfffts API", function(this: Suite) {
             return chai.request(server)
               .put("/api/gfffts/fruit-code")
               .set(USER_1_AUTH)
-              .set('Content-Type', 'application/json')
-              .set('Accept', 'application/json')
+              .set("Content-Type", "application/json")
+              .set("Accept", "application/json")
               .send({
                 uid: uid,
-                gid: "non-existent-gffft"
+                gid: "non-existent-gffft",
               })
               .then(async (res) => {
                 res.should.have.status(404)
               })
           })
-        })  
+        })
       })
     })
   })

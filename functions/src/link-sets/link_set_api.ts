@@ -79,9 +79,6 @@ router.post(
 
     console.log(`uid:${uid} gid:${gid} bid:${lid} url: ${url} description: ${description}`)
 
-    // const gffft = await getGffft(uid, gid)
-    // const board = await getBoard(uid, gid, bid)
-
     const gffftMembers = gffftsMembersCollection([uid, gid])
 
     // is this poster a member of the gffft?

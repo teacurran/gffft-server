@@ -9,7 +9,7 @@ import moment from "moment"
 import {GffftStats, TYPE_ADMIN, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER} from "../gfffts/gffft_models"
 import {getGffftStats, getGffftStatsRef} from "../gfffts/gffft_data"
 import {gffftMemberCounter} from "./gffft_member_counter"
-import { upset } from "typesaurus"
+import {upset} from "typesaurus"
 
 describe("gffftMemberCounter", function() {
   const uid = "uid-1"

@@ -7,7 +7,7 @@ import {ref} from "typesaurus"
 import {boardsCollection, getBoard, getBoardByRef, getBoardByRefString, getOrCreateDefaultBoard} from "./board_data"
 import {Board} from "./board_models"
 import * as firebaseAdmin from "firebase-admin"
-import { COLLECTION_USERS } from "../users/user_data"
+import {COLLECTION_USERS} from "../users/user_data"
 
 describe("board_data", function(this: Suite) {
   // eslint-disable-next-line no-invalid-this
@@ -50,7 +50,7 @@ describe("board_data", function(this: Suite) {
         }
       })
 
-      await firestore.collection(COLLECTION_USERS).doc(uid1)
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
       .get()
       .then(async (doc) => {
         if (doc.exists) {

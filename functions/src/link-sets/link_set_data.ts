@@ -298,9 +298,6 @@ export async function getOrCreateLinkCache(linkRef: Ref<Link>, url: string): Pro
         }
       }
 
-      // todo. download all the images and save them to our storage
-      // check that they are images.
-
       if (images.length > 0) {
         image = images[0]
       }

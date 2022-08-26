@@ -1,21 +1,21 @@
-import "mocha"
+import {Suite} from "mocha"
 import chai from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_2_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
-import { Gffft } from "../gfffts/gffft_models"
-import { getOrCreateDefaultBoard } from "./board_data"
-import { Board } from "./board_models"
-import { Suite } from "mocha"
+import {Gffft} from "../gfffts/gffft_models"
+import {getOrCreateDefaultBoard} from "./board_data"
+import {Board} from "./board_models"
 import * as firebaseAdmin from "firebase-admin"
-import { COLLECTION_USERS } from "../users/user_data"
+import {COLLECTION_USERS} from "../users/user_data"
 
 chai.use(chaiHttp)
 chai.should()
 
 describe("boards API", function(this: Suite) {
+  // eslint-disable-next-line no-invalid-this
   this.timeout(20000)
   let firestore: firebaseAdmin.firestore.Firestore
 
@@ -24,7 +24,7 @@ describe("boards API", function(this: Suite) {
   let bid: string
   let gffft: Gffft
   let board: Board
-  
+
   before(async function() {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
@@ -53,7 +53,7 @@ describe("boards API", function(this: Suite) {
         }
       })
 
-      await firestore.collection(COLLECTION_USERS).doc(uid)
+    await firestore.collection(COLLECTION_USERS).doc(uid)
       .get()
       .then(async (doc) => {
         if (doc.exists) {
@@ -61,7 +61,7 @@ describe("boards API", function(this: Suite) {
         }
       })
   })
-  
+
   describe("/api/boards", function() {
     describe("/api/boards/createPost", function() {
       describe("unauthenticated", function() {
@@ -69,14 +69,14 @@ describe("boards API", function(this: Suite) {
           return chai
             .request(server)
             .post("/api/boards/createPost")
-            .set('Content-Type', 'application/json')
-            .set('Accept', 'application/json')
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
             .send({
-                uid: uid,
-                gid: gid,
-                bid: bid,
-                subject: "test subject",
-                body: "test body"
+              uid: uid,
+              gid: gid,
+              bid: bid,
+              subject: "test subject",
+              body: "test body",
             })
             .then((res) => {
               res.should.have.status(401)
@@ -90,19 +90,19 @@ describe("boards API", function(this: Suite) {
             .request(server)
             .post("/api/boards/createPost")
             .set(USER_2_AUTH)
-            .set('Content-Type', 'application/json')
-            .set('Accept', 'application/json')
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
             .send({
               uid: uid,
               gid: gid,
               bid: bid,
               subject: "test subject",
-              body: "test body"
+              body: "test body",
             })
             .then((res) => {
               res.should.have.status(204)
             })
-          })
+        })
       })
     })
   })
