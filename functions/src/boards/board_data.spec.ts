@@ -4,7 +4,7 @@ import {createGffft, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {MockFirebaseInit} from "../test/auth"
 import {ref} from "typesaurus"
-import {boardsCollection, getBoardByRef, getBoardByRefString, getOrCreateDefaultBoard} from "./board_data"
+import {boardsCollection, getBoard, getBoardByRef, getBoardByRefString, getOrCreateDefaultBoard} from "./board_data"
 import {Board} from "./board_models"
 
 describe("board_data", function(this: Suite) {
@@ -34,6 +34,15 @@ describe("board_data", function(this: Suite) {
 
     gffft = await createGffft(uid1, gffftStub, user1Handle)
     board = await getOrCreateDefaultBoard(uid1, gffft.id)
+  })
+
+  describe("getBoard", function() {
+    it("is able to get board", async function() {
+      const b2 = await getBoard(uid1, gffft.id, board.id)
+      expect(b2).to.not.be.null
+      expect(b2?.id).to.eq(board.id)
+      expect(b2?.key).to.eq(board.key)
+    })
   })
 
   describe("getBoardByRef", function() {

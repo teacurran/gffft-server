@@ -55,21 +55,7 @@ export async function getBoard(uid: string, gid: string, bid: string): Promise<B
 }
 
 export async function getBoardByRef(itemRef: Ref<Board>): Promise<Board | null> {
-  return get(itemRef).then(async (snapshot) => {
-    if (snapshot != null) {
-      const item = snapshot.data
-      item.id = snapshot.ref.id
-
-      // upgrading old data
-      if (!item.name) {
-        item.name = DEFAULT_BOARD_NAME
-        await upset<Board>(itemRef, item)
-      }
-
-      return item
-    }
-    return null
-  })
+  return get(itemRef).then(itemOrNull)
 }
 
 export async function getBoardByRefString(refId: string): Promise<Board | null> {
@@ -80,7 +66,6 @@ export async function getBoardByRefString(refId: string): Promise<Board | null> 
 export async function updateBoard(userId: string, gffftId: string, board: Board): Promise<void> {
   console.log(`updating board userId:${userId} gffftId:${gffftId}, boardId: ${board.id}`)
   const userBoards = boardsCollection([userId, gffftId])
-
   return upset<Board>(userBoards, board.id, board)
 }
 
@@ -159,7 +144,6 @@ export async function getThreadByRefString(refId: string): Promise<Thread | null
   const itemRef = pathToRef<Thread>(refId)
   return getThreadByRef(itemRef)
 }
-
 
 export async function getThread(uid: string,
   gid: string,
