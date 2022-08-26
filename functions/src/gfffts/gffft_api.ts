@@ -12,10 +12,9 @@ import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {Gallery} from "../galleries/gallery_models"
 import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
-import {Notebook} from "../notebooks/notebook_models"
-import {getOrCreateDefaultNotebook, notebookCollection} from "../notebooks/notebook_data"
 import * as Joi from "joi"
 import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
+import {usersCollection} from "../users/user_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -53,8 +52,6 @@ const gffftListRequestParams = Joi.object({
  *         type: boolean
  *       requireApproval:
  *         type: boolean
- *       notebookEnabled:
- *         type: boolean
  *       boardEnabled:
  *         type: boolean
  *       galleryEnabled:
@@ -73,7 +70,6 @@ const gffftUpdateRequestParams = Joi.object({
   requireApproval: Joi.bool().default(false),
   enableAltHandles: Joi.bool().default(true),
   pagesEnabled: Joi.bool().default(false),
-  notebookEnabled: Joi.bool().default(false),
   boardEnabled: Joi.bool().default(false),
   galleryEnabled: Joi.bool().default(false),
   fruitCodeReset: Joi.bool().default(false),
@@ -90,7 +86,6 @@ export interface GffftUpdateRequest extends ValidatedRequestSchema {
     allowMembers: boolean,
     requireApproval: boolean,
     enableAltHandles: boolean,
-    notebookEnabled: boolean,
     boardEnabled: boolean,
     galleryEnabled: boolean,
     fruitCodeReset: boolean,
@@ -124,7 +119,6 @@ const gffftPatchRequestParams = Joi.object({
   allowMembers: Joi.boolean().optional(),
   boardEnabled: Joi.boolean().optional(),
   galleryEnabled: Joi.boolean().optional(),
-  notebookEnabled: Joi.boolean().optional(),
   linkSetEnabled: Joi.boolean().optional(),
   fruitCodeReset: Joi.boolean().optional(),
   fruitCodeEnabled: Joi.boolean().optional(),
@@ -142,7 +136,6 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
     allowMembers?: boolean,
     boardEnabled?: boolean,
     galleryEnabled?: boolean,
-    notebookEnabled?: boolean,
     linkSetEnabled?: boolean,
     fruitCodeReset?: boolean,
     fruitCodeEnabled?: boolean,
@@ -212,20 +205,6 @@ router.patch(
           features.splice(itemIndex, 1)
         }
         if (body.galleryEnabled) {
-          features.push(itemRef)
-        }
-      }
-      if (body.notebookEnabled != undefined) {
-        console.log(`got notebook enable:${body.notebookEnabled}`)
-        const notebook: Notebook = await getOrCreateDefaultNotebook(iamUser.id, gffft.id)
-        const userNotebooks = notebookCollection([iamUser.id, gffft.id])
-        const itemRef = getRefPath(ref(userNotebooks, notebook.id))
-
-        const itemIndex = features.indexOf(itemRef, 0)
-        if (itemIndex > -1) {
-          features.splice(itemIndex, 1)
-        }
-        if (body.notebookEnabled) {
           features.push(itemRef)
         }
       }
@@ -299,6 +278,8 @@ router.put(
     gffft.allowMembers = item.allowMembers
     gffft.requireApproval = item.requireApproval
 
+    const gfffts = gffftsCollection(ref(usersCollection, iamUser.id))
+
     const features: string[] = []
     if (item.boardEnabled) {
       const board: Board = await getOrCreateDefaultBoard(iamUser.id, gffft.id)
@@ -310,16 +291,8 @@ router.put(
 
     if (item.galleryEnabled) {
       const gallery: Gallery = await getOrCreateDefaultGallery(iamUser.id, gffft.id)
-      const userGalleries = galleryCollection([iamUser.id, gffft.id])
+      const userGalleries = galleryCollection(ref(gfffts, gffft.id))
       features.push(getRefPath(ref(userGalleries, gallery.id)))
-    }
-
-    if (item.notebookEnabled) {
-      const notebook: Notebook = await getOrCreateDefaultNotebook(iamUser.id, gffft.id)
-      const userNotebooks = notebookCollection([iamUser.id, gffft.id])
-      if (notebook.id) {
-        features.push(getRefPath(ref(userNotebooks, notebook.id)))
-      }
     }
 
     gffft.tags = item.tags

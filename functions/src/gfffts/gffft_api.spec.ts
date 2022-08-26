@@ -1,5 +1,5 @@
 import {Suite} from "mocha"
-import chai, { expect } from "chai"
+import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
 import server from "../server"
@@ -157,7 +157,7 @@ describe("gfffts API", function(this: Suite) {
           .send({
             name: "Clown College",
             description: "Clowns go to college!",
-            initialHandle: "Clown King"
+            initialHandle: "Clown King",
           })
           .then((res) => {
             res.should.have.status(401)
@@ -189,8 +189,8 @@ describe("gfffts API", function(this: Suite) {
             const g2 = await getGffft(uid, newGid)
             expect(g2).to.not.be.null
             if (g2 != null) {
-                expect(g2.name).to.eql(name)
-                expect(g2.description).to.eql(description)
+              expect(g2.name).to.eql(name)
+              expect(g2.description).to.eql(description)
             }
           })
       })
@@ -209,7 +209,7 @@ describe("gfffts API", function(this: Suite) {
             uid: gffft.uid,
             gid: gffft.id,
             name: "Clown College",
-            description: "Clowns go to college!"
+            description: "Clowns go to college!",
           })
           .then((res) => {
             res.should.have.status(401)
@@ -232,17 +232,17 @@ describe("gfffts API", function(this: Suite) {
             uid: gffft.uid,
             gid: gffft.id,
             name: name,
-            description: description
+            description: description,
           })
           .then(async (res) => {
             console.log(`body:${JSON.stringify(res.body)}`)
             res.should.have.status(204)
 
-            const g2 = await getGffft(gffft.uid ?? '', gffft.id)
+            const g2 = await getGffft(gffft.uid ?? "", gffft.id)
             expect(g2).to.not.be.null
             if (g2 != null) {
-                expect(g2.name).to.eql(name)
-                expect(g2.description).to.eql(description)
+              expect(g2.name).to.eql(name)
+              expect(g2.description).to.eql(description)
             }
           })
       })
@@ -258,7 +258,7 @@ describe("gfffts API", function(this: Suite) {
               uid: uid,
               gid: "non-existent-gffft",
               name: name,
-              description: description
+              description: description,
             })
             .then(async (res) => {
               res.should.have.status(404)
@@ -279,13 +279,13 @@ describe("gfffts API", function(this: Suite) {
               gid: gffft.id,
               name: name,
               description: description,
-              boardEnabled: true
+              boardEnabled: true,
             })
             .then(async (res) => {
               console.log(`body:${JSON.stringify(res.body)}`)
               res.should.have.status(204)
-  
-              const g2 = await getGffft(gffft.uid ?? '', gffft.id)
+
+              const g2 = await getGffft(gffft.uid ?? "", gffft.id)
               expect(g2).to.not.be.null
               if (g2 != null && g2.features) {
                 expect(g2.features[0]).to.contain("/boards/")
@@ -309,13 +309,13 @@ describe("gfffts API", function(this: Suite) {
               gid: gffft.id,
               name: name,
               description: description,
-              galleryEnabled: true
+              galleryEnabled: true,
             })
             .then(async (res) => {
               console.log(`body:${JSON.stringify(res.body)}`)
               res.should.have.status(204)
-  
-              const g2 = await getGffft(gffft.uid ?? '', gffft.id)
+
+              const g2 = await getGffft(gffft.uid ?? "", gffft.id)
               expect(g2).to.not.be.null
               if (g2 != null && g2.features) {
                 expect(g2.features[0]).to.contain("/galleries/")
@@ -325,37 +325,6 @@ describe("gfffts API", function(this: Suite) {
             })
         })
       })
-
-      describe("notebook is enabled", function() {
-        it("puts a notebook in the feature set", async function() {
-          return chai
-            .request(server)
-            .put("/api/gfffts")
-            .set(USER_2_AUTH)
-            .set("Content-Type", "application/json")
-            .set("Accept", "application/json")
-            .send({
-              uid: gffft.uid,
-              gid: gffft.id,
-              name: name,
-              description: description,
-              notebookEnabled: true
-            })
-            .then(async (res) => {
-              console.log(`body:${JSON.stringify(res.body)}`)
-              res.should.have.status(204)
-  
-              const g2 = await getGffft(gffft.uid ?? '', gffft.id)
-              expect(g2).to.not.be.null
-              if (g2 != null && g2.features) {
-                expect(g2.features[0]).to.contain("/notebooks/")
-                expect(g2.name).to.eql(name)
-                expect(g2.description).to.eql(description)
-              }
-            })
-        })
-      })
-
     })
   })
 })
