@@ -83,9 +83,8 @@ router.get(
       if (iamUser == null) {
         res.status(403).send("Unauthorized: login required for 'me'")
         return
-      } else {
-        uid = iamUser.id
       }
+      uid = iamUser.id
     }
 
     const gffft = await getFullGffft(uid, gid, iamUser?.id)

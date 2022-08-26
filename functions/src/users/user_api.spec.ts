@@ -5,15 +5,18 @@ import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../t
 import server from "../server"
 import {DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
+import { Gffft } from "../gfffts/gffft_models"
 
 chai.use(chaiHttp)
 chai.should()
 
 describe("users API", function() {
+  let gffft: Gffft
+  
   before(async function() {
     await MockFirebaseInit.getInstance().init()
 
-    await factories.gffft
+    gffft = await factories.gffft
       .create({
         uid: MOCK_AUTH_USER_2.user_id,
         name: "Lost in Space",
@@ -161,17 +164,23 @@ describe("users API", function() {
   describe("/api/users/{uid}/gfffts/{gid}", function() {
     describe("UID is me", function() {
       describe("unauthenticated", function() {
-        it("returns 401 is me requested", async function() {
+        it("returns 401 if me requested", async function() {
           return chai
             .request(server)
             .get("/api/users/me/gfffts/default")
             .then((res) => {
               res.should.have.status(403)
             })
-            .catch((err) => {
-              throw err
-            })
         })
+
+        it("gets gffft", async function() {
+          return chai
+            .request(server)
+            .get(`/api/users/${gffft.uid}/gfffts/${gffft.id}`)
+            .then((res) => {
+              res.should.have.status(200)
+            })
+        }) 
       })
 
       describe("authenticated", function() {
@@ -182,9 +191,6 @@ describe("users API", function() {
             .set(USER_2_AUTH)
             .then((res) => {
               res.should.have.status(200)
-            })
-            .catch((err) => {
-              throw err
             })
         })
 
