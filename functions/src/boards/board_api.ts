@@ -2,7 +2,7 @@ import express, {Response} from "express"
 
 import {threadPostsCollection, threadsCollection} from "./board_data"
 
-import {LoggedInUser, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
+import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
 import {Thread} from "./board_models"
 import {getGffft} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
@@ -41,7 +41,6 @@ export interface CreatePostRequest extends ValidatedRequestSchema {
 router.post(
   "/createPost",
   requiredAuthentication,
-  requiredGffftMembership,
   validator.body(createPostParams),
   async (req: ValidatedRequest<CreatePostRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
