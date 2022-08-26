@@ -6,12 +6,41 @@ steps:
       - -c
       - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base || exit 0
 
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - '--privileged'
+      - 'linuxkit/binfmt:v0.7'
+    id: initialize-qemu
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - buildx
+      - create
+      - '--name'
+      - mybuilder
+    id: create-builder
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - buildx
+      - use
+      - mybuilder
+    id: select-builder
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - buildx
+      - inspect
+      - '--bootstrap'
+    id: show-target-build-platforms
+
   - name: "gcr.io/cloud-builders/docker"
     id: "docker build firebase"
     waitFor: ['pull firebase cache']
     args:
       [
+        "buildx"
         "build",
+        "--platform"
+        $_DOCKER_BUILDX_PLATFORMS
         "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base",
         "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base",
         "-t", "gffft-firebase-emulator",
@@ -33,4 +62,4 @@ images:
   - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:base"
 substitutions:
   _ARTIFACT_REPO: us-central1-docker.pkg.dev
-
+  _DOCKER_BUILDX_PLATFORMS: 'linux/amd64,linux/arm64'
