@@ -3,7 +3,7 @@ import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
 import {trace, context} from "@opentelemetry/api"
 import cacheContainer from "../common/redis"
-import {getGffftMembership} from "../gfffts/gffft_data"
+import {getGffft, getGffftMembership} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 
 export type LoggedInUser = {
@@ -121,8 +121,21 @@ export const requiredGffftMembership = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  const uid = req.body.get("uid")
-  const gid = req.body.get("gid")
+  let uid = req.body.uid
+  const gid = req.body.gid
+
+  if (uid == "me" && res.locals.iamUser) {
+    uid = res.locals.iamUser.id
+  }
+
+  const gffft = await getGffft(uid, gid)
+  if (gffft == null) {
+    res.sendStatus(404)
+    return
+  }
+  res.locals.gffft = gffft
+  res.locals.uid = uid
+  res.locals.gid = gffft.id
 
   const membership = await getGffftMembership(uid, gid, res.locals.iamUser.id)
   if (!membership) {

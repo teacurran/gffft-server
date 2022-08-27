@@ -3,7 +3,6 @@ import {pathToRef, ref, upset, value} from "typesaurus"
 import {boardsCollection, threadsCollection} from "../boards/board_data"
 import {BoardPostCounterWithAuthor, ThreadPostCounterWithAuthor} from "../boards/board_models"
 import {gffftsCollection} from "../gfffts/gffft_data"
-import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
 import {incrementMemberCounter} from "./common"
 
@@ -21,8 +20,7 @@ export const threadReplyCounter = functions.firestore
     const oldPost = change.before.data()
     const newPost = change.after.data()
 
-    const users = usersCollection
-    const gfffts = gffftsCollection(ref(users, uid))
+    const gfffts = gffftsCollection(uid)
     const boards = boardsCollection(ref(gfffts, gid))
     const threads = threadsCollection(ref(boards, bid))
 

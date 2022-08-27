@@ -11,8 +11,8 @@ import {
   updateGffft,
 } from "./gffft_data"
 
-import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
-import {Gffft, TYPE_OWNER} from "./gffft_models"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
+import {Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
 import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_interfaces"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, getRefPath, ref, upset} from "typesaurus"
@@ -152,26 +152,23 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
 router.patch(
   "/",
   requiredAuthentication,
+  requiredGffftMembership,
   validator.body(gffftPatchRequestParams),
   async (req: ValidatedRequest<GffftPatchRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
     const body = req.body
+    const uid = res.locals.uid
+    const gid = res.locals.gid
+    const gffft = res.locals.gffft
 
-    let uid = body.uid
-    if (uid == "me") {
-      uid = iamUser.id
-    }
-    let gid = body.gid
-
-    const gffft = await getGffft(uid, gid)
-
-    if (gffft == null) {
-      res.sendStatus(404)
+    const membership: GffftMember = res.locals.gffftMembership
+    if (membership.type !== TYPE_OWNER) {
+      console.log("user is not an owner of this gffft")
+      res.sendStatus(403)
       return
     }
 
-    gid = gffft.id
     if (body.name != undefined) {
       gffft.name = body.name
     }
