@@ -129,10 +129,8 @@ router.get(
     let gid = req.params.gid
     const bid = req.params.bid
 
-    if (uid == "me") {
-      if (iamUser) {
-        uid = iamUser.id
-      }
+    if (uid == "me" && iamUser) {
+      uid = iamUser.id
     }
 
     const gffftPromise = getGffft(uid, gid)

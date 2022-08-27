@@ -298,17 +298,24 @@ describe("gffft_data", function() {
     it("it randomly generates fruit codes", async function() {
       const fruitCodes: string[] = []
       let rareCount = 0
-      for (let i = 0; i < 100; i++) {
-        const [code, rareFruits] = await getUniqueFruitCode()
+      let ultraRareCount = 0
+      for (let i = 0; i < 10000; i++) {
+        const [code, rareFruits, ultraRareFruits] = await getUniqueFruitCode()
         if (fruitCodes.includes(code)) {
           throw new Error(`Duplicate code: ${code}`)
         }
         rareCount += rareFruits
+        ultraRareCount += ultraRareFruits
         fruitCodes.push(code)
+
+        if (ultraRareCount > 0 && rareCount > 0) {
+          console.log(`rareCount: ${rareCount} ultraRareCount: ${ultraRareCount} after ${i} iterations`)
+          break
+        }
       }
       // this can fail, it is random. increasing loop above will reduce
       expect(rareCount).to.be.gt(0)
-    })
+    }).timeout(10000)
   })
 
   describe("hydrateGffft", function() {
