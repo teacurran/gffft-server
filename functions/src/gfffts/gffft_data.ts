@@ -15,17 +15,12 @@ import {
   getRefPath,
   Ref,
   id,
-  set,
+  set, value, Collection,
 } from "typesaurus"
 import {
-  Gffft,
-  GffftMember,
-  HydratedGffft,
-  TYPE_ANON,
-  TYPE_MEMBER,
-  TYPE_OWNER,
-  GffftStats,
-} from "./gffft_models"
+  Gffft, GffftMember,
+  HydratedGffft, TYPE_ANON, TYPE_MEMBER, TYPE_OWNER, GffftStats,
+  GffftOwnerCountUpset, GffftAdminCountUpset, GffftMemberCountUpset, GffftAnonCountUpset, TYPE_ADMIN} from "./gffft_models"
 import {HydratedUser, User, UserBookmark} from "../users/user_models"
 import {itemOrNull} from "../common/data"
 import {getBookmark, getUser, usersCollection} from "../users/user_data"
@@ -373,11 +368,13 @@ export async function getGfffts(offset?: string, maxResults = 20, q?: string, me
   })
 }
 
-export function getGffftStatsRef(uid: string, gid: string, key: string): Ref<GffftStats> {
+export function getGffftStatsCollection(uid: string, gid: string): Collection<GffftStats> {
   const userGfffts = gffftsCollection(ref(usersCollection, uid))
   const gffftRef = ref(userGfffts, gid)
-  const gffftStats = gffftsStatsCollection(gffftRef)
-  return ref(gffftStats, key)
+  return gffftsStatsCollection(gffftRef)
+}
+export function getGffftStatsRef(uid: string, gid: string, key: string): Ref<GffftStats> {
+  return ref(getGffftStatsCollection(uid, gid), key)
 }
 
 export async function getGffftStats(uid: string, gid: string, key: string): Promise<GffftStats> {
@@ -564,28 +561,29 @@ function getLinkSetPromise(features: IGffftFeatureRef[], feature: string, linkSe
   })
 }
 
-export async function updateCounter(refString: Ref<GffftStats>, type: string, changeValue: number): Promise<void> {
-  console.log(`updating counter: ${JSON.stringify(refString)} type:${type} value:${changeValue}`)
-  // switch (type) {
-  // case TYPE_OWNER:
-  //   return set<GffftOwnerCountUpset>(refString as Ref<GffftOwnerCountUpset>, {
-  //     ownerCount: value("increment", changeValue),
-  //   }, {merge: true})
-  // case TYPE_ADMIN:
-  //   return upset<GffftAdminCountUpset>(refString, {
-  //     adminCount: value("increment", changeValue),
-  //   })
-  // case TYPE_MEMBER:
-  //   return upset<GffftMemberCountUpset>(refString, {
-  //     memberCount: value("increment", changeValue),
-  //   })
-  // case TYPE_ANON:
-  //   return upset<GffftAnonCountUpset>(refString, {
-  //     anonCount: value("increment", changeValue),
-  //   })
-  // default:
-  //   break
-  // }
+export async function updateCounter(uid: string, gid: string, counterName: string, type: string, changeValue: number): Promise<void> {
+  console.log(`updating counter: ${uid}/${gid}/${counterName} type:${type} value:${changeValue}`)
+  const collection = getGffftStatsCollection(uid, gid)
+  switch (type) {
+  case TYPE_OWNER:
+    return upset<GffftOwnerCountUpset>(collection, counterName, {
+      ownerCount: value("increment", changeValue),
+    })
+  case TYPE_ADMIN:
+    return upset<GffftAdminCountUpset>(collection, counterName, {
+      adminCount: value("increment", changeValue),
+    })
+  case TYPE_MEMBER:
+    return upset<GffftMemberCountUpset>(collection, counterName, {
+      memberCount: value("increment", changeValue),
+    })
+  case TYPE_ANON:
+    return upset<GffftAnonCountUpset>(collection, counterName, {
+      anonCount: value("increment", changeValue),
+    })
+  default:
+    break
+  }
 }
 
 export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promise<void> {
