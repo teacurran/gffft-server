@@ -315,7 +315,7 @@ describe("gffft_data", function() {
       }
       // this can fail, it is random. increasing loop above will reduce
       expect(rareCount).to.be.gt(0)
-    }).timeout(10000)
+    }).timeout(20000)
   })
 
   describe("hydrateGffft", function() {
