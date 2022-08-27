@@ -3,11 +3,13 @@ import chai from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
 import server from "../server"
-import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
+import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY, getGffftRef} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
 import * as firebaseAdmin from "firebase-admin"
 import {COLLECTION_USERS} from "./user_data"
+import {getBoardRef} from "../boards/board_data"
+import {getRefPath, upset} from "typesaurus"
 
 chai.use(chaiHttp)
 chai.should()
@@ -15,18 +17,26 @@ chai.should()
 describe("users API", function() {
   let gffft: Gffft
   let firestore: firebaseAdmin.firestore.Firestore
+  let uid: string
+  let gid: string
 
   before(async function() {
+    uid = MOCK_AUTH_USER_2.user_id
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
     gffft = await factories.gffft
       .create({
-        uid: MOCK_AUTH_USER_2.user_id,
+        uid: uid,
         name: "Lost in Space",
         key: DEFAULT_GFFFT_KEY,
         enabled: false,
       })
+    gid = gffft.id
+
+    const board = await factories.board.create({}, {transient: {uid, gid}})
+    gffft.features = [getRefPath(getBoardRef(uid, gid, board.id))]
+    await upset(getGffftRef(uid, gffft.id), gffft)
   })
 
   after(async function() {
@@ -215,13 +225,66 @@ describe("users API", function() {
               .request(server)
               .get("/api/users/me/gfffts/invalid_gid")
               .set(USER_2_AUTH)
-              .then((res) => {
-                res.should.have.status(404)
-              })
-              .catch((err) => {
-                throw err
-              })
+              .then((res) => res.should.have.status(404))
           })
+        })
+      })
+    })
+  })
+
+  describe("/api/users/{uid}/gfffts/{gid}/boards/{bid}/threads", function() {
+    describe("unauthenticated", function() {
+      it("me returns 404", async function() {
+        return chai
+          .request(server)
+          .get("/api/users/me/gfffts/default/boards/default/threads")
+          .then((res) => {
+            res.should.have.status(404)
+          })
+      })
+
+      it("gets gffft", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${gffft.uid}/gfffts/${gffft.id}/boards/default/threads`)
+          .then((res) => {
+            res.should.have.status(200)
+          })
+      })
+    })
+
+    describe("authenticated", function() {
+      it("gets gffft", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${gffft.uid}/gfffts/${gffft.id}/boards/default/threads`)
+          .set(USER_2_AUTH)
+          .then((res) => {
+            res.should.have.status(200)
+          })
+      })
+
+      describe("gffft id is invalid", function() {
+        it("returns 404", async function() {
+          return chai
+            .request(server)
+            .get(`/api/users/${gffft.uid}/gfffts/invalid_gid/boards/default/threads`)
+            .set(USER_2_AUTH)
+            .then((res) => {
+              res.should.have.status(404)
+            })
+        })
+      })
+
+      describe("board id is invalid", function() {
+        it("returns 404", async function() {
+          return chai
+            .request(server)
+            .get(`/api/users/${gffft.uid}/gfffts/${gffft.id}/boards/invalid_board_id/threads`)
+            .set(USER_2_AUTH)
+            .then((res) => {
+              res.should.have.status(404)
+            })
         })
       })
     })

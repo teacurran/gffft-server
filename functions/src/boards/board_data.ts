@@ -1,21 +1,22 @@
 import {query, subcollection, where, limit, add, pathToRef, get, upset,
-  ref, Ref, Query, startAfter, order, Doc} from "typesaurus"
+  ref, Ref, Query, startAfter, order, Doc, Collection} from "typesaurus"
 import {Board, HydratedThread, HydratedThreadPost, Thread, ThreadPost} from "./board_models"
 import {User} from "../users/user_models"
-import {getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
+import {getGffftRef, getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {itemOrNull} from "../common/data"
 import {Link} from "../link-sets/link_set_models"
 import {getLinkByRef} from "../link-sets/link_set_data"
 import {usersCollection} from "../users/user_data"
 
-const DEFAULT_BOARD_KEY = "default"
-const DEFAULT_BOARD_NAME = "board"
+export const COLLECTION_BOARDS = "boards"
+export const DEFAULT_BOARD_KEY = "default"
+export const DEFAULT_BOARD_NAME = "board"
 
 export const WHO_OWNER = "owner"
 export const WHO_PUBLIC = "public"
 
-export const boardsCollection = subcollection<Board, Gffft, User>("boards", gffftsCollection)
+export const boardsCollection = subcollection<Board, Gffft, User>(COLLECTION_BOARDS, gffftsCollection)
 export const threadsCollection = subcollection<Thread, Board, Gffft, [string, string]>("threads", boardsCollection)
 export const threadPostsCollection = subcollection<ThreadPost, Thread, Board,
   [string, string, string]>("posts", threadsCollection)
@@ -49,8 +50,10 @@ export async function getOrCreateDefaultBoard(uid: string, gid: string): Promise
 }
 
 export async function getBoard(uid: string, gid: string, bid: string): Promise<Board | null> {
-  const userBoards = boardsCollection([uid, gid])
-  const itemRef = ref(userBoards, bid)
+  if (bid == "default") {
+    return getOrCreateDefaultBoard(uid, gid)
+  }
+  const itemRef = ref(getBoardCollection(uid, gid), bid)
   return getBoardByRef(itemRef)
 }
 
@@ -61,6 +64,14 @@ export async function getBoardByRef(itemRef: Ref<Board>): Promise<Board | null> 
 export async function getBoardByRefString(refId: string): Promise<Board | null> {
   const itemRef = pathToRef<Board>(refId)
   return getBoardByRef(itemRef)
+}
+
+export function getBoardCollection(uid: string, gid: string): Collection<Board> {
+  return boardsCollection(getGffftRef(uid, gid))
+}
+
+export function getBoardRef(uid: string, gid: string, bid: string): Ref<Board> {
+  return ref(getBoardCollection(uid, gid), bid)
 }
 
 export async function updateBoard(userId: string, gffftId: string, board: Board): Promise<void> {
