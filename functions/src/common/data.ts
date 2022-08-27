@@ -1,3 +1,4 @@
+import {DocumentData} from "@firebase/firestore"
 import {Doc} from "typesaurus"
 
 export interface ItemWithId {
@@ -30,3 +31,13 @@ export const itemOrUndefined = <T extends ItemWithId>(snapshot: Doc<T> | null): 
   return item
 }
 
+export const deleteFirestoreItem = async <T extends ItemWithId>(snapshot: DocumentData | null): Promise<void> => {
+  if (!snapshot) {
+    return
+  }
+  if (snapshot != null) {
+    if (snapshot.exists) {
+      return snapshot.ref.delete()
+    }
+  }
+}

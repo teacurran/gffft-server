@@ -9,7 +9,7 @@ import * as Joi from "joi"
 import multer from "multer"
 import {uuid} from "uuidv4"
 import * as firebaseAdmin from "firebase-admin"
-import {galleryCollection, galleryItemsCollection, hydrateGalleryItem} from "./gallery_data"
+import {galleryCollection, galleryItemsCollection, getGalleryItemRef, hydrateGalleryItem} from "./gallery_data"
 import {GalleryItem} from "./gallery_models"
 import {usersCollection} from "../users/user_data"
 import {galleryItemToJson} from "./gallery_interfaces"
@@ -20,10 +20,10 @@ const router = express.Router()
 const validator = createValidator()
 
 const multerStorage = multer.diskStorage({
-  destination: function(req, file, cb) {
+  destination: function(_req, _file, cb) {
     cb(null, "/tmp/")
   },
-  filename: function(req, file, cb) {
+  filename: function(_req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
     cb(null, `${file.fieldname}-${uniqueSuffix}`)
   },
@@ -71,22 +71,11 @@ router.post(
   async (req: ValidatedRequest<CreateItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    let uid: string = req.body.uid
-    let gid: string = req.body.gid
+    const uid: string = res.locals.uid
+    const gid: string = res.locals.gid
+
     const mid: string = req.body.mid
     const description = req.body.description
-
-    if (uid == "me") {
-      uid = iamUser.id
-    }
-
-    // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
 
     console.log(`creating gallery item: uid:${uid} gid:${gid} bid:${mid} description: ${description}`)
 
@@ -125,11 +114,7 @@ router.post(
         metadata: md,
       })
 
-    const gfffts = gffftsCollection(ref(usersCollection, uid))
-    const galleries = galleryCollection(ref(gfffts, gid))
-    const galleryRef = ref(galleries, mid)
-    const galleryItems = galleryItemsCollection(galleryRef)
-    const itemRef = ref(galleryItems, itemId)
+    const itemRef = getGalleryItemRef(uid, gid, mid, itemId)
     const item = {
       author: posterRef,
       createdAt: new Date(),
@@ -176,31 +161,15 @@ router.patch(
   async (req: ValidatedRequest<UpdateItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    let uid: string = req.body.uid
-    let gid: string = req.body.gid
+    const uid: string = res.locals.uid
+    const gid: string = res.locals.gid
+
     const mid: string = req.body.mid
     const iid: string = req.body.iid
     const description = req.body.description
 
-    if (uid == "me") {
-      uid = iamUser.id
-    }
-
-    const gfffts = gffftsCollection(ref(usersCollection, uid))
-    const galleries = galleryCollection(ref(gfffts, gid))
-    const galleryRef = ref(galleries, mid)
-    const galleryItems = galleryItemsCollection(galleryRef)
-    const itemRef = ref(galleryItems, iid)
-    const gffftPromise = getGffft(uid, gid)
+    const itemRef = getGalleryItemRef(uid, gid, mid, iid)
     const itemPromise = get(itemRef)
-
-    const gffft = await gffftPromise
-    // make sure the gffft exists
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
 
     const itemDoc = await itemPromise
     if (!itemDoc) {

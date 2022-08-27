@@ -9,6 +9,7 @@ import {Gffft} from "../gfffts/gffft_models"
 import {assert} from "console"
 import {COLLECTION_USERS, getUser} from "../users/user_data"
 import * as firebaseAdmin from "firebase-admin"
+import {deleteFirestoreItem} from "../common/data"
 
 chai.use(chaiHttp)
 chai.should()
@@ -42,19 +43,11 @@ describe("gfffts API", function(this: Suite) {
     await firestore.collection(COLLECTION_USERS).doc(uid)
       .collection(COLLECTION_GFFFTS).doc(gid)
       .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          await doc.ref.delete()
-        }
-      })
+      .then(deleteFirestoreItem)
 
     await firestore.collection(COLLECTION_USERS).doc(uid)
       .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          await doc.ref.delete()
-        }
-      })
+      .then(deleteFirestoreItem)
   })
 
   describe("fruit-code", function() {

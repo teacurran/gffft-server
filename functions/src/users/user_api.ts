@@ -2,7 +2,7 @@ import * as Joi from "joi"
 import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {field, ref, remove, update, upset} from "typesaurus"
-import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
+import {LoggedInUser, optionalAuthentication, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
 import {getBoard, getThread, getThreads, threadsCollection} from "../boards/board_data"
 import {threadsToJson, threadToJson} from "../boards/board_interfaces"
 import {resetMemberCounter} from "../counters/common"
@@ -185,34 +185,17 @@ export interface DeleteBoardThreadsRequest extends ValidatedRequestSchema {
 router.delete(
   "/:uid/gfffts/:gid/boards/:bid/threads/:tid",
   requiredAuthentication,
+  requiredGffftMembership,
   validator.params(deleteBoardThreadsPathParams),
   async (req: ValidatedRequest<DeleteBoardThreadsRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    let uid = req.params.uid
-    let gid = req.params.gid
+    const uid = res.locals.uid
+    const gid = res.locals.gid
     const bid = req.params.bid
     const tid = req.params.tid
 
-    if (uid == "me") {
-      if (iamUser == null) {
-        res.sendStatus(404)
-        return
-      }
-      uid = iamUser.id
-    }
-
-    const gffftPromise = getGffft(uid, gid)
-    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
     const itemPromise = getThread(uid, gid, bid, tid, "", 0)
-
-    // make sure the gffft exists
-    const gffft = await gffftPromise
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
 
     const item = await itemPromise
     if (!item) {
@@ -220,7 +203,7 @@ router.delete(
       return
     }
 
-    const membership = await membershipPromise
+    const membership = res.locals.gffftMembership
 
     let canEdit = false
     if (item.firstPost.id == iamUser.id) {
@@ -520,39 +503,23 @@ export interface GetGalleryItemRequest extends ValidatedRequestSchema {
   };
 }
 
-
 router.delete(
   "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
   requiredAuthentication,
+  requiredGffftMembership,
   validator.params(getGalleryItemPathParams),
   validator.query(getGalleryQueryParams),
   async (req: ValidatedRequest<GetGalleryItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    let uid = req.params.uid
-    let gid = req.params.gid
+    const uid = res.locals.uid
+    const gid = res.locals.gid
+
     const mid = req.params.mid
     const iid = req.params.iid
 
-    if (uid == "me") {
-      if (iamUser == null) {
-        res.sendStatus(404)
-        return
-      }
-      uid = iamUser.id
-    }
-
-    const gffftPromise = getGffft(uid, gid)
     const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
     const itemPromise = getGalleryItem(uid, gid, mid, iid)
-
-    // make sure the gffft exists
-    const gffft = await gffftPromise
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
 
     const item = await itemPromise
     if (!item) {
@@ -605,35 +572,20 @@ export interface UpdateGalleryItemRequest extends ValidatedRequestSchema {
 router.patch(
   "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
   requiredAuthentication,
+  requiredGffftMembership,
   validator.params(getGalleryItemPathParams),
   validator.body(updateGalleryItemParams),
   async (req: ValidatedRequest<UpdateGalleryItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
-    let uid = req.params.uid
-    let gid = req.params.gid
+    const uid = res.locals.uid
+    const gid = res.locals.gid
+
     const mid = req.params.mid
     const iid = req.params.iid
 
-    if (uid == "me") {
-      if (iamUser == null) {
-        res.sendStatus(404)
-        return
-      }
-      uid = iamUser.id
-    }
-
-    const gffftPromise = getGffft(uid, gid)
     const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
     const itemPromise = getGalleryItem(uid, gid, mid, iid)
-
-    // make sure the gffft exists
-    const gffft = await gffftPromise
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
 
     const item = await itemPromise
     if (!item) {

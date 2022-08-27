@@ -7,9 +7,10 @@ import {getGffftRef, getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
 import {itemOrNull} from "../common/data"
 
-const DEFAULT_BOARD_KEY = "default"
+export const COLLECTION_GALLERIES = "galleries"
+export const DEFAULT_GALLERY_KEY = "default"
 
-export const galleryCollection = subcollection<Gallery, Gffft, User>("galleries", gffftsCollection)
+export const galleryCollection = subcollection<Gallery, Gffft, User>(COLLECTION_GALLERIES, gffftsCollection)
 export const galleryItemsCollection = subcollection<GalleryItem, Gallery,
   Gffft, [string, string]>("items", galleryCollection)
 
@@ -20,17 +21,16 @@ export const galleryItemsCollection = subcollection<GalleryItem, Gallery,
  * @return {IIAMUserType}
  */
 export async function getOrCreateDefaultGallery(uid: string, gid: string): Promise<Gallery> {
-  const gfffts = gffftsCollection(ref(usersCollection, uid))
-  const galleries = galleryCollection(ref(gfffts, gid))
+  const galleries = getGalleryCollection(uid, gid)
 
   let gallery = await query(galleries, [
-    where("key", "==", DEFAULT_BOARD_KEY),
+    where("key", "==", DEFAULT_GALLERY_KEY),
     limit(1),
   ]).then(itemOrNull)
 
   if (gallery == null) {
     gallery = {
-      key: DEFAULT_BOARD_KEY,
+      key: DEFAULT_GALLERY_KEY,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as Gallery
@@ -58,6 +58,18 @@ export function getGalleryCollection(uid: string, gid: string): Collection<Galle
   return galleryCollection(getGffftRef(uid, gid))
 }
 
+export function getGalleryItemsCollection(uid: string, gid: string, mid: string): Collection<GalleryItem> {
+  return galleryItemsCollection(getGalleryRef(uid, gid, mid))
+}
+
+export function getGalleryItemRef(uid: string, gid: string, mid: string, iid: string): Ref<GalleryItem> {
+  return ref(getGalleryItemsCollection(uid, gid, mid), iid)
+}
+
+export function getGalleryRef(uid: string, gid: string, mid: string): Ref<Gallery> {
+  return ref(getGalleryCollection(uid, gid), mid)
+}
+
 export async function getGalleryByRef(itemRef: Ref<Gallery>): Promise<Gallery | null> {
   return get(itemRef).then(itemOrNull)
 }
@@ -71,10 +83,7 @@ export async function getGalleryItem(uid: string,
   gid: string,
   mid:string,
   iid:string): Promise<HydratedGalleryItem|null> {
-  const gfffts = gffftsCollection(ref(usersCollection, uid))
-  const galleries = galleryCollection(ref(gfffts, gid))
-  const galleryRef = ref(galleries, mid)
-  const galleryItems = galleryItemsCollection(galleryRef)
+  const galleryItems = getGalleryItemsCollection(uid, gid, mid)
 
   const item = await get(galleryItems, iid)
   return hydrateGalleryItem(uid, gid, item)

@@ -10,7 +10,7 @@ export type Gallery = {
     videoCount: number
     whoCanView?: string
     whoCanPost?: string
-    latestPost: Ref<User>
+    latestPost?: Ref<User>
     createdAt: Date
     updatedAt: Date
   }
