@@ -16,7 +16,6 @@ import {
   Ref,
   id,
   set,
-  value,
 } from "typesaurus"
 import {
   Gffft,
@@ -25,12 +24,7 @@ import {
   TYPE_ANON,
   TYPE_MEMBER,
   TYPE_OWNER,
-  GffftAdminCountUpset,
-  GffftAnonCountUpset,
-  GffftMemberCountUpset,
-  GffftOwnerCountUpset,
   GffftStats,
-  TYPE_ADMIN,
 } from "./gffft_models"
 import {HydratedUser, User, UserBookmark} from "../users/user_models"
 import {itemOrNull} from "../common/data"
@@ -570,27 +564,28 @@ function getLinkSetPromise(features: IGffftFeatureRef[], feature: string, linkSe
   })
 }
 
-export async function updateCounter(ref: Ref<GffftStats>, type: string, changeValue: number): Promise<void> {
-  switch (type) {
-  case TYPE_OWNER:
-    return upset<GffftOwnerCountUpset>(ref, {
-      ownerCount: value("increment", changeValue),
-    })
-  case TYPE_ADMIN:
-    return upset<GffftAdminCountUpset>(ref, {
-      adminCount: value("increment", changeValue),
-    })
-  case TYPE_MEMBER:
-    return upset<GffftMemberCountUpset>(ref, {
-      memberCount: value("increment", changeValue),
-    })
-  case TYPE_ANON:
-    return upset<GffftAnonCountUpset>(ref, {
-      anonCount: value("increment", changeValue),
-    })
-  default:
-    break
-  }
+export async function updateCounter(refString: Ref<GffftStats>, type: string, changeValue: number): Promise<void> {
+  console.log(`updating counter: ${JSON.stringify(refString)} type:${type} value:${changeValue}`)
+  // switch (type) {
+  // case TYPE_OWNER:
+  //   return set<GffftOwnerCountUpset>(refString as Ref<GffftOwnerCountUpset>, {
+  //     ownerCount: value("increment", changeValue),
+  //   }, {merge: true})
+  // case TYPE_ADMIN:
+  //   return upset<GffftAdminCountUpset>(refString, {
+  //     adminCount: value("increment", changeValue),
+  //   })
+  // case TYPE_MEMBER:
+  //   return upset<GffftMemberCountUpset>(refString, {
+  //     memberCount: value("increment", changeValue),
+  //   })
+  // case TYPE_ANON:
+  //   return upset<GffftAnonCountUpset>(refString, {
+  //     anonCount: value("increment", changeValue),
+  //   })
+  // default:
+  //   break
+  // }
 }
 
 export async function updateGffft(uid: string, gid: string, gffft: Gffft): Promise<void> {

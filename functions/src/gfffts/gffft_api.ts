@@ -1,7 +1,15 @@
 import express, {Response} from "express"
 
-import {createGffft, getGffft, getGfffts,
-  getUniqueFruitCode, gffftsCollection, gffftsMembersCollection, hydrateGffft, updateGffft} from "./gffft_data"
+import {
+  createGffft,
+  getGffft,
+  getGfffts,
+  getUniqueFruitCode,
+  gffftsCollection,
+  gffftsMembersCollection,
+  hydrateGffft,
+  updateGffft,
+} from "./gffft_data"
 
 import {LoggedInUser, optionalAuthentication, requiredAuthentication} from "../accounts/auth"
 import {Gffft, TYPE_OWNER} from "./gffft_models"
@@ -21,14 +29,13 @@ export interface GffftListRequest extends ValidatedRequestSchema {
     q?: string
     max: number
     offset?: string
-  };
+  }
 }
 const gffftListRequestParams = Joi.object({
   q: Joi.string().optional(),
   max: Joi.number().optional().max(100).default(10),
   offset: Joi.string().optional(),
 })
-
 
 /**
  * @swagger
@@ -57,7 +64,7 @@ const gffftListRequestParams = Joi.object({
  *       galleryEnabled:
  *         type: boolean
  *
-*/
+ */
 const gffftUpdateRequestParams = Joi.object({
   uid: Joi.string().allow(null),
   gid: Joi.string().allow(null),
@@ -78,18 +85,18 @@ export interface GffftUpdateRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     uid: string
     gid: string
-    name: string;
-    description: string;
-    intro?: string,
-    tags?: string[],
-    enabled: boolean,
-    allowMembers: boolean,
-    requireApproval: boolean,
-    enableAltHandles: boolean,
-    boardEnabled: boolean,
-    galleryEnabled: boolean,
-    fruitCodeReset: boolean,
-  };
+    name: string
+    description: string
+    intro?: string
+    tags?: string[]
+    enabled: boolean
+    allowMembers: boolean
+    requireApproval: boolean
+    enableAltHandles: boolean
+    boardEnabled: boolean
+    galleryEnabled: boolean
+    fruitCodeReset: boolean
+  }
 }
 
 // eslint-disable-next-line new-cap
@@ -128,28 +135,25 @@ export interface GffftPatchRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     uid: string
     gid: string
-    name?: string;
-    description?: string;
-    intro?: string,
-    tags?: string[],
-    enabled?: boolean,
-    allowMembers?: boolean,
-    boardEnabled?: boolean,
-    galleryEnabled?: boolean,
-    linkSetEnabled?: boolean,
-    fruitCodeReset?: boolean,
-    fruitCodeEnabled?: boolean,
-  };
+    name?: string
+    description?: string
+    intro?: string
+    tags?: string[]
+    enabled?: boolean
+    allowMembers?: boolean
+    boardEnabled?: boolean
+    galleryEnabled?: boolean
+    linkSetEnabled?: boolean
+    fruitCodeReset?: boolean
+    fruitCodeEnabled?: boolean
+  }
 }
 
 router.patch(
   "/",
   requiredAuthentication,
   validator.body(gffftPatchRequestParams),
-  async (
-    req: ValidatedRequest<GffftPatchRequest>,
-    res: Response,
-  ) => {
+  async (req: ValidatedRequest<GffftPatchRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
     const body = req.body
@@ -238,9 +242,7 @@ router.patch(
       }
 
       if (body.fruitCodeReset === true) {
-        [gffft.fruitCode,
-          gffft.rareFruits,
-          gffft.ultraRareFruits] = await getUniqueFruitCode()
+        [gffft.fruitCode, gffft.rareFruits, gffft.ultraRareFruits] = await getUniqueFruitCode()
       }
 
       gffft.features = features
@@ -256,10 +258,7 @@ router.put(
   "/",
   requiredAuthentication,
   validator.body(gffftUpdateRequestParams),
-  async (
-    req: ValidatedRequest<GffftUpdateRequest>,
-    res: Response,
-  ) => {
+  async (req: ValidatedRequest<GffftUpdateRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
 
     const item = req.body
@@ -284,9 +283,7 @@ router.put(
     if (item.boardEnabled) {
       const board: Board = await getOrCreateDefaultBoard(iamUser.id, gffft.id)
       const userBoards = boardsCollection([iamUser.id, gffft.id])
-      if (board.id) {
-        features.push(getRefPath(ref(userBoards, board.id)))
-      }
+      features.push(getRefPath(ref(userBoards, board.id)))
     }
 
     if (item.galleryEnabled) {
@@ -375,21 +372,18 @@ const gffftCreateRequestParams = Joi.object({
 export interface GffftCreateRequest extends ValidatedRequestSchema {
   [ContainerTypes.Body]: {
     id?: string
-    name: string;
-    description?: string;
-    intro?: string,
-    initialHandle: string;
-  };
+    name: string
+    description?: string
+    intro?: string
+    initialHandle: string
+  }
 }
 
 router.post(
   "/",
   requiredAuthentication,
   validator.body(gffftCreateRequestParams),
-  async (
-    req: ValidatedRequest<GffftCreateRequest>,
-    res: Response,
-  ) => {
+  async (req: ValidatedRequest<GffftCreateRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
     const item = req.body
 
@@ -409,7 +403,4 @@ router.post(
   }
 )
 
-
 export default router
-
-

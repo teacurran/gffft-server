@@ -6,7 +6,7 @@ import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
 import {Thread} from "./board_models"
 import {getGffft} from "../gfffts/gffft_data"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {add, get, Ref, ref} from "typesaurus"
+import {get, Ref, add, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
 import * as Joi from "joi"
 

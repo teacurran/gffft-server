@@ -5,7 +5,7 @@
         "typescript",
         "typescriptreact",
       ],
-    "eslint.workingDirectories": ["./functions"],
+    "eslint.workingDirectories": ["functions"],
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": true,
     },
