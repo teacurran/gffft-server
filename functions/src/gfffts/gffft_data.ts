@@ -377,7 +377,7 @@ export function getGffftStatsRef(uid: string, gid: string, key: string): Ref<Gff
 
 export async function getGffftStats(uid: string, gid: string, key: string): Promise<GffftStats> {
   const statsRef = getGffftStatsRef(uid, gid, key)
-  let stats = await get(statsRef).then((snapshot) => itemOrNull(snapshot))
+  let stats = await get(statsRef).then(itemOrNull)
   if (!stats) {
     return Promise.resolve({
       id: key,
@@ -503,42 +503,36 @@ export async function getGffftUser(uid: string, gid: string, userRef?: Ref<User>
 
 function getGalleryPromise(features: IGffftFeatureRef[], feature: string, galleries: Gallery[]): Promise<void> {
   return getGalleryByRefString(feature).then((item) => {
-    if (item) {
+    if (item && item.id) {
       galleries.push(item)
-      if (item.id) {
-        features.push({
-          type: "gallery",
-          id: item.id,
-        })
-      }
+      features.push({
+        type: "gallery",
+        id: item.id,
+      })
     }
   })
 }
 
 function getBoardPromise(features: IGffftFeatureRef[], feature: string, boards: Board[]): Promise<void> {
   return getBoardByRefString(feature).then((item) => {
-    if (item) {
+    if (item && item.id) {
       boards.push(item)
-      if (item.id) {
-        features.push({
-          type: "board",
-          id: item.id,
-        })
-      }
+      features.push({
+        type: "board",
+        id: item.id,
+      })
     }
   })
 }
 
 function getLinkSetPromise(features: IGffftFeatureRef[], feature: string, linkSets: LinkSet[]): Promise<void> {
   return getLinkSetByRefString(feature).then((item) => {
-    if (item) {
+    if (item && item.id) {
       linkSets.push(item)
-      if (item.id) {
-        features.push({
-          type: "linkSet",
-          id: item.id,
-        })
-      }
+      features.push({
+        type: "linkSet",
+        id: item.id,
+      })
     }
   })
 }

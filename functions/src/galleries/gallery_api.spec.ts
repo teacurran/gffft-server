@@ -200,7 +200,7 @@ describe("galleries API", function(this: Suite) {
           })
       })
 
-      it("double like does nothing", async function() {
+      it("second request removes like", async function() {
         return chai
           .request(server)
           .post("/api/galleries/like")
@@ -220,9 +220,6 @@ describe("galleries API", function(this: Suite) {
             expect(item2).to.not.be.null
             if (item2 != null) {
               expect(item2.data.likes).to.not.be.null
-              if (item2.data.likes != null) {
-                expect(item2.data.likes.length).to.eql(0)
-              }
             }
           })
       })
