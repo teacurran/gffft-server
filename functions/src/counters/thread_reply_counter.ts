@@ -24,19 +24,18 @@ export const threadReplyCounter = functions.firestore
     const users = usersCollection
     const gfffts = gffftsCollection(ref(users, uid))
     const boards = boardsCollection(ref(gfffts, gid))
-    const boardRef = ref(boards, bid)
     const threads = threadsCollection(ref(boards, bid))
 
     if (!change.before.exists && newPost != null) {
       await incrementMemberCounter("boardPosts", uid, gid)
 
       const authorRef = pathToRef<User>(newPost.author.path)
-      await upset<ThreadPostCounterWithAuthor>(ref(threads, tid), {
+      await upset<ThreadPostCounterWithAuthor>(threads, tid, {
         postCount: value("increment", 1),
         latestPost: authorRef,
         updatedAt: newPost.createdAt ? newPost.createdAt.toDate() : new Date(),
       })
-      return upset<BoardPostCounterWithAuthor>(boardRef, {
+      return upset<BoardPostCounterWithAuthor>(boards, bid, {
         postCount: value("increment", 1),
         latestPost: authorRef,
         updatedAt: newPost.createdAt ? newPost.createdAt.toDate() : new Date(),

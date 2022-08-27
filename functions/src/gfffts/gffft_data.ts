@@ -266,6 +266,10 @@ export async function getGffftMembership(
   return snapshot
 }
 
+export function getGffftRef(uid: string, gid: string): Ref<Gffft> {
+  return ref(gffftsCollection(uid), gid)
+}
+
 export async function getOrCreateGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
   const memberRef = ref(gffftMembers, memberId)

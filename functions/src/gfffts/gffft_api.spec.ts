@@ -349,8 +349,8 @@ describe("gfffts API", function(this: Suite) {
     })
 
     describe("authenticated", function() {
-      const name = "Dog College"
-      const description = "Dogs go to college!"
+      const name = "Patches Basketball Team"
+      const description = "It's not in the rules, but it's a team!"
 
       it("updates gffft", async function() {
         return chai
@@ -419,8 +419,6 @@ describe("gfffts API", function(this: Suite) {
               const g2 = await getGffft(gffft.uid ?? "", gffft.id)
               expect(g2).to.not.be.null
               if (g2 != null && g2.features) {
-                console.log(`g2.features[0]:${g2.features[0]}`)
-
                 // position #1 is set to galleries in the test above ^
                 expect(g2.features[1]).to.contain("/boards/")
                 expect(g2.name).to.eql(name)
@@ -452,7 +450,72 @@ describe("gfffts API", function(this: Suite) {
               const g2 = await getGffft(gffft.uid ?? "", gffft.id)
               expect(g2).to.not.be.null
               if (g2 != null && g2.features) {
-                expect(g2.features[0]).to.contain("/galleries/")
+                console.log(`g2.features[0]:${g2.features[0]}`)
+                console.log(`g2.features[1]:${g2.features[1]}`)
+
+                // sending a gallery enabled patch will put the gallery second
+                expect(g2.features[1]).to.contain("/galleries/")
+                expect(g2.name).to.eql(name)
+                expect(g2.description).to.eql(description)
+              }
+            })
+        })
+      })
+
+      describe("link set is enabled", function() {
+        it("puts a gallery in the feature set", async function() {
+          return chai
+            .request(server)
+            .patch("/api/gfffts")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              linkSetEnabled: true,
+            })
+            .then(async (res) => {
+              console.log(`body:${JSON.stringify(res.body)}`)
+              res.should.have.status(204)
+
+              const g2 = await getGffft(gffft.uid ?? "", gffft.id)
+              expect(g2).to.not.be.null
+              if (g2 != null && g2.features) {
+                console.log(`g2.features[0]:${g2.features[0]}`)
+                console.log(`g2.features[1]:${g2.features[1]}`)
+                console.log(`g2.features[2]:${g2.features[2]}`)
+
+                // sending a gallery enabled patch will put the gallery second
+                expect(g2.features[2]).to.contain("/link-sets/")
+                expect(g2.name).to.eql(name)
+                expect(g2.description).to.eql(description)
+              }
+            })
+        })
+      })
+
+      describe("fruit-code is enabled", function() {
+        it("puts a gallery in the feature set", async function() {
+          return chai
+            .request(server)
+            .patch("/api/gfffts")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              fruitCodeEnabled: true,
+            })
+            .then(async (res) => {
+              console.log(`body:${JSON.stringify(res.body)}`)
+              res.should.have.status(204)
+
+              const g2 = await getGffft(gffft.uid ?? "", gffft.id)
+              expect(g2).to.not.be.null
+              if (g2 != null && g2.features) {
+                expect(g2.features[3]).to.eql("fruitCode")
                 expect(g2.name).to.eql(name)
                 expect(g2.description).to.eql(description)
               }

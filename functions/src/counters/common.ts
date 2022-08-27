@@ -1,16 +1,13 @@
 
 import {all, field, get, ref, update, value} from "typesaurus"
 import {LoggedInUser} from "../accounts/auth"
-import {gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
+import {gffftsCollection, gffftsMembersCollection, getGffftRef} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
 
 type CounterName = "galleryPhotos" | "galleryVideos" | "boardThreads" | "boardPosts" | "linkSetItems";
 export async function incrementMemberCounter(counterName: CounterName, uid: string, gid: string): Promise<void> {
-  const gfffts = gffftsCollection(ref(usersCollection, uid))
-  const gffftRef = ref(gfffts, gid)
-
   const writes: Promise<void>[] = []
-  const membersCollection = gffftsMembersCollection(gffftRef)
+  const membersCollection = gffftsMembersCollection(getGffftRef(uid, gid))
   all(membersCollection).then(async (results) => {
     for (const snapshot of results) {
       if (snapshot.data != null) {

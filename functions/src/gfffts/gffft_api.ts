@@ -19,7 +19,7 @@ import {get, getRefPath, ref, upset} from "typesaurus"
 import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {Gallery} from "../galleries/gallery_models"
-import {galleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
+import {galleryCollection, getGalleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 import * as Joi from "joi"
 import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
 import {usersCollection} from "../users/user_data"
@@ -176,8 +176,13 @@ router.patch(
       gffft.name = body.name
     }
 
-    gffft.intro = body.intro != undefined && body.intro.length > 0 ? body.intro : undefined
-    gffft.description = body.description != undefined && body.description.length > 0 ? body.description : undefined
+    if (body.intro != undefined && body.intro.length > 0) {
+      gffft.intro = body.intro
+    }
+
+    if (body.description != undefined && body.description.length > 0) {
+      gffft.description = body.description
+    }
 
     if (body.enabled != undefined) {
       gffft.enabled = body.enabled
@@ -205,7 +210,7 @@ router.patch(
     if (body.galleryEnabled != undefined) {
       console.log(`got gallery enable:${body.galleryEnabled}`)
       const gallery: Gallery = await getOrCreateDefaultGallery(uid, gid)
-      const galleries = galleryCollection([uid, gid])
+      const galleries = getGalleryCollection(uid, gid)
       const itemRef = getRefPath(ref(galleries, gallery.id))
 
       const itemIndex = features.indexOf(itemRef, 0)
