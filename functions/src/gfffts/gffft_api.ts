@@ -166,91 +166,94 @@ router.patch(
 
     const gffft = await getGffft(uid, gid)
 
-    if (gffft != null) {
-      gid = gffft.id
-      if (body.name != undefined) {
-        gffft.name = body.name
-      }
-
-      gffft.intro = body.intro != undefined && body.intro.length > 0 ? body.intro : undefined
-      gffft.description = body.description != undefined && body.description.length > 0 ? body.description : undefined
-
-      if (body.enabled != undefined) {
-        gffft.enabled = body.enabled
-      }
-      if (body.allowMembers != undefined) {
-        gffft.allowMembers = body.allowMembers
-      }
-
-      const features: string[] = gffft.features ?? []
-      if (body.boardEnabled != undefined) {
-        console.log(`got board enable:${body.boardEnabled}`)
-
-        const board: Board = await getOrCreateDefaultBoard(uid, gid)
-        const userBoards = boardsCollection([uid, gid])
-        const itemRef = getRefPath(ref(userBoards, board.id))
-
-        const itemIndex = features.indexOf(itemRef, 0)
-        if (itemIndex > -1) {
-          features.splice(itemIndex, 1)
-        }
-        if (body.boardEnabled) {
-          features.push(itemRef)
-        }
-      }
-      if (body.galleryEnabled != undefined) {
-        console.log(`got gallery enable:${body.galleryEnabled}`)
-        const gallery: Gallery = await getOrCreateDefaultGallery(uid, gid)
-        const galleries = galleryCollection([uid, gid])
-        const itemRef = getRefPath(ref(galleries, gallery.id))
-
-        const itemIndex = features.indexOf(itemRef, 0)
-        if (itemIndex > -1) {
-          features.splice(itemIndex, 1)
-        }
-        if (body.galleryEnabled) {
-          features.push(itemRef)
-        }
-      }
-      if (body.linkSetEnabled != undefined) {
-        console.log(`got link-set enable:${body.linkSetEnabled}`)
-
-        const linkSet = await getOrCreateDefaultLinkSet(iamUser.id, gffft.id)
-        const linkSets = linkSetCollection(ref(gffftsCollection(iamUser.id), gffft.id))
-        const itemRef = getRefPath(ref(linkSets, linkSet.id))
-
-        const itemIndex = features.indexOf(itemRef, 0)
-        if (itemIndex > -1) {
-          features.splice(itemIndex, 1)
-        }
-        if (body.linkSetEnabled) {
-          features.push(itemRef)
-        }
-      }
-      if (body.fruitCodeEnabled != undefined) {
-        console.log(`got fruit-code enable:${body.fruitCodeEnabled}`)
-
-        const itemRef = "fruitCode"
-
-        const itemIndex = features.indexOf(itemRef, 0)
-        if (itemIndex > -1) {
-          features.splice(itemIndex, 1)
-        }
-        if (body.fruitCodeEnabled) {
-          features.push(itemRef)
-        }
-      }
-
-      if (body.fruitCodeReset === true) {
-        [gffft.fruitCode, gffft.rareFruits, gffft.ultraRareFruits] = await getUniqueFruitCode()
-      }
-
-      gffft.features = features
-
-      updateGffft(iamUser.id, gffft.id, gffft).then(() => {
-        res.sendStatus(204)
-      })
+    if (gffft == null) {
+      res.sendStatus(404)
+      return
     }
+
+    gid = gffft.id
+    if (body.name != undefined) {
+      gffft.name = body.name
+    }
+
+    gffft.intro = body.intro != undefined && body.intro.length > 0 ? body.intro : undefined
+    gffft.description = body.description != undefined && body.description.length > 0 ? body.description : undefined
+
+    if (body.enabled != undefined) {
+      gffft.enabled = body.enabled
+    }
+    if (body.allowMembers != undefined) {
+      gffft.allowMembers = body.allowMembers
+    }
+
+    const features: string[] = gffft.features ?? []
+    if (body.boardEnabled != undefined) {
+      console.log(`got board enable:${body.boardEnabled}`)
+
+      const board: Board = await getOrCreateDefaultBoard(uid, gid)
+      const userBoards = boardsCollection([uid, gid])
+      const itemRef = getRefPath(ref(userBoards, board.id))
+
+      const itemIndex = features.indexOf(itemRef, 0)
+      if (itemIndex > -1) {
+        features.splice(itemIndex, 1)
+      }
+      if (body.boardEnabled) {
+        features.push(itemRef)
+      }
+    }
+    if (body.galleryEnabled != undefined) {
+      console.log(`got gallery enable:${body.galleryEnabled}`)
+      const gallery: Gallery = await getOrCreateDefaultGallery(uid, gid)
+      const galleries = galleryCollection([uid, gid])
+      const itemRef = getRefPath(ref(galleries, gallery.id))
+
+      const itemIndex = features.indexOf(itemRef, 0)
+      if (itemIndex > -1) {
+        features.splice(itemIndex, 1)
+      }
+      if (body.galleryEnabled) {
+        features.push(itemRef)
+      }
+    }
+    if (body.linkSetEnabled != undefined) {
+      console.log(`got link-set enable:${body.linkSetEnabled}`)
+
+      const linkSet = await getOrCreateDefaultLinkSet(iamUser.id, gffft.id)
+      const linkSets = linkSetCollection(ref(gffftsCollection(iamUser.id), gffft.id))
+      const itemRef = getRefPath(ref(linkSets, linkSet.id))
+
+      const itemIndex = features.indexOf(itemRef, 0)
+      if (itemIndex > -1) {
+        features.splice(itemIndex, 1)
+      }
+      if (body.linkSetEnabled) {
+        features.push(itemRef)
+      }
+    }
+    if (body.fruitCodeEnabled != undefined) {
+      console.log(`got fruit-code enable:${body.fruitCodeEnabled}`)
+
+      const itemRef = "fruitCode"
+
+      const itemIndex = features.indexOf(itemRef, 0)
+      if (itemIndex > -1) {
+        features.splice(itemIndex, 1)
+      }
+      if (body.fruitCodeEnabled) {
+        features.push(itemRef)
+      }
+    }
+
+    if (body.fruitCodeReset === true) {
+      [gffft.fruitCode, gffft.rareFruits, gffft.ultraRareFruits] = await getUniqueFruitCode()
+    }
+
+    gffft.features = features
+
+    updateGffft(iamUser.id, gffft.id, gffft).then(() => {
+      res.sendStatus(204)
+    })
   }
 )
 

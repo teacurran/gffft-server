@@ -419,7 +419,10 @@ describe("gfffts API", function(this: Suite) {
               const g2 = await getGffft(gffft.uid ?? "", gffft.id)
               expect(g2).to.not.be.null
               if (g2 != null && g2.features) {
-                expect(g2.features[0]).to.contain("/boards/")
+                console.log(`g2.features[0]:${g2.features[0]}`)
+
+                // position #1 is set to galleries in the test above ^
+                expect(g2.features[1]).to.contain("/boards/")
                 expect(g2.name).to.eql(name)
                 expect(g2.description).to.eql(description)
               }
