@@ -10,9 +10,11 @@ import {
   getGffft,
   getGffftByRef,
   getGffftMembership,
+  getGffftRef,
   getGfffts,
   getOrCreateGffftMembership,
   getUniqueFruitCode,
+  hydrateGffft,
   updateGffft,
 } from "./gffft_data"
 import {expect} from "chai"
@@ -21,6 +23,9 @@ import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
 import {User} from "../users/user_models"
 import {getUser} from "../users/user_data"
 import {factories} from "../test/factories"
+import {LinkSet} from "../link-sets/link_set_models"
+import {getRefPath, upset} from "typesaurus"
+import {getLinkSetRef} from "../link-sets/link_set_data"
 
 describe("gffft_data", function() {
   let gffft: Gffft
@@ -57,12 +62,17 @@ describe("gffft_data", function() {
     it("user2 cannot have user1's handle", async function() {
       const result = await checkGffftHandle(user1.id, gffft.id, user2.id, user1Handle)
       expect(result).to.be.false
-    }).timeout(5000)
+    })
 
     it("a user can have thier own handle", async function() {
       const result = await checkGffftHandle(user1.id, gffft.id, user1.id, user1Handle)
-      expect(result).to.be.false
-    }).timeout(5000)
+      expect(result).to.be.true
+    })
+
+    it("a user can have an untaken handle", async function() {
+      const result = await checkGffftHandle(user1.id, gffft.id, user1.id, "unique_special_handle")
+      expect(result).to.be.true
+    })
   })
 
   describe("createGffftMembership", function() {
@@ -298,6 +308,29 @@ describe("gffft_data", function() {
       }
       // this can fail, it is random. increasing loop above will reduce
       expect(rareCount).to.be.gt(0)
+    })
+  })
+
+  describe("hydrateGffft", function() {
+    let linkSet: LinkSet
+
+    before(async function() {
+      linkSet = await factories.linkSet.create({}, {
+        transient: {
+          uid: uid1,
+          gid: gffft.id,
+        },
+      })
+    })
+
+    it("hydrates link set", async function() {
+      const itemRef = getRefPath(getLinkSetRef(uid1, gffft.id, linkSet.id))
+      gffft.features = [itemRef]
+      await upset(getGffftRef(uid1, gffft.id), gffft)
+
+      const hydrated = await hydrateGffft(uid1, gffft)
+      expect(hydrated.linkSets).to.be.an("array")
+      expect(hydrated.linkSets.length).to.eql(1)
     })
   })
 

@@ -1,7 +1,7 @@
 import express, {Response} from "express"
 
 import {LoggedInUser, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
-import {getGffft, getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
+import {getGffftMembership} from "../gfffts/gffft_data"
 import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, ref, upset} from "typesaurus"
@@ -9,7 +9,7 @@ import * as Joi from "joi"
 import multer from "multer"
 import {uuid} from "uuidv4"
 import * as firebaseAdmin from "firebase-admin"
-import {galleryCollection, galleryItemsCollection, getGalleryItemRef, hydrateGalleryItem} from "./gallery_data"
+import {getGalleryItemRef, hydrateGalleryItem} from "./gallery_data"
 import {GalleryItem} from "./gallery_models"
 import {usersCollection} from "../users/user_data"
 import {galleryItemToJson} from "./gallery_interfaces"
@@ -101,12 +101,8 @@ router.post(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const md: { [key: string]: any } = {
-      metadata: {},
+      metadata: {uid, gid, mid, iid: itemId},
     }
-    md.metadata.uid = uid
-    md.metadata.gid = gid
-    md.metadata.mid = mid
-    md.metadata.iid = itemId
 
     await firebaseAdmin.storage()
       .bucket("gffft-auth.appspot.com").upload(file.path, {
@@ -218,43 +214,25 @@ router.post(
   "/like",
   validator.fields(likeItemParams),
   requiredAuthentication,
+  requiredGffftMembership,
   async (req: ValidatedRequest<LikeItemRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
     const posterUid = iamUser.id
 
-    let uid: string = req.body.uid
-    let gid: string = req.body.gid
+    const uid: string = res.locals.uid
+    const gid: string = res.locals.gid
+
     const mid: string = req.body.mid
     const iid: string = req.body.iid
 
     console.log(`like, uid:${uid} gid:${gid} mid:${mid} iid:${iid}`)
 
-    if (uid == "me") {
-      uid = iamUser.id
-    }
-
-    const gfffts = gffftsCollection(ref(usersCollection, uid))
-    const galleries = galleryCollection(ref(gfffts, gid))
-    const galleryRef = ref(galleries, mid)
-    const galleryItems = galleryItemsCollection(galleryRef)
-    const itemRef = ref(galleryItems, iid)
-
-    const gffftPromise = getGffft(uid, gid)
-    const membershipPromise = await getGffftMembership(uid, gid, posterUid)
+    const itemRef = getGalleryItemRef(uid, gid, mid, iid)
+    const membershipPromise = getGffftMembership(uid, gid, posterUid)
     const itemPromise = get(itemRef)
 
-    const gffft = await gffftPromise
-    // make sure the gffft exists
-    if (!gffft) {
-      console.log(`gffft not found, gid: ${gid}`)
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
-
     const membership = await membershipPromise
-    const itemDoc = await itemPromise
-    const item = itemOrNull(itemDoc)
+    const item = itemOrNull(await itemPromise)
 
     if (!item) {
       console.log(`item not found, gid: ${iid}`)

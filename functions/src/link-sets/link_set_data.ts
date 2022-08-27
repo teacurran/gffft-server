@@ -1,13 +1,12 @@
 import fs from "fs"
 import axios from "axios"
 import {
-  add, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
+  add, Collection, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
   subcollection, update, upset, where,
 } from "typesaurus"
 import {itemOrNull} from "../common/data"
-import {getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
+import {getGffftRef, getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
-import {usersCollection} from "../users/user_data"
 import {User} from "../users/user_models"
 import {
   HydratedLinkSet, HydratedLinkSetItem, Link, LinkCache,
@@ -43,8 +42,7 @@ export async function getLinkSetByRefString(refId: string): Promise<LinkSet | nu
 }
 
 export async function getOrCreateDefaultLinkSet(uid: string, gid: string): Promise<LinkSet> {
-  const gfffts = gffftsCollection(ref(usersCollection, uid))
-  const linkSets = linkSetCollection(ref(gfffts, gid))
+  const linkSets = getLinkSetCollection(uid, gid)
 
   let linkSet = await query(linkSets, [
     where("key", "==", DEFAULT_LINK_SET_KEY),
@@ -71,11 +69,17 @@ export async function getLinkSet(uid: string, gid: string, lid: string): Promise
 
   console.log(`looking for link set: uid:${uid} gid:${gid} mid:${lid}`)
 
-  const gfffts = gffftsCollection(ref(usersCollection, uid))
-  const linkSets = linkSetCollection(ref(gfffts, gid))
-  const itemRef = ref(linkSets, lid)
+  const itemRef = getLinkSetRef(uid, gid, lid)
   console.log(`itemRef: ${JSON.stringify(itemRef)}`)
   return getLinkSetByRef(itemRef)
+}
+
+export function getLinkSetCollection(uid: string, gid: string): Collection<LinkSet> {
+  return linkSetCollection(getGffftRef(uid, gid))
+}
+
+export function getLinkSetRef(uid: string, gid: string, lid: string): Ref<LinkSet> {
+  return ref(getLinkSetCollection(uid, gid), lid)
 }
 
 export async function getLinkSetItems(uid: string,
@@ -83,9 +87,7 @@ export async function getLinkSetItems(uid: string,
   mid: string,
   offset?: string,
   maxResults = 200): Promise<HydratedLinkSetItem[]> {
-  const gfffts = gffftsCollection(ref(usersCollection, uid))
-  const linkSets = linkSetCollection(ref(gfffts, gid))
-  const linkSetRef = ref(linkSets, mid)
+  const linkSetRef = getLinkSetRef(uid, gid, mid)
   const linkSetItems = linkSetItemsCollection(linkSetRef)
 
   const queries: Query<LinkSetItem, keyof LinkSetItem>[] = []

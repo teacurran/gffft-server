@@ -11,7 +11,7 @@ type GalleryTransientParams = {
 export default Factory.define<Gallery, GalleryTransientParams>(({transientParams, sequence, onCreate}) => {
   onCreate(async (item) => {
     if (transientParams.uid && transientParams.gid) {
-      await set<Gallery>(getGalleryRef(transientParams.uid, transientParams.gid, id), gallery)
+      await set<Gallery>(getGalleryRef(transientParams.uid, transientParams.gid, id), item)
     }
 
     return item

@@ -21,7 +21,7 @@ import {Board} from "../boards/board_models"
 import {Gallery} from "../galleries/gallery_models"
 import {galleryCollection, getGalleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 import * as Joi from "joi"
-import {getOrCreateDefaultLinkSet, linkSetCollection} from "../link-sets/link_set_data"
+import {getOrCreateDefaultLinkSet, getLinkSetRef} from "../link-sets/link_set_data"
 import {usersCollection} from "../users/user_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
@@ -222,8 +222,7 @@ router.patch(
       console.log(`got link-set enable:${body.linkSetEnabled}`)
 
       const linkSet = await getOrCreateDefaultLinkSet(iamUser.id, gffft.id)
-      const linkSets = linkSetCollection(ref(gffftsCollection(iamUser.id), gffft.id))
-      const itemRef = getRefPath(ref(linkSets, linkSet.id))
+      const itemRef = getRefPath(getLinkSetRef(uid, gid, linkSet.id))
 
       const itemIndex = features.indexOf(itemRef, 0)
       if (itemIndex > -1) {

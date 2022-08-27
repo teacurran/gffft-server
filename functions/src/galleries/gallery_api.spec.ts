@@ -79,11 +79,7 @@ describe("galleries API", function(this: Suite) {
         .collection(COLLECTION_GFFFTS).doc(gid)
         .collection(COLLECTION_GALLERIES).doc(gallery.id)
         .get()
-        .then(async (doc) => {
-          if (doc.exists) {
-            await doc.ref.delete()
-          }
-        })
+        .then(deleteFirestoreItem)
     })
 
     describe("unauthenticated", function() {
@@ -131,6 +127,124 @@ describe("galleries API", function(this: Suite) {
               expect(item2.data.description).to.eql(updatedItemDescription)
             }
           })
+      })
+    })
+  })
+
+  describe("like", function() {
+    let galleryItem: GalleryItem
+
+    before(async function() {
+      galleryItem = await factories.galleryItem.create({}, {
+        transient: {
+          uid: uid,
+          gid: gid,
+          mid: gallery.id,
+        },
+      })
+    })
+
+    after(async function() {
+      await firestore.collection(COLLECTION_USERS).doc(uid)
+        .collection(COLLECTION_GFFFTS).doc(gid)
+        .collection(COLLECTION_GALLERIES).doc(gallery.id)
+        .get()
+        .then(deleteFirestoreItem)
+    })
+
+    describe("unauthenticated", function() {
+      it("returns 401", async function() {
+        return chai
+          .request(server)
+          .post("/api/galleries/like")
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            mid: gallery.id,
+            iid: galleryItem.id,
+          })
+          .then((res) => {
+            res.should.have.status(401)
+          })
+      })
+    })
+
+    describe("authenticated", function() {
+      it("updates gallery", async function() {
+        return chai
+          .request(server)
+          .post("/api/galleries/like")
+          .set(USER_2_AUTH)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            mid: gallery.id,
+            iid: galleryItem.id,
+          })
+          .then(async (res) => {
+            res.should.have.status(200)
+
+            const item2 = await get(getGalleryItemRef(uid, gid, gallery.id, galleryItem.id))
+            expect(item2).to.not.be.null
+            if (item2 != null) {
+              expect(item2.data.likes).to.not.be.null
+              if (item2.data.likes != null) {
+                expect(item2.data.likes[0]).to.eql(uid)
+                expect(item2.data.likeCount).to.eql(1)
+              }
+            }
+          })
+      })
+
+      it("double like does nothing", async function() {
+        return chai
+          .request(server)
+          .post("/api/galleries/like")
+          .set(USER_2_AUTH)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            mid: gallery.id,
+            iid: galleryItem.id,
+          })
+          .then(async (res) => {
+            res.should.have.status(200)
+
+            const item2 = await get(getGalleryItemRef(uid, gid, gallery.id, galleryItem.id))
+            expect(item2).to.not.be.null
+            if (item2 != null) {
+              expect(item2.data.likes).to.not.be.null
+              if (item2.data.likes != null) {
+                expect(item2.data.likes.length).to.eql(0)
+              }
+            }
+          })
+      })
+
+      describe("when item not found", function() {
+        it("updates gallery", async function() {
+          return chai
+            .request(server)
+            .post("/api/galleries/like")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              mid: gallery.id,
+              iid: "non-existant item",
+            })
+            .then(async (res) => {
+              res.should.have.status(404)
+            })
+        })
       })
     })
   })

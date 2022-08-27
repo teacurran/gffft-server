@@ -33,7 +33,6 @@ import {getLinkSetByRefString} from "../link-sets/link_set_data"
 import cacheContainer from "../common/redis"
 import {Notebook} from "../notebooks/notebook_models"
 import {IGffftFeatureRef} from "./gffft_interfaces"
-import {getNotebookByRef} from "../notebooks/notebook_data"
 
 export const COLLECTION_GFFFTS = "gfffts"
 
@@ -84,12 +83,7 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
     console.log(`checking fruitcode: ${fruitCode}`)
 
     const fruitCodeExists = await query(gffftsGroup, [where("fruitCode", "==", fruitCode), limit(1)])
-      .then((results) => {
-        return results.length > 0
-      })
-      .catch((reason) => {
-        console.log(`encountered error: ${reason}`)
-      })
+      .then((results) => results.length > 0)
 
     if (!fruitCodeExists) {
       return [fruitCode, rareFruitEncountered, ultraRareFruitEncountered]
@@ -100,12 +94,13 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
 
 export async function checkGffftHandle(uid: string, gid: string, memberId: string, handle: string): Promise<boolean> {
   const gffftMembers = gffftsMembersCollection([uid, gid])
-  const memberRef = ref(gffftMembers, memberId)
+  const userRef = ref(usersCollection, memberId)
 
   const membership = await query(gffftMembers, [where("handle", "==", handle), limit(1)]).then(itemOrNull)
 
   if (membership) {
-    if (getRefPath(membership.user) == getRefPath(memberRef)) {
+    console.log(`checking membership ${getRefPath(membership.user)} == ${getRefPath(userRef)}`)
+    if (getRefPath(membership.user) == getRefPath(userRef)) {
       return true
     }
     return false
@@ -142,7 +137,6 @@ export async function createGffftMembership(
 
     if (member.type == TYPE_ANON) {
       member.type = TYPE_MEMBER
-      member.handle = handle ? handle : undefined
       member.updatedAt = new Date()
       needsUpdate = true
     }
@@ -431,8 +425,6 @@ export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: strin
         featurePromises.push(getBoardPromise(features, feature, boards))
       } else if (feature.indexOf("/galleries/") != -1) {
         featurePromises.push(getGalleryPromise(features, feature, galleries))
-      } else if (feature.indexOf("/notebooks/") != -1) {
-        featurePromises.push(getNotebookPromise(features, feature, notebooks))
       } else if (feature.indexOf("/link-sets/") != -1) {
         featurePromises.push(getLinkSetPromise(features, feature, linkSets))
       } else if (feature == "fruitCode") {
@@ -530,20 +522,6 @@ function getBoardPromise(features: IGffftFeatureRef[], feature: string, boards: 
       if (item.id) {
         features.push({
           type: "board",
-          id: item.id,
-        })
-      }
-    }
-  })
-}
-
-function getNotebookPromise(features: IGffftFeatureRef[], feature: string, notebooks: Notebook[]): Promise<void> {
-  return getNotebookByRef(feature).then((item) => {
-    if (item) {
-      notebooks.push(item)
-      if (item.id) {
-        features.push({
-          type: "notebook",
           id: item.id,
         })
       }
