@@ -68,7 +68,7 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
         console.log("Pi Day ULTRA RARE FRUIT GENERATED!")
         ultraRareFruitEncountered++
         fruitCode += PI_DAY_FRUITS[randBelow(PI_DAY_FRUITS.length)]
-      } else if (randBelow(1000000) >= 999990) {
+      } else if (randBelow(100000) >= 99990) {
         console.log("ULTRA RARE FRUIT GENERATED!")
         ultraRareFruitEncountered++
         fruitCode += ULTRA_RARE_FRUITS[randBelow(ULTRA_RARE_FRUITS.length)]
