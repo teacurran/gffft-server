@@ -1,7 +1,7 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH, USER_3_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_2_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, createGffftMembership, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
@@ -9,7 +9,7 @@ import {Gffft} from "../gfffts/gffft_models"
 import {COLLECTION_BOARDS, COLLECTION_POSTS, COLLECTION_THREADS, getOrCreateDefaultBoard} from "./board_data"
 import {Board} from "./board_models"
 import * as firebaseAdmin from "firebase-admin"
-import {COLLECTION_USERS} from "../users/user_data"
+import {COLLECTION_USERS, getUser} from "../users/user_data"
 import {deleteFirestoreItem} from "../common/data"
 import {IThread} from "./board_interfaces"
 import * as request from "superagent"
@@ -24,6 +24,7 @@ describe("boards API", function(this: Suite) {
 
   const uid1 = MOCK_AUTH_USER_1.user_id
   const uid2 = MOCK_AUTH_USER_2.user_id
+  const uid3 = MOCK_AUTH_USER_3.user_id
   let gid: string
   let bid: string
   let gffft: Gffft
@@ -34,6 +35,10 @@ describe("boards API", function(this: Suite) {
   before(async function() {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
+
+    getUser(uid1)
+    getUser(uid2)
+    getUser(uid3)
 
     gffft = await factories.gffft.create({
       uid: uid1,
@@ -141,6 +146,7 @@ describe("boards API", function(this: Suite) {
 
     function isThreadValid(res: request.Response) {
       res.should.have.status(200)
+      console.log(res.body)
       const t = res.body as IThread
       expect(t.subject).to.equal(postSubject)
       expect(t.firstPost.id).to.equal(uid2)
