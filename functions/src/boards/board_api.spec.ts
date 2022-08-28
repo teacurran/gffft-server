@@ -52,6 +52,7 @@ describe("boards API", function(this: Suite) {
     bid = board.id
 
     await createGffftMembership(uid1, gid, MOCK_AUTH_USER_1.user_id, "ponyboy")
+    await createGffftMembership(uid1, gid, MOCK_AUTH_USER_3.user_id, "calcutta")
   })
 
   after(async function() {
@@ -232,7 +233,7 @@ describe("boards API", function(this: Suite) {
         .delete(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/invalid-thread-id`)
         .set(USER_3_AUTH)
         .then((res) => {
-          res.should.have.status(403)
+          res.should.have.status(404)
         })
     })
 
