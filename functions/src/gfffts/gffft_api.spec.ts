@@ -600,5 +600,20 @@ describe("gfffts API", function(this: Suite) {
           console.log(`b2:${JSON.stringify(b2)}`)
         })
     })
+
+    it("returns 404 for non-existant gffft", async function() {
+      return chai
+        .request(server)
+        .post("/api/users/me/bookmarks")
+        .set(USER_3_AUTH)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json")
+        .send({
+          uid: gffft.uid,
+          gid: "doesn't exist",
+        }).then(async (res) => {
+          res.should.have.status(404)
+        })
+    })
   })
 })

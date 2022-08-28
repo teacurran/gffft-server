@@ -357,19 +357,10 @@ router.post(
   validator.body(createMemberParams),
   async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
-    let uid = req.body.uid
+    const uid = req.body.uid
     let gid = req.body.gid
 
     const memberId = res.locals.iamUser.id
-
-    if (uid == "me") {
-      if (iamUser == null) {
-        res.sendStatus(404)
-        return
-      }
-
-      uid = iamUser.id
-    }
 
     // make sure the gffft exists
     const gffft = await getGffft(uid, gid)
