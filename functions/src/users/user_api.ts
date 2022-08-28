@@ -356,7 +356,6 @@ router.post(
   requiredAuthentication,
   validator.body(createMemberParams),
   async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
     const uid = req.body.uid
     let gid = req.body.gid
 
