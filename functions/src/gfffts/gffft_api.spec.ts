@@ -7,7 +7,7 @@ import {COLLECTION_GFFFTS, createGffftMembership, getGffft, getGffftMembership} 
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
 import {assert} from "console"
-import {COLLECTION_USERS, getUser} from "../users/user_data"
+import {COLLECTION_USERS, getUser, getUserBookmarks} from "../users/user_data"
 import * as firebaseAdmin from "firebase-admin"
 
 chai.use(chaiHttp)
@@ -578,6 +578,26 @@ describe("gfffts API", function(this: Suite) {
 
           const m2 = await getGffftMembership(uid1, gid, uid3)
           expect(m2).to.be.undefined
+        })
+    })
+  })
+
+  describe("POST /me/gfffts/bookmarks", function() {
+    it("let's a user create a bookmark", async function() {
+      return chai
+        .request(server)
+        .post("/api/users/me/bookmarks")
+        .set(USER_3_AUTH)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json")
+        .send({
+          uid: gffft.uid,
+          gid: gffft.id,
+        }).then(async (res) => {
+          res.should.have.status(204)
+
+          const b2 = await getUserBookmarks(uid3)
+          console.log(`b2:${JSON.stringify(b2)}`)
         })
     })
   })
