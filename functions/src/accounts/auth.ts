@@ -123,8 +123,8 @@ export const requiredGffftMembership = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  let uid = req.body.uid
-  const gid = req.body.gid
+  let uid = req.body.uid || req.params.uid
+  const gid = req.body.gid || req.params.gid
 
   if (uid == "me" && res.locals.iamUser) {
     uid = res.locals.iamUser.id

@@ -1,9 +1,9 @@
 import {Suite} from "mocha"
-import chai from "chai"
+import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_1, USER_2_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
-import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
+import {COLLECTION_GFFFTS, createGffftMembership, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
 import {COLLECTION_BOARDS, COLLECTION_POSTS, COLLECTION_THREADS, getOrCreateDefaultBoard} from "./board_data"
@@ -11,6 +11,8 @@ import {Board} from "./board_models"
 import * as firebaseAdmin from "firebase-admin"
 import {COLLECTION_USERS} from "../users/user_data"
 import {deleteFirestoreItem} from "../common/data"
+import {IThread} from "./board_interfaces"
+import * as request from "superagent"
 
 chai.use(chaiHttp)
 chai.should()
@@ -20,39 +22,42 @@ describe("boards API", function(this: Suite) {
   this.timeout(20000)
   let firestore: firebaseAdmin.firestore.Firestore
 
-  let uid: string
+  const uid1 = MOCK_AUTH_USER_1.user_id
+  const uid2 = MOCK_AUTH_USER_2.user_id
   let gid: string
   let bid: string
   let gffft: Gffft
   let board: Board
+  const postSubject = "test subject"
+  const postBody = "test body"
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
-    uid = MOCK_AUTH_USER_1.user_id
-
     gffft = await factories.gffft.create({
-      uid: uid,
+      uid: uid1,
       name: "Desert Island",
       key: DEFAULT_GFFFT_KEY,
       enabled: false,
     })
     gid = gffft.id
 
-    board = await getOrCreateDefaultBoard(uid, gid)
+    board = await getOrCreateDefaultBoard(uid1, gid)
     bid = board.id
+
+    await createGffftMembership(uid1, gid, MOCK_AUTH_USER_1.user_id, "ponyboy")
   })
 
   after(async function() {
-    await firestore.collection(COLLECTION_USERS).doc(uid)
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
       .collection(COLLECTION_GFFFTS).doc(gid)
       .collection(COLLECTION_BOARDS).doc(bid)
       .collection(COLLECTION_THREADS)
       .get()
       .then((snapshot) => {
         snapshot.forEach(async (doc) => {
-          await firestore.collection(COLLECTION_USERS).doc(uid)
+          await firestore.collection(COLLECTION_USERS).doc(uid1)
             .collection(COLLECTION_GFFFTS).doc(gid)
             .collection(COLLECTION_BOARDS).doc(bid)
             .collection(COLLECTION_THREADS).doc(doc.id)
@@ -64,24 +69,24 @@ describe("boards API", function(this: Suite) {
         })
       })
 
-    await firestore.collection(COLLECTION_USERS).doc(uid)
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
       .collection(COLLECTION_GFFFTS).doc(gid)
       .collection(COLLECTION_BOARDS).doc(bid)
       .get()
       .then(deleteFirestoreItem)
 
-    await firestore.collection(COLLECTION_USERS).doc(uid)
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
       .collection(COLLECTION_GFFFTS).doc(gid)
       .collection(COLLECTION_BOARDS).doc(bid)
       .get()
       .then(deleteFirestoreItem)
 
-    await firestore.collection(COLLECTION_USERS).doc(uid)
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
       .collection(COLLECTION_GFFFTS).doc(gid)
       .get()
       .then(deleteFirestoreItem)
 
-    await firestore.collection(COLLECTION_USERS).doc(uid)
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
       .get()
       .then(deleteFirestoreItem)
   })
@@ -96,7 +101,7 @@ describe("boards API", function(this: Suite) {
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
-              uid: uid,
+              uid: uid1,
               gid: gid,
               bid: bid,
               subject: "test subject",
@@ -117,11 +122,11 @@ describe("boards API", function(this: Suite) {
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
-              uid: uid,
+              uid: uid1,
               gid: gid,
               bid: bid,
-              subject: "test subject",
-              body: "test body",
+              subject: postSubject,
+              body: postBody,
             })
             .then((res) => {
               res.should.have.status(204)
@@ -134,30 +139,105 @@ describe("boards API", function(this: Suite) {
   describe("get post", function() {
     let threadId: string
 
-    step("get board", function() {
-      it("gets threads", async function() {
-        return chai
-          .request(server)
-          .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads`)
-          .set(USER_2_AUTH)
-          .then((res) => {
-            res.should.have.status(200)
-            res.body["count"].should.equal(1)
-            threadId = res.body["items"][0]["id"]
-          })
-      })
+    function isThreadValid(res: request.Response) {
+      res.should.have.status(200)
+      const t = res.body as IThread
+      expect(t.subject).to.equal(postSubject)
+      expect(t.firstPost.id).to.equal(uid2)
+    }
+
+    step("get board", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(200)
+          res.body["count"].should.equal(1)
+          threadId = res.body["items"][0]["id"]
+        })
     })
 
-    step("get thread", function() {
-      it("gets a single thread", async function() {
-        return chai
-          .request(server)
-          .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
-          .set(USER_2_AUTH)
-          .then((res2) => {
-            res2.should.have.status(200)
-          })
-      })
+    step("get thread", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+        .set(USER_2_AUTH)
+        .then(isThreadValid)
+    })
+
+    step("get thread with uid of me - no-auth", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/me/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+        .then((res) => {
+          res.should.have.status(403)
+        })
+    })
+
+    step("get thread with uid of me - authed", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/me/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+        .set(USER_1_AUTH)
+        .then(isThreadValid)
+    })
+
+    step("get thread unauthenticated", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+        .then(isThreadValid)
+    })
+
+    step("get non-existant gffft", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid1}/gfffts/invalid-gffft/boards/${bid}/threads/${threadId}`)
+        .set(USER_2_AUTH)
+        .then((res2) => {
+          res2.should.have.status(404)
+        })
+    })
+
+    step("get non-existant board", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid1}/gfffts/${gid}/boards/invalid-board/threads/${threadId}`)
+        .set(USER_2_AUTH)
+        .then((res2) => {
+          res2.should.have.status(404)
+        })
+    })
+
+    step("get non-existant thread", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/invalid-id`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(404)
+        })
+    })
+
+    step("try to delete a thread that doesn't exist", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/invalid-thread-id`)
+        .set(USER_3_AUTH)
+        .then((res) => {
+          res.should.have.status(403)
+        })
+    })
+
+    step("try to delete a thread the user does't own", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+        .set(USER_3_AUTH)
+        .then((res) => {
+          res.should.have.status(403)
+        })
     })
   })
 })

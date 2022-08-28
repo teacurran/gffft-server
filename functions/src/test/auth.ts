@@ -10,7 +10,7 @@ export const MOCK_AUTH_USER_1 = {
   email: "peach.mountain.713@test.com",
   email_verified: true,
   auth_time: 1661438657,
-  user_id: "28SkWBeCNXCclihiSZkbyIAqFDrq",
+  user_id: "mock-user-1",
   firebase: {
     identities: {
       email: ["peach.mountain.713@test.com"],
@@ -29,18 +29,37 @@ export const MOCK_AUTH_USER_2 = {
   email: "taco.salad@test.com",
   email_verified: true,
   auth_time: 1661438646,
-  user_id: "uohkj8768hgfDrq233087",
+  user_id: "mock-user-2",
   firebase: {
     identities: {
       email: ["taco.salad@test.com"],
-      ["google.com"]: ["1223876768768776546546"],
+      ["google.com"]: ["86556486535465"],
     },
     sign_in_provider: "google.com",
   },
   iat: 1661438646,
-  exp: "gweb-restor-dev",
+  exp: "gffft-auth",
   iss: "https://securetoken.google.com/gffft-auth",
   sub: "GqsV7Odc85B75tcFgMYFcSJQgfGS",
+}
+
+export const MOCK_AUTH_USER_3 = {
+  name: "Lisa Burns",
+  email: "lburns@example.com",
+  email_verified: true,
+  auth_time: 1661438946,
+  user_id: "mock-user-3",
+  firebase: {
+    identities: {
+      email: ["lburns@example.com"],
+      ["google.com"]: ["6546541654984621654954"],
+    },
+    sign_in_provider: "google.com",
+  },
+  iat: 1661438646,
+  exp: "gffft-auth",
+  iss: "https://securetoken.google.com/gffft-auth",
+  sub: "u9ouhijbjhbuhoh9uhiuj",
 }
 
 const AUTH_HEADER_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_HEADER), "ascii").toString("base64")
@@ -51,6 +70,10 @@ export const USER_1_AUTH = {Authorization: `Bearer ${MOCK_AUTH_BEARER}`}
 const AUTH_USER_2_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_USER_2), "ascii").toString("base64")
 export const MOCK_AUTH_BEARER_2 = `${AUTH_HEADER_ENC}.${AUTH_USER_2_ENC}.`
 export const USER_2_AUTH = {Authorization: `Bearer ${MOCK_AUTH_BEARER_2}`}
+
+const AUTH_USER_3_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_USER_3), "ascii").toString("base64")
+export const MOCK_AUTH_BEARER_3 = `${AUTH_HEADER_ENC}.${AUTH_USER_3_ENC}.`
+export const USER_3_AUTH = {Authorization: `Bearer ${MOCK_AUTH_BEARER_3}`}
 
 export class MockFirebaseInit {
   private static instance: MockFirebaseInit
@@ -66,7 +89,7 @@ export class MockFirebaseInit {
       }
 
       await Promise.all(
-        [MOCK_AUTH_USER_1, MOCK_AUTH_USER_2].map((mockAuthUser) => {
+        [MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3].map((mockAuthUser) => {
           return firebaseAdmin
             .auth()
             .createUser({

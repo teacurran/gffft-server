@@ -8,6 +8,7 @@ import {boardsCollection, getBoard, getBoardByRef, getBoardByRefString, getOrCre
 import {Board} from "./board_models"
 import * as firebaseAdmin from "firebase-admin"
 import {COLLECTION_USERS} from "../users/user_data"
+import {deleteFirestoreItem} from "../common/data"
 
 describe("board_data", function(this: Suite) {
   // eslint-disable-next-line no-invalid-this
@@ -44,19 +45,11 @@ describe("board_data", function(this: Suite) {
     await firestore.collection(COLLECTION_USERS).doc(uid1)
       .collection(COLLECTION_GFFFTS).doc(gffft.id)
       .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          await doc.ref.delete()
-        }
-      })
+      .then(deleteFirestoreItem)
 
     await firestore.collection(COLLECTION_USERS).doc(uid1)
       .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          await doc.ref.delete()
-        }
-      })
+      .then(deleteFirestoreItem)
   })
 
   describe("getBoard", function() {
