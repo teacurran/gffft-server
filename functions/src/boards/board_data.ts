@@ -10,6 +10,9 @@ import {getLinkByRef} from "../link-sets/link_set_data"
 import {usersCollection} from "../users/user_data"
 
 export const COLLECTION_BOARDS = "boards"
+export const COLLECTION_THREADS = "threads"
+export const COLLECTION_POSTS = "posts"
+
 export const DEFAULT_BOARD_KEY = "default"
 export const DEFAULT_BOARD_NAME = "board"
 
@@ -17,9 +20,9 @@ export const WHO_OWNER = "owner"
 export const WHO_PUBLIC = "public"
 
 export const boardsCollection = subcollection<Board, Gffft, User>(COLLECTION_BOARDS, gffftsCollection)
-export const threadsCollection = subcollection<Thread, Board, Gffft, [string, string]>("threads", boardsCollection)
+export const threadsCollection = subcollection<Thread, Board, Gffft, [string, string]>(COLLECTION_THREADS, boardsCollection)
 export const threadPostsCollection = subcollection<ThreadPost, Thread, Board,
-  [string, string, string]>("posts", threadsCollection)
+  [string, string, string]>(COLLECTION_POSTS, threadsCollection)
 
 /**
  * gets or creates the default board for a user
@@ -28,9 +31,7 @@ export const threadPostsCollection = subcollection<ThreadPost, Thread, Board,
  * @return {Promise<Board>}
  */
 export async function getOrCreateDefaultBoard(uid: string, gid: string): Promise<Board> {
-  const userRef = ref(usersCollection, uid)
-  const gffftRef = ref(gffftsCollection(userRef), gid)
-  const userBoards = boardsCollection(gffftRef)
+  const userBoards = getBoardCollection(uid, gid)
 
   let board = await query(userBoards, [
     where("key", "==", DEFAULT_BOARD_KEY),

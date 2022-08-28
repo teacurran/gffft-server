@@ -1,15 +1,16 @@
 import {Suite} from "mocha"
 import chai from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_2_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, USER_2_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
-import {getOrCreateDefaultBoard} from "./board_data"
+import {COLLECTION_BOARDS, COLLECTION_POSTS, COLLECTION_THREADS, getOrCreateDefaultBoard} from "./board_data"
 import {Board} from "./board_models"
 import * as firebaseAdmin from "firebase-admin"
 import {COLLECTION_USERS} from "../users/user_data"
+import {deleteFirestoreItem} from "../common/data"
 
 chai.use(chaiHttp)
 chai.should()
@@ -29,7 +30,7 @@ describe("boards API", function(this: Suite) {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
-    uid = MOCK_AUTH_USER_2.user_id
+    uid = MOCK_AUTH_USER_1.user_id
 
     gffft = await factories.gffft.create({
       uid: uid,
@@ -46,20 +47,43 @@ describe("boards API", function(this: Suite) {
   after(async function() {
     await firestore.collection(COLLECTION_USERS).doc(uid)
       .collection(COLLECTION_GFFFTS).doc(gid)
+      .collection(COLLECTION_BOARDS).doc(bid)
+      .collection(COLLECTION_THREADS)
       .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          await doc.ref.delete()
-        }
+      .then((snapshot) => {
+        snapshot.forEach(async (doc) => {
+          await firestore.collection(COLLECTION_USERS).doc(uid)
+            .collection(COLLECTION_GFFFTS).doc(gid)
+            .collection(COLLECTION_BOARDS).doc(bid)
+            .collection(COLLECTION_THREADS).doc(doc.id)
+            .collection(COLLECTION_POSTS)
+            .get()
+            .then(deleteFirestoreItem)
+
+          deleteFirestoreItem(doc)
+        })
       })
 
     await firestore.collection(COLLECTION_USERS).doc(uid)
+      .collection(COLLECTION_GFFFTS).doc(gid)
+      .collection(COLLECTION_BOARDS).doc(bid)
       .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          await doc.ref.delete()
-        }
-      })
+      .then(deleteFirestoreItem)
+
+    await firestore.collection(COLLECTION_USERS).doc(uid)
+      .collection(COLLECTION_GFFFTS).doc(gid)
+      .collection(COLLECTION_BOARDS).doc(bid)
+      .get()
+      .then(deleteFirestoreItem)
+
+    await firestore.collection(COLLECTION_USERS).doc(uid)
+      .collection(COLLECTION_GFFFTS).doc(gid)
+      .get()
+      .then(deleteFirestoreItem)
+
+    await firestore.collection(COLLECTION_USERS).doc(uid)
+      .get()
+      .then(deleteFirestoreItem)
   })
 
   describe("/api/boards", function() {
@@ -104,6 +128,28 @@ describe("boards API", function(this: Suite) {
             })
         })
       })
+    })
+  })
+
+  describe("get post", function() {
+    it("gets board", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(200)
+          res.body["count"].should.equal(1)
+          const threadId = res.body["items"][0]["id"]
+
+          return chai
+            .request(server)
+            .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+            .set(USER_2_AUTH)
+            .then((res2) => {
+              res2.should.have.status(200)
+            })
+        })
     })
   })
 })

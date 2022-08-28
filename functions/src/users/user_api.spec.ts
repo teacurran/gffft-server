@@ -254,10 +254,20 @@ describe("users API", function() {
     })
 
     describe("authenticated", function() {
-      it("gets gffft", async function() {
+      it("gets board", async function() {
         return chai
           .request(server)
           .get(`/api/users/${gffft.uid}/gfffts/${gffft.id}/boards/default/threads`)
+          .set(USER_2_AUTH)
+          .then((res) => {
+            res.should.have.status(200)
+          })
+      })
+
+      it("gets board with me", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/me/gfffts/${gffft.id}/boards/default/threads`)
           .set(USER_2_AUTH)
           .then((res) => {
             res.should.have.status(200)

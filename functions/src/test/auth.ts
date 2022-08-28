@@ -5,7 +5,7 @@ export const MOCK_AUTH_HEADER = {
   typ: "JWT",
 }
 
-export const MOCK_AUTH_USER = {
+export const MOCK_AUTH_USER_1 = {
   name: "Peach Mountain",
   email: "peach.mountain.713@test.com",
   email_verified: true,
@@ -44,7 +44,7 @@ export const MOCK_AUTH_USER_2 = {
 }
 
 const AUTH_HEADER_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_HEADER), "ascii").toString("base64")
-const AUTH_USER_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_USER), "ascii").toString("base64")
+const AUTH_USER_ENC = Buffer.from(JSON.stringify(MOCK_AUTH_USER_1), "ascii").toString("base64")
 export const MOCK_AUTH_BEARER = `${AUTH_HEADER_ENC}.${AUTH_USER_ENC}.`
 export const USER_1_AUTH = {Authorization: `Bearer ${MOCK_AUTH_BEARER}`}
 
@@ -66,7 +66,7 @@ export class MockFirebaseInit {
       }
 
       await Promise.all(
-        [MOCK_AUTH_USER, MOCK_AUTH_USER_2].map((mockAuthUser) => {
+        [MOCK_AUTH_USER_1, MOCK_AUTH_USER_2].map((mockAuthUser) => {
           return firebaseAdmin
             .auth()
             .createUser({
