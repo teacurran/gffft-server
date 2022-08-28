@@ -7,7 +7,6 @@ import {Gffft} from "../gfffts/gffft_models"
 import {itemOrNull} from "../common/data"
 import {Link} from "../link-sets/link_set_models"
 import {getLinkByRef} from "../link-sets/link_set_data"
-import {usersCollection} from "../users/user_data"
 
 export const COLLECTION_BOARDS = "boards"
 export const COLLECTION_THREADS = "threads"
