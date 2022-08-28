@@ -35,6 +35,8 @@ import {Notebook} from "../notebooks/notebook_models"
 import {IGffftFeatureRef} from "./gffft_interfaces"
 
 export const COLLECTION_GFFFTS = "gfffts"
+export const COLLECTION_GFFFT_MEMBERS = "members"
+export const COLLECTION_GFFFT_STATS = "stats"
 
 export const DEFAULT_GFFFT_KEY = "default"
 const FRUITS = [..."🍊🍌🍎🍏🍐🍋🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝"]
@@ -43,9 +45,9 @@ const ULTRA_RARE_FRUITS = [..."🥨🐈💾🧀"]
 const PI_DAY_FRUITS = [..."🥧🍕𝜋"]
 const FRUIT_CODE_LENGTH = 9
 
-export const gffftsCollection = subcollection<Gffft, User>("gfffts", usersCollection)
-export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>("members", gffftsCollection)
-export const gffftsStatsCollection = subcollection<GffftStats, Gffft, User>("stats", gffftsCollection)
+export const gffftsCollection = subcollection<Gffft, User>(COLLECTION_GFFFTS, usersCollection)
+export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>(COLLECTION_GFFFT_MEMBERS, gffftsCollection)
+export const gffftsStatsCollection = subcollection<GffftStats, Gffft, User>(COLLECTION_GFFFT_STATS, gffftsCollection)
 export const gffftsGroup = group("gfffts", [gffftsCollection])
 
 function randBelow(high: number): number {

@@ -1,15 +1,14 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
-import {COLLECTION_GFFFTS, getGffft} from "../gfffts/gffft_data"
+import {COLLECTION_GFFFTS, createGffftMembership, getGffft, getGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
 import {assert} from "console"
 import {COLLECTION_USERS, getUser} from "../users/user_data"
 import * as firebaseAdmin from "firebase-admin"
-import {deleteFirestoreItem} from "../common/data"
 
 chai.use(chaiHttp)
 chai.should()
@@ -19,7 +18,10 @@ describe("gfffts API", function(this: Suite) {
   this.timeout(20000)
   let firestore: firebaseAdmin.firestore.Firestore
 
-  let uid: string
+  const user2Handle = "ponyboy"
+  let uid1: string
+  let uid2: string
+  let uid3: string
   let gid: string
   let gffft: Gffft
 
@@ -27,27 +29,32 @@ describe("gfffts API", function(this: Suite) {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
-    uid = MOCK_AUTH_USER_2.user_id
-    await getUser(uid)
+    uid1 = MOCK_AUTH_USER_1.user_id
+    uid2 = MOCK_AUTH_USER_2.user_id
+    uid3 = MOCK_AUTH_USER_3.user_id
+    await getUser(uid1)
+    await getUser(uid2)
 
     gffft = await factories.gffft.create({
-      uid: uid,
+      uid: uid1,
       name: "Mini Golf Paradise",
       key: "mini-golf-paradise",
       enabled: false,
     })
     gid = gffft.id
+
+    createGffftMembership(uid1, gid, uid2, user2Handle)
   })
 
   after(async function() {
-    await firestore.collection(COLLECTION_USERS).doc(uid)
-      .collection(COLLECTION_GFFFTS).doc(gid)
+    await firestore.collection(COLLECTION_USERS).doc(uid1)
+      .collection(COLLECTION_GFFFTS)
       .get()
-      .then(deleteFirestoreItem)
-
-    await firestore.collection(COLLECTION_USERS).doc(uid)
-      .get()
-      .then(deleteFirestoreItem)
+      .then((snapshot) => {
+        snapshot.forEach(async (doc) => {
+          await firestore.recursiveDelete(doc.ref)
+        })
+      })
   })
 
   describe("fruit-code", function() {
@@ -59,7 +66,7 @@ describe("gfffts API", function(this: Suite) {
           .set("Content-Type", "application/json")
           .set("Accept", "application/json")
           .send({
-            uid: uid,
+            uid: uid2,
             gid: gid,
           })
           .then((res) => {
@@ -74,16 +81,16 @@ describe("gfffts API", function(this: Suite) {
         return chai
           .request(server)
           .put("/api/gfffts/fruit-code")
-          .set(USER_2_AUTH)
+          .set(USER_1_AUTH)
           .set("Content-Type", "application/json")
           .set("Accept", "application/json")
           .send({
-            uid: uid,
+            uid: uid2,
             gid: gid,
           })
           .then(async (res) => {
             res.should.have.status(200)
-            const g2 = await getGffft(uid, gid)
+            const g2 = await getGffft(uid2, gid)
             assert(g2?.fruitCode)
             if (g2 != null) {
               const fcAfter = g2?.fruitCode || ""
@@ -99,17 +106,17 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .put("/api/gfffts/fruit-code")
-            .set(USER_1_AUTH)
+            .set(USER_3_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
-              uid: uid,
+              uid: uid1,
               gid: gid,
             })
             .then(async (res) => {
               res.should.have.status(403)
 
-              const g2 = await getGffft(uid, gid)
+              const g2 = await getGffft(uid1, gid)
               assert(g2?.fruitCode)
               if (g2 != null) {
                 const fcAfter = g2?.fruitCode || ""
@@ -128,7 +135,7 @@ describe("gfffts API", function(this: Suite) {
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
-              uid: uid,
+              uid: uid2,
               gid: "non-existent-gffft",
             })
             .then(async (res) => {
@@ -167,7 +174,7 @@ describe("gfffts API", function(this: Suite) {
         return chai
           .request(server)
           .post("/api/gfffts")
-          .set(USER_2_AUTH)
+          .set(USER_1_AUTH)
           .set("Content-Type", "application/json")
           .set("Accept", "application/json")
           .send({
@@ -179,7 +186,7 @@ describe("gfffts API", function(this: Suite) {
             res.should.have.status(200)
             const newGid = res.body["gid"]
 
-            const g2 = await getGffft(uid, newGid)
+            const g2 = await getGffft(uid1, newGid)
             expect(g2).to.not.be.null
             if (g2 != null) {
               expect(g2.name).to.eql(name)
@@ -218,7 +225,7 @@ describe("gfffts API", function(this: Suite) {
         return chai
           .request(server)
           .put("/api/gfffts")
-          .set(USER_2_AUTH)
+          .set(USER_1_AUTH)
           .set("Content-Type", "application/json")
           .set("Accept", "application/json")
           .send({
@@ -244,11 +251,11 @@ describe("gfffts API", function(this: Suite) {
         it("404 code returned", async function() {
           return chai.request(server)
             .put("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
-              uid: uid,
+              uid: uid2,
               gid: "non-existent-gffft",
               name: name,
               description: description,
@@ -264,7 +271,7 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .put("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -294,7 +301,7 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .put("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -349,7 +356,7 @@ describe("gfffts API", function(this: Suite) {
         return chai
           .request(server)
           .patch("/api/gfffts")
-          .set(USER_2_AUTH)
+          .set(USER_1_AUTH)
           .set("Content-Type", "application/json")
           .set("Accept", "application/json")
           .send({
@@ -375,11 +382,11 @@ describe("gfffts API", function(this: Suite) {
         it("404 code returned", async function() {
           return chai.request(server)
             .patch("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
-              uid: uid,
+              uid: uid2,
               gid: "non-existent-gffft",
               name: name,
               description: description,
@@ -395,7 +402,7 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .patch("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -426,7 +433,7 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .patch("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -460,7 +467,7 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .patch("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -469,7 +476,6 @@ describe("gfffts API", function(this: Suite) {
               linkSetEnabled: true,
             })
             .then(async (res) => {
-              console.log(`body:${JSON.stringify(res.body)}`)
               res.should.have.status(204)
 
               const g2 = await getGffft(gffft.uid ?? "", gffft.id)
@@ -493,7 +499,7 @@ describe("gfffts API", function(this: Suite) {
           return chai
             .request(server)
             .patch("/api/gfffts")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -502,7 +508,6 @@ describe("gfffts API", function(this: Suite) {
               fruitCodeEnabled: true,
             })
             .then(async (res) => {
-              console.log(`body:${JSON.stringify(res.body)}`)
               res.should.have.status(204)
 
               const g2 = await getGffft(gffft.uid ?? "", gffft.id)
@@ -515,6 +520,65 @@ describe("gfffts API", function(this: Suite) {
             })
         })
       })
+    })
+  })
+
+  describe("POST /me/gfffts/membership", function() {
+    const user3Handle = "magikarp"
+
+    step("handle is already taken", function() {
+      return chai
+        .request(server)
+        .post("/api/users/me/gfffts/membership")
+        .set(USER_3_AUTH)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json")
+        .send({
+          uid: gffft.uid,
+          gid: gffft.id,
+          handle: user2Handle,
+        }).then(async (res) => {
+          console.log(`membership body:${JSON.stringify(res.body)}`)
+          res.should.have.status(400)
+        })
+    })
+
+    step("user is allowed to join", function() {
+      return chai
+        .request(server)
+        .post("/api/users/me/gfffts/membership")
+        .set(USER_3_AUTH)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json")
+        .send({
+          uid: gffft.uid,
+          gid: gffft.id,
+          handle: user3Handle,
+        }).then(async (res) => {
+          res.should.have.status(204)
+
+          const m2 = await getGffftMembership(uid1, gid, uid3)
+          expect(m2).to.not.be.undefined
+          expect(m2?.handle).to.eql(user3Handle)
+        })
+    })
+
+    step("user is allowed to delete membership", function() {
+      return chai
+        .request(server)
+        .delete("/api/users/me/gfffts/membership")
+        .set(USER_3_AUTH)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json")
+        .send({
+          uid: gffft.uid,
+          gid: gffft.id,
+        }).then(async (res) => {
+          res.should.have.status(204)
+
+          const m2 = await getGffftMembership(uid1, gid, uid3)
+          expect(m2).to.be.undefined
+        })
     })
   })
 })
