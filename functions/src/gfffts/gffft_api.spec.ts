@@ -85,7 +85,7 @@ describe("gfffts API", function(this: Suite) {
           .set("Content-Type", "application/json")
           .set("Accept", "application/json")
           .send({
-            uid: uid2,
+            uid: uid1,
             gid: gid,
           })
           .then(async (res) => {
