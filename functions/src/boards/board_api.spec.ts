@@ -132,24 +132,32 @@ describe("boards API", function(this: Suite) {
   })
 
   describe("get post", function() {
-    it("gets board", async function() {
-      return chai
-        .request(server)
-        .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads`)
-        .set(USER_2_AUTH)
-        .then((res) => {
-          res.should.have.status(200)
-          res.body["count"].should.equal(1)
-          const threadId = res.body["items"][0]["id"]
+    let threadId: string
 
-          return chai
-            .request(server)
-            .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
-            .set(USER_2_AUTH)
-            .then((res2) => {
-              res2.should.have.status(200)
-            })
-        })
+    step("get board", function() {
+      it("gets threads", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads`)
+          .set(USER_2_AUTH)
+          .then((res) => {
+            res.should.have.status(200)
+            res.body["count"].should.equal(1)
+            threadId = res.body["items"][0]["id"]
+          })
+      })
+    })
+
+    step("get thread", function() {
+      it("gets a single thread", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${uid}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+          .set(USER_2_AUTH)
+          .then((res2) => {
+            res2.should.have.status(200)
+          })
+      })
     })
   })
 })

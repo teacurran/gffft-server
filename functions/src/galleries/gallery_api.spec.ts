@@ -1,9 +1,9 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_2_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
 import server from "../server"
-import {COLLECTION_GFFFTS} from "../gfffts/gffft_data"
+import {COLLECTION_GFFFTS, createGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
 import {COLLECTION_USERS, getUser} from "../users/user_data"
@@ -47,6 +47,8 @@ describe("galleries API", function(this: Suite) {
         gid: gid,
       },
     })
+
+    await createGffftMembership(uid, gid, MOCK_AUTH_USER_1.user_id, "ponyboy")
   })
 
   after(async function() {
@@ -103,6 +105,45 @@ describe("galleries API", function(this: Suite) {
     })
 
     describe("authenticated", function() {
+      it("gets 404 when gallery doesn't exist", async function() {
+        return chai
+          .request(server)
+          .patch("/api/galleries")
+          .set(USER_2_AUTH)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            mid: gallery.id,
+            iid: "non-existent-gallery-item-id",
+            description: updatedItemDescription,
+          })
+          .then(async (res) => {
+            console.log(`body:${JSON.stringify(res.body)}`)
+            res.should.have.status(404)
+          })
+      })
+
+      it("gets 403 when item isn't owned by user", async function() {
+        return chai
+          .request(server)
+          .patch("/api/galleries")
+          .set(USER_1_AUTH)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            mid: gallery.id,
+            iid: galleryItem.id,
+            description: updatedItemDescription,
+          })
+          .then(async (res) => {
+            res.should.have.status(403)
+          })
+      })
+
       it("updates gallery", async function() {
         return chai
           .request(server)
@@ -172,7 +213,7 @@ describe("galleries API", function(this: Suite) {
     })
 
     describe("authenticated", function() {
-      it("updates gallery", async function() {
+      it("adds like to item", async function() {
         return chai
           .request(server)
           .post("/api/galleries/like")
@@ -225,7 +266,7 @@ describe("galleries API", function(this: Suite) {
       })
 
       describe("when item not found", function() {
-        it("updates gallery", async function() {
+        it("geta 404", async function() {
           return chai
             .request(server)
             .post("/api/galleries/like")
@@ -242,6 +283,48 @@ describe("galleries API", function(this: Suite) {
               res.should.have.status(404)
             })
         })
+      })
+    })
+  })
+
+  describe("post", function() {
+    const itemDesc = "photo of the lake"
+
+    describe("unauthenticated", function() {
+      it("returns 401", async function() {
+        return chai
+          .request(server)
+          .post("/api/galleries")
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            mid: gallery.id,
+            description: itemDesc,
+          })
+          .then((res) => {
+            res.should.have.status(401)
+          })
+      })
+    })
+
+    describe("authenticated", function() {
+      it("can't post without media", async function() {
+        return chai
+          .request(server)
+          .post("/api/galleries")
+          .set(USER_2_AUTH)
+          .set("Accept", "application/json")
+          .send({
+            uid: gffft.uid,
+            gid: gffft.id,
+            mid: gallery.id,
+            description: itemDesc,
+          })
+          .then(async (res) => {
+            res.should.have.status(500)
+          })
       })
     })
   })

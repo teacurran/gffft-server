@@ -80,7 +80,6 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
         fruitCode += FRUITS[randBelow(FRUITS.length)]
       }
     }
-    console.log(`checking fruitcode: ${fruitCode}`)
 
     const fruitCodeExists = await query(gffftsGroup, [where("fruitCode", "==", fruitCode), limit(1)])
       .then((results) => results.length > 0)

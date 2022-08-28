@@ -308,9 +308,11 @@ describe("gffft_data", function() {
         ultraRareCount += ultraRareFruits
         fruitCodes.push(code)
 
-        if (ultraRareCount > 0 && rareCount > 0) {
-          console.log(`rareCount: ${rareCount} ultraRareCount: ${ultraRareCount} after ${i} iterations`)
-          break
+        if ((i > 0 && i % 100 === 0) || ultraRareCount > 0 && rareCount > 0) {
+          console.log(`fruitCodes: ${fruitCodes.length} rareCount: ${rareCount} ultraRareCount: ${ultraRareCount} after ${i} iterations`)
+          if (ultraRareCount > 0 && rareCount > 0) {
+            break
+          }
         }
       }
       // this can fail, it is random. increasing loop above will reduce

@@ -27,7 +27,9 @@ async function checkForNpc(idToken: string): Promise<string|null> {
 }
 
 async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
-  console.log(`authenticating user: ${idToken}`)
+  if (process.env.LOG_AUTH === "true") {
+    console.log(`authenticating user: ${idToken}`)
+  }
   const npcUserId = await checkForNpc(idToken)
   if (npcUserId) {
     return {id: npcUserId}
