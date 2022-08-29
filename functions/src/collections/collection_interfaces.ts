@@ -178,9 +178,7 @@ export function collectionToJsonWithItems(
   loggedInUser: LoggedInUser | null,
   gffftMembership: GffftMember | undefined,
 ): ICollection {
-  const itemsJson = collection.items?.map((item) => postToJson(loggedInUser,
-    gffftMembership,
-    item)).filter(notEmpty)
+  const itemsJson = collection.items?.map((item) => postToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
   return {
     id: collection.id,
     name: collection.name,

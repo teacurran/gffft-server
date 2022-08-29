@@ -6,6 +6,7 @@ import jsdocSwagger from "express-jsdoc-swagger"
 import openApiOptions from "./openapi/openapi_api"
 import boards from "./boards/board_api"
 import galleries from "./galleries/gallery_api"
+import collections from "./collections/collection_api"
 import gfffts from "./gfffts/gffft_api"
 import users from "./users/user_api"
 import links from "./link-sets/link_set_api"
@@ -46,6 +47,7 @@ api.use("/galleries", galleries)
 api.use("/gfffts", gfffts)
 api.use("/boards", boards)
 api.use("/links", links)
+api.use("/c", collections)
 
 app.use("/api", api)
 

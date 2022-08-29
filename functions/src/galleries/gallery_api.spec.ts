@@ -75,23 +75,69 @@ describe("galleries API", function(this: Suite) {
       expect(t.id).to.equal(gallery.id)
     }
 
-    it("gets the gallery", async function() {
-      return chai
-        .request(server)
-        .get(`/api/users/${uid}/gfffts/${gid}/galleries/${gallery.id}`)
-        .set(USER_1_AUTH)
-        .then(isGalleryValid)
-    })
-
-    describe("when gallery doesn't exist", function() {
-      it("gets the gallery", async function() {
+    describe("unauthenticated", function() {
+      it("doesn't allow me", async function() {
         return chai
           .request(server)
-          .get(`/api/users/${uid}/gfffts/${gid}/galleries/invalid-gallery-id`)
-          .set(USER_1_AUTH)
+          .get(`/api/users/me/gfffts/${gid}/galleries/invalid-gallery-id`)
           .then((res) => {
             res.should.have.status(404)
           })
+      })
+
+      it("doesn't allow me", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/me/gfffts/${gid}/galleries/${gallery.id}`)
+          .then((res) => {
+            res.should.have.status(404)
+          })
+      })
+
+      it("gffft does not exist", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${uid}/gfffts/invalid-gid/galleries/${gallery.id}`)
+          .then((res) => {
+            res.should.have.status(404)
+          })
+      })
+
+      it("gets the gallery", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${uid}/gfffts/${gid}/galleries/${gallery.id}`)
+          .then(isGalleryValid)
+      })
+    })
+
+    describe("authenticated", function() {
+      it("gets the gallery", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${uid}/gfffts/${gid}/galleries/${gallery.id}`)
+          .set(USER_1_AUTH)
+          .then(isGalleryValid)
+      })
+
+      it("allows me", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/me/gfffts/${gid}/galleries/${gallery.id}`)
+          .set(USER_2_AUTH)
+          .then(isGalleryValid)
+      })
+
+      describe("when gallery doesn't exist", function() {
+        it("gets the gallery", async function() {
+          return chai
+            .request(server)
+            .get(`/api/users/${uid}/gfffts/${gid}/galleries/invalid-gallery-id`)
+            .set(USER_1_AUTH)
+            .then((res) => {
+              res.should.have.status(404)
+            })
+        })
       })
     })
   })

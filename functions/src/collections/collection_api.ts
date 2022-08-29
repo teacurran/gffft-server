@@ -7,7 +7,6 @@ import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchem
 import {add, get, Ref, ref} from "typesaurus"
 import {usersCollection} from "../users/user_data"
 import * as Joi from "joi"
-import {getEnumValues} from "../common/utils"
 import {getCollection, getPosts, hydrateCollection, resetCollectionUpdate} from "./collection_data"
 import {collectionToJsonWithItems} from "./collection_interfaces"
 import {PostType} from "../posts/post_type"
@@ -17,7 +16,7 @@ const router = express.Router()
 const validator = createValidator()
 
 const createPostParams = Joi.object({
-  type: Joi.string().required().valid(getEnumValues(PostType)),
+  type: Joi.string().required(),
   uid: Joi.string().required(),
   gid: Joi.string().required(),
   cid: Joi.string().required(),
@@ -80,11 +79,6 @@ router.get(
       uid = iamUser.id
     }
     const posterUid = iamUser?.id
-
-    // const gfffts = gffftsCollection(ref(usersCollection, uid))
-    // `const galleries = galleryCollection(ref(gfffts, gid))
-    // const galleryRef = ref(galleries, mid)
-    // const galleryItems = galleryItemsCollection(galleryRef)
 
     const gffftPromise = getGffft(uid, gid)
     const membershipPromise = getGffftMembership(uid, gid, posterUid)

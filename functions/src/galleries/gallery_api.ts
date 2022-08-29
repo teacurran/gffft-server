@@ -184,14 +184,9 @@ router.patch(
 
     item.description = description
 
-    upset<GalleryItem>(itemRef, item)
+    await upset<GalleryItem>(itemRef, item)
 
     const hgi = await hydrateGalleryItem(uid, gid, item)
-    if (hgi == null) {
-      console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
-      res.sendStatus(404)
-      return
-    }
     res.json(galleryItemToJson(iamUser, membership, hgi))
   })
 
@@ -255,12 +250,6 @@ router.post(
     await upset<GalleryItem>(itemRef, item)
 
     const hgi = await hydrateGalleryItem(uid, gid, item, posterUid)
-    if (hgi == null) {
-      console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
-      res.sendStatus(404)
-      return
-    }
-    console.log(`hgi: ${JSON.stringify(hgi)}`)
     res.json(galleryItemToJson(iamUser, membership, hgi))
   })
 
