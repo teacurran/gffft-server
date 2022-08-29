@@ -582,14 +582,13 @@ describe("gfffts API", function(this: Suite) {
     })
   })
 
-  describe("POST /me/gfffts/bookmarks", function() {
+  describe("/me/bookmarks", function() {
     it("let's a user create a bookmark", async function() {
       return chai
         .request(server)
         .post("/api/users/me/bookmarks")
         .set(USER_3_AUTH)
         .set("Content-Type", "application/json")
-        .set("Accept", "application/json")
         .send({
           uid: gffft.uid,
           gid: gffft.id,
@@ -598,6 +597,19 @@ describe("gfffts API", function(this: Suite) {
 
           const b2 = await getUserBookmarks(uid3)
           console.log(`b2:${JSON.stringify(b2)}`)
+        })
+    })
+
+    it("let's the user delete a bookmark", async function() {
+      return chai
+        .request(server)
+        .delete("/api/users/me/bookmarks")
+        .set(USER_3_AUTH)
+        .set("Content-Type", "application/json")
+        .send({
+          gid: gffft.id,
+        }).then(async (res) => {
+          res.should.have.status(204)
         })
     })
 

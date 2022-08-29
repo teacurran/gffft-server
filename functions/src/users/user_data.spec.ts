@@ -26,11 +26,21 @@ const {addToCollection} = exportedForTesting
 
 describe("users_data", function() {
   const TEST_COLLECTION = "test-collection"
+  const testTerm = "test"
+
   let firestore: firebaseAdmin.firestore.Firestore
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
+  })
+
+  after(async function() {
+    await firestore.collection(TEST_COLLECTION).doc(testTerm)
+      .get()
+      .then((snapshot) => {
+        return firestore.recursiveDelete(snapshot.ref)
+      })
   })
 
   describe("addToCollection", function() {
@@ -84,6 +94,7 @@ describe("users_data", function() {
           .then((doc) => {
             expect(doc.get("count")).to.equal(0)
             expect(doc.get("random")).to.be.gt(0)
+            return doc.ref.delete()
           })
       }
     })
@@ -102,6 +113,7 @@ describe("users_data", function() {
           .then((doc) => {
             expect(doc.get("count")).to.equal(0)
             expect(doc.get("random")).to.be.gt(0)
+            return doc.ref.delete()
           })
       }
     })
@@ -120,22 +132,30 @@ describe("users_data", function() {
           .then((doc) => {
             expect(doc.get("count")).to.equal(0)
             expect(doc.get("random")).to.be.gt(0)
+            return doc.ref.delete()
           })
       }
     })
   })
 
   describe("createBookmark", function() {
-    const uid = "cb-test-uid"
+    const uid1 = "cb-test-uid"
     const uid2 = "cb-test-uid2"
     let gffft: Gffft
 
     before(async function() {
-      gffft = await factories.gffft.create({uid: uid, name: "Bookmark City", key: "", enabled: false})
+      gffft = await factories.gffft.create({uid: uid1, name: "Bookmark City", key: "", enabled: false})
+    })
+
+    after(async function() {
+      await Promise.all([uid1, uid2].map((uid) =>
+        firestore.collection(COLLECTION_USERS)
+          .doc(uid).get().then((doc) => firestore.recursiveDelete(doc.ref))
+      ))
     })
 
     it("will create a bookmark for a user", async function() {
-      await createBookmark(uid, gffft.id, uid2)
+      await createBookmark(uid1, gffft.id, uid2)
 
       const b2Query = await firestore
         .collection(COLLECTION_USERS)
@@ -152,7 +172,7 @@ describe("users_data", function() {
 
     it("will create not set name for an unknown bookmark", async function() {
       const nonExistantGffftId = "non-existant-gffft"
-      await createBookmark(uid, nonExistantGffftId, uid2)
+      await createBookmark(uid1, nonExistantGffftId, uid2)
 
       const b2Query = await firestore
         .collection(COLLECTION_USERS)
@@ -171,7 +191,7 @@ describe("users_data", function() {
   describe("getUser", function() {
     it("will create a user that doesn't exist", async function() {
       const userId = uuid()
-      firestore
+      await firestore
         .collection(COLLECTION_USERS)
         .doc(userId)
         .get()
@@ -182,12 +202,13 @@ describe("users_data", function() {
       expect(user.id).to.equal(userId)
       expect(user.createdAt).to.not.be.null
 
-      firestore
+      await firestore
         .collection(COLLECTION_USERS)
         .doc(userId)
         .get()
         .then((doc) => {
           expect(doc.exists).to.not.be.false
+          return doc.ref.delete()
         })
     })
   })
@@ -204,6 +225,13 @@ describe("users_data", function() {
 
     before(async function() {
       gffft = await factories.gffft.create({uid: uid1, name: "Salads", key: "", enabled: false})
+    })
+
+    after(async function() {
+      await Promise.all([uid1, uid2, userId2].map((uid) =>
+        firestore.collection(COLLECTION_USERS)
+          .doc(uid).get().then((doc) => firestore.recursiveDelete(doc.ref))
+      ))
     })
 
     it("will create a bookmark for a user", async function() {
@@ -229,31 +257,31 @@ describe("users_data", function() {
         }
       })
     })
-  })
 
-  describe("deleteBookmark", function() {
-    const uid1 = "cb-test-uid"
-    const uid2 = "cb-test-uid2"
-    const gid1 = "cb-test-gid1"
+    describe("deleteBookmark", function() {
+      const uid1 = "cb-test-uid"
+      const uid2 = "cb-test-uid2"
+      const gid1 = "cb-test-gid1"
 
-    const gid2 = "cb-test-gid2"
-    const userId2 = "cb-test-uid4"
-    const actorId = "deleteBookmarkActor"
+      const gid2 = "cb-test-gid2"
+      const userId2 = "cb-test-uid4"
+      const actorId = "deleteBookmarkActor"
 
-    it("will create a bookmark for a user", async function() {
-      await createBookmark(uid1, gid1, actorId)
-      await createBookmark(uid2, gid2, actorId)
-      await createBookmark(uid1, uid2, userId2)
-      await createBookmark(uid2, gid2, userId2)
+      it("will create a bookmark for a user", async function() {
+        await createBookmark(uid1, gid1, actorId)
+        await createBookmark(uid2, gid2, actorId)
+        await createBookmark(uid1, uid2, userId2)
+        await createBookmark(uid2, gid2, userId2)
 
-      const bookmarks = await getUserBookmarks(actorId)
-      expect(bookmarks).to.not.be.empty
-      expect(bookmarks.length).to.eq(2)
+        const bookmarks = await getUserBookmarks(actorId)
+        expect(bookmarks).to.not.be.empty
+        expect(bookmarks.length).to.eq(2)
 
-      await deleteBookmark(gid1, actorId)
-      const bookmarks2 = await getUserBookmarks(actorId)
-      expect(bookmarks2).to.not.be.empty
-      expect(bookmarks2.length).to.eq(1)
+        await deleteBookmark(gid1, actorId)
+        const bookmarks2 = await getUserBookmarks(actorId)
+        expect(bookmarks2).to.not.be.empty
+        expect(bookmarks2.length).to.eq(1)
+      })
     })
   })
 })

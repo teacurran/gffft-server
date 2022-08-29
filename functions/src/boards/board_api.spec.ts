@@ -3,14 +3,13 @@ import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_2_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
-import {COLLECTION_GFFFTS, createGffftMembership, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
+import {createGffftMembership, DEFAULT_GFFFT_KEY} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
-import {COLLECTION_BOARDS, COLLECTION_POSTS, COLLECTION_THREADS, getOrCreateDefaultBoard} from "./board_data"
+import {getOrCreateDefaultBoard} from "./board_data"
 import {Board} from "./board_models"
 import * as firebaseAdmin from "firebase-admin"
 import {COLLECTION_USERS, getUser} from "../users/user_data"
-import {deleteFirestoreItem} from "../common/data"
 import {IThread} from "./board_interfaces"
 import * as request from "superagent"
 
@@ -36,9 +35,7 @@ describe("boards API", function(this: Suite) {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
-    getUser(uid1)
-    getUser(uid2)
-    getUser(uid3)
+    await Promise.all([uid1, uid2, uid3].map(getUser))
 
     gffft = await factories.gffft.create({
       uid: uid1,
@@ -51,50 +48,18 @@ describe("boards API", function(this: Suite) {
     board = await getOrCreateDefaultBoard(uid1, gid)
     bid = board.id
 
-    await createGffftMembership(uid1, gid, MOCK_AUTH_USER_1.user_id, "ponyboy")
+    await createGffftMembership(uid1, gid, MOCK_AUTH_USER_1.user_id, "sysop")
+    await createGffftMembership(uid1, gid, MOCK_AUTH_USER_2.user_id, "ponyboy")
     await createGffftMembership(uid1, gid, MOCK_AUTH_USER_3.user_id, "calcutta")
   })
 
   after(async function() {
-    await firestore.collection(COLLECTION_USERS).doc(uid1)
-      .collection(COLLECTION_GFFFTS).doc(gid)
-      .collection(COLLECTION_BOARDS).doc(bid)
-      .collection(COLLECTION_THREADS)
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach(async (doc) => {
-          await firestore.collection(COLLECTION_USERS).doc(uid1)
-            .collection(COLLECTION_GFFFTS).doc(gid)
-            .collection(COLLECTION_BOARDS).doc(bid)
-            .collection(COLLECTION_THREADS).doc(doc.id)
-            .collection(COLLECTION_POSTS)
-            .get()
-            .then(deleteFirestoreItem)
-
-          deleteFirestoreItem(doc)
-        })
-      })
-
-    await firestore.collection(COLLECTION_USERS).doc(uid1)
-      .collection(COLLECTION_GFFFTS).doc(gid)
-      .collection(COLLECTION_BOARDS).doc(bid)
-      .get()
-      .then(deleteFirestoreItem)
-
-    await firestore.collection(COLLECTION_USERS).doc(uid1)
-      .collection(COLLECTION_GFFFTS).doc(gid)
-      .collection(COLLECTION_BOARDS).doc(bid)
-      .get()
-      .then(deleteFirestoreItem)
-
-    await firestore.collection(COLLECTION_USERS).doc(uid1)
-      .collection(COLLECTION_GFFFTS).doc(gid)
-      .get()
-      .then(deleteFirestoreItem)
-
-    await firestore.collection(COLLECTION_USERS).doc(uid1)
-      .get()
-      .then(deleteFirestoreItem)
+    after(async function() {
+      await Promise.all([uid1, uid2, uid3].map((uid) =>
+        firestore.collection(COLLECTION_USERS)
+          .doc(uid).get().then((doc) => firestore.recursiveDelete(doc.ref))
+      ))
+    })
   })
 
   describe("/api/boards", function() {
@@ -244,6 +209,58 @@ describe("boards API", function(this: Suite) {
         .set(USER_3_AUTH)
         .then((res) => {
           res.should.have.status(403)
+        })
+    })
+
+    step("the gffft owner can delete the thread", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+        .set(USER_1_AUTH)
+        .then((res) => {
+          res.should.have.status(204)
+        })
+    })
+
+    step("another post created", async function() {
+      return chai
+        .request(server)
+        .post("/api/boards/createPost")
+        .set(USER_2_AUTH)
+        .set("Content-Type", "application/json")
+        .send({
+          uid: uid1,
+          gid: gid,
+          bid: bid,
+          subject: postSubject,
+          body: postBody,
+        })
+        .then((res) => {
+          res.should.have.status(204)
+        })
+    })
+
+    step("get board again", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(200)
+          res.body["count"].should.equal(1)
+          const newThreadId = res.body["items"][0]["id"]
+          expect(newThreadId).to.not.equal(threadId)
+          threadId = newThreadId
+        })
+    })
+
+    step("the thread owner can delete the thread", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid1}/gfffts/${gid}/boards/${bid}/threads/${threadId}`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(204)
         })
     })
   })

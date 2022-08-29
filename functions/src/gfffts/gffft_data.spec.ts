@@ -21,13 +21,16 @@ import {expect} from "chai"
 import {MockFirebaseInit} from "../test/auth"
 import {Gffft, TYPE_ANON, TYPE_MEMBER} from "./gffft_models"
 import {User} from "../users/user_models"
-import {getUser} from "../users/user_data"
+import {COLLECTION_USERS, getUser} from "../users/user_data"
 import {factories} from "../test/factories"
 import {LinkSet} from "../link-sets/link_set_models"
 import {getRefPath, upset} from "typesaurus"
 import {getLinkSetRef} from "../link-sets/link_set_data"
+import * as firebaseAdmin from "firebase-admin"
 
 describe("gffft_data", function() {
+  let firestore: firebaseAdmin.firestore.Firestore
+
   let gffft: Gffft
   let uid1: string
   let user1: User
@@ -37,6 +40,8 @@ describe("gffft_data", function() {
   let user2Handle: string
 
   before(async function() {
+    firestore = firebaseAdmin.firestore()
+
     await MockFirebaseInit.getInstance().init()
     uid1 = "gffft_data-uid-1"
     user1 = await getUser(uid1)
@@ -57,6 +62,14 @@ describe("gffft_data", function() {
 
     gffft = await createGffft(uid1, gffftStub, user1Handle)
   })
+
+  after(async function() {
+    await Promise.all([uid1, uid2].map((uid) =>
+      firestore.collection(COLLECTION_USERS)
+        .doc(uid).get().then((doc) => firestore.recursiveDelete(doc.ref))
+    ))
+  })
+
 
   describe("checkGffftHandle", function() {
     it("user2 cannot have user1's handle", async function() {

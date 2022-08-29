@@ -193,9 +193,7 @@ router.delete(
     const bid = req.params.bid
     const tid = req.params.tid
 
-    const itemPromise = getThread(uid, gid, bid, tid, "", 0)
-
-    const item = await itemPromise
+    const item = await getThread(uid, gid, bid, tid, "", 0)
     if (!item) {
       res.sendStatus(404)
       return
@@ -204,6 +202,7 @@ router.delete(
     const membership = res.locals.gffftMembership
 
     let canEdit = false
+    console.log(`firstPost.id: ${item.firstPost.id} iamUser.id: ${iamUser.id}`)
     if (item.firstPost.id == iamUser.id) {
       canEdit = true
     }
@@ -305,7 +304,6 @@ router.get(
   }
 )
 
-
 const createMemberParams = Joi.object({
   uid: Joi.string().required(),
   gid: Joi.string().required(),
@@ -373,11 +371,19 @@ router.post(
     res.sendStatus(204)
   })
 
+const deleteBookmarkParams = Joi.object({
+  gid: Joi.string().required(),
+})
+export interface DeleteBookmarkRequest extends ValidatedRequestSchema {
+    [ContainerTypes.Body]: {
+      gid: string
+    }
+  }
 router.delete(
   "/me/bookmarks",
   requiredAuthentication,
-  validator.body(createMemberParams),
-  async (req: ValidatedRequest<CreateMemberRequest>, res: Response) => {
+  validator.body(deleteBookmarkParams),
+  async (req: ValidatedRequest<DeleteBookmarkRequest>, res: Response) => {
     const gid = req.body.gid
 
     const memberId = res.locals.iamUser.id
@@ -427,11 +433,6 @@ router.get(
       uid = iamUser.id
     }
     const posterUid = iamUser?.id
-
-    // const gfffts = gffftsCollection(ref(usersCollection, uid))
-    // `const galleries = galleryCollection(ref(gfffts, gid))
-    // const galleryRef = ref(galleries, mid)
-    // const galleryItems = galleryItemsCollection(galleryRef)
 
     const gffftPromise = getGffft(uid, gid)
     const membershipPromise = getGffftMembership(uid, gid, posterUid)
