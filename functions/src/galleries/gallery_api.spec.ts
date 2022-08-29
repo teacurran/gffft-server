@@ -12,6 +12,8 @@ import {Gallery, GalleryItem} from "./gallery_models"
 import {COLLECTION_GALLERIES, getGalleryItemRef} from "../galleries/gallery_data"
 import {get} from "typesaurus"
 import {deleteFirestoreItem} from "../common/data"
+import * as request from "superagent"
+import {IGallery} from "./gallery_interfaces"
 
 chai.use(chaiHttp)
 chai.should()
@@ -41,7 +43,9 @@ describe("galleries API", function(this: Suite) {
     })
     gid = gffft.id
 
-    gallery = await factories.gallery.create({}, {
+    gallery = await factories.gallery.create({
+      name: "my favorite photos",
+    }, {
       transient: {
         uid: uid,
         gid: gid,
@@ -60,6 +64,36 @@ describe("galleries API", function(this: Suite) {
     await firestore.collection(COLLECTION_USERS).doc(uid)
       .get()
       .then(deleteFirestoreItem)
+  })
+
+  describe("get", function() {
+    function isGalleryValid(res: request.Response) {
+      res.should.have.status(200)
+      console.log(`gallery body: ${JSON.stringify(res.body)} / ${JSON.stringify(gallery)}`)
+      const t = res.body as IGallery
+      expect(t.name).to.equal(gallery.name)
+      expect(t.id).to.equal(gallery.id)
+    }
+
+    it("gets the gallery", async function() {
+      return chai
+        .request(server)
+        .get(`/api/users/${uid}/gfffts/${gid}/galleries/${gallery.id}`)
+        .set(USER_1_AUTH)
+        .then(isGalleryValid)
+    })
+
+    describe("when gallery doesn't exist", function() {
+      it("gets the gallery", async function() {
+        return chai
+          .request(server)
+          .get(`/api/users/${uid}/gfffts/${gid}/galleries/invalid-gallery-id`)
+          .set(USER_1_AUTH)
+          .then((res) => {
+            res.should.have.status(404)
+          })
+      })
+    })
   })
 
   describe("PATCH", function() {

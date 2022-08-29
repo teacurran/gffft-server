@@ -65,7 +65,7 @@ describe("gffft_data", function() {
 
   after(async function() {
     await Promise.all([uid1, uid2].map((uid) =>
-      firestore.collection(COLLECTION_USERS)
+      firestore.collection(COLLECTION_USERS + "-2")
         .doc(uid).get().then((doc) => firestore.recursiveDelete(doc.ref))
     ))
   })

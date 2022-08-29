@@ -54,12 +54,10 @@ describe("boards API", function(this: Suite) {
   })
 
   after(async function() {
-    after(async function() {
-      await Promise.all([uid1, uid2, uid3].map((uid) =>
-        firestore.collection(COLLECTION_USERS)
-          .doc(uid).get().then((doc) => firestore.recursiveDelete(doc.ref))
-      ))
-    })
+    await Promise.all([uid1, uid2, uid3].map((uid) =>
+      firestore.collection(COLLECTION_USERS)
+        .doc(uid).get().then((doc) => firestore.recursiveDelete(doc.ref))
+    ))
   })
 
   describe("/api/boards", function() {

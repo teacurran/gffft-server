@@ -46,11 +46,9 @@ export async function getGallery(uid: string, gid: string, mid: string): Promise
     return getOrCreateDefaultGallery(uid, gid)
   }
 
-  console.log(`looking for gallery: uid:${uid} gid:${gid} mid:${mid}`)
   const gfffts = gffftsCollection(ref(usersCollection, uid))
   const galleries = galleryCollection(ref(gfffts, gid))
   const itemRef = ref(galleries, mid)
-  console.log(`itemRef: ${JSON.stringify(itemRef)}`)
   return getGalleryByRef(itemRef)
 }
 
@@ -155,11 +153,7 @@ currentUid?: string): Promise<HydratedGalleryItem | null> {
 }
 
 export async function hydrateGallery(uid: string, gid: string, gallery: Gallery,
-  items: HydratedGalleryItem[]): Promise<HydratedGallery | null> {
-  if (gallery == null) {
-    return null
-  }
-
+  items: HydratedGalleryItem[]): Promise<HydratedGallery> {
   const latestPostUser = await getGffftUser(uid, gid, gallery.latestPost)
 
   return {

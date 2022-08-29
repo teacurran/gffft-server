@@ -77,7 +77,7 @@ router.post(
     const mid: string = req.body.mid
     const description = req.body.description
 
-    console.log(`creating gallery item: uid:${uid} gid:${gid} bid:${mid} description: ${description}`)
+    console.log(`creating gallery item: uid:${uid} gid:${gid} mid:${mid} description: ${description}`)
 
     const posterRef = ref(usersCollection, iamUser.id)
     const membership: GffftMember = res.locals.gffftMembership

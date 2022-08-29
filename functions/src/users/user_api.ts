@@ -454,6 +454,7 @@ router.get(
     const gallery = await galleryPromise
 
     if (!gallery) {
+      console.error(`gallery not found, uid: ${uid} gid: ${gid} mid: ${mid}`)
       res.sendStatus(404)
       return
     }
@@ -464,10 +465,6 @@ router.get(
     const items = await galleryItemsPromise
 
     const hydratedGallery = await hydrateGallery(uid, gid, gallery, items)
-    if (hydratedGallery == null) {
-      res.sendStatus(404)
-      return
-    }
 
     res.json(galleryToJsonWithItems(hydratedGallery, iamUser, membership))
   }

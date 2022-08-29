@@ -56,6 +56,7 @@ export function galleryToJson(
   return {
     id: gallery.id,
     name: gallery.name,
+    description: gallery.description,
     photoCount: gallery.photoCount ?? 0,
     videoCount: gallery.videoCount ?? 0,
     createdAt: gallery.createdAt ?? new Date(),

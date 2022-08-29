@@ -1,5 +1,5 @@
 import {Factory} from "fishery"
-import {set} from "typesaurus"
+import {upset} from "typesaurus"
 import {DEFAULT_GALLERY_KEY, getGalleryRef} from "../../galleries/gallery_data"
 import {Gallery} from "../../galleries/gallery_models"
 
@@ -11,7 +11,7 @@ type GalleryTransientParams = {
 export default Factory.define<Gallery, GalleryTransientParams>(({transientParams, sequence, onCreate}) => {
   onCreate(async (item) => {
     if (transientParams.uid && transientParams.gid) {
-      await set<Gallery>(getGalleryRef(transientParams.uid, transientParams.gid, id), item)
+      await upset<Gallery>(getGalleryRef(transientParams.uid, transientParams.gid, id), item)
     }
 
     return item
@@ -21,6 +21,8 @@ export default Factory.define<Gallery, GalleryTransientParams>(({transientParams
   const gallery: Gallery = {
     id: id,
     key: DEFAULT_GALLERY_KEY,
+    name: `Gallery ${id}`,
+    description: `Gallery ${id} description`,
     createdAt: new Date(),
     updatedAt: new Date(),
     photoCount: 0,
