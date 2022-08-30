@@ -1,9 +1,7 @@
 import * as functions from "firebase-functions"
 import {ref, upset, value} from "typesaurus"
-import {galleryCollection} from "../galleries/gallery_data"
+import {getGalleryCollection} from "../galleries/gallery_data"
 import {GalleryUpdateCounter} from "../galleries/gallery_models"
-import {gffftsCollection} from "../gfffts/gffft_data"
-import {usersCollection} from "../users/user_data"
 import {incrementMemberCounter} from "./common"
 
 
@@ -20,8 +18,7 @@ export const galleryItemCounter = functions.firestore
     const beforeData = change.before.data()
     const afterData = change.after.data()
 
-    const gfffts = gffftsCollection(ref(usersCollection, uid))
-    const galleries = galleryCollection(ref(gfffts, gid))
+    const galleries = getGalleryCollection(uid, gid)
     const galleryRef = ref(galleries, mid)
 
     if (!change.before.exists && afterData != null) {
