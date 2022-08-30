@@ -11,6 +11,7 @@ import {
   createBookmark,
   deleteBookmark,
   exportedForTesting,
+  getUniqueUsername,
   getUser,
   getUserBookmarks,
   getUsername,
@@ -313,6 +314,39 @@ describe("users_data", function() {
 
           expect([...adjectives, ...verbs]).to.include(unSplit[0])
           expect(nouns).to.include(unSplit[1])
+        })
+      })
+
+      describe("getUniqueUsername", function() {
+        const usernames = [] as string[]
+        [...Array(10)].forEach(async () => {
+          const username = await getUniqueUsername(false)
+
+          expect(usernames).to.not.include(username)
+          usernames.push(username)
+
+          const unSplit = username.split("-")
+          expect(unSplit.length).to.eq(2)
+
+          expect([...adjectives, ...verbs]).to.include(unSplit[0])
+          expect(nouns).to.include(unSplit[1])
+        })
+      })
+
+      describe("getUniqueBotUsername", function() {
+        const usernames = [] as string[]
+        [...Array(10)].forEach(async () => {
+          const username = await getUniqueUsername(true)
+
+          expect(usernames).to.not.include(username)
+          usernames.push(username)
+
+          const unSplit = username.split("-")
+          expect(unSplit.length).to.eq(3)
+
+          expect(unSplit[0]).to.eq("bot")
+          expect([...adjectives, ...verbs]).to.include(unSplit[1])
+          expect(nouns).to.include(unSplit[2])
         })
       })
     })
