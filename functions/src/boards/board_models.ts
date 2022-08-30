@@ -41,7 +41,7 @@ export type Thread = {
   subject: string
   firstPost: Ref<User>
   latestPost: Ref<User>
-  topReaction: string
+  topReaction?: string
   postCount: number
   createdAt: Date
   updatedAt: Date

@@ -256,12 +256,8 @@ const addToCollection = async (coll: string, value: string): Promise<WriteResult
   if (!value) {
     return Promise.resolve("no value")
   }
-  const lineSplit = value.split(" ")
-  if (lineSplit.length <= 0) {
-    return Promise.resolve("no value")
-  }
-  const word = lineSplit[0]
-  if (!word.includes("_") && !word.includes("-")) {
+  const word = value.split(" ")[0]
+  if (word && !word.includes("_") && !word.includes("-")) {
     return firestore.collection(coll)
       .doc(word)
       .set({

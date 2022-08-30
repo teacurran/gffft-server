@@ -74,7 +74,7 @@ describe("users_data", function() {
       it("it will return without adding anything", async function() {
         const addResult = await addToCollection(TEST_COLLECTION, "   ")
         assert(typeof addResult == "string")
-        expect(addResult).to.eq("no value")
+        expect(addResult).to.eq("word is invalid")
       })
     })
 
