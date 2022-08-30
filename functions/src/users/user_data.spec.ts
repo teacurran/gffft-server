@@ -70,6 +70,14 @@ describe("users_data", function() {
       })
     })
 
+    describe("when value is empty", function() {
+      it("it will return without adding anything", async function() {
+        const addResult = await addToCollection(TEST_COLLECTION, "   ")
+        assert(typeof addResult == "string")
+        expect(addResult).to.eq("no value")
+      })
+    })
+
     describe("when value is invalid", function() {
       it("it will return without adding anything", async function() {
         const addResult = await addToCollection(TEST_COLLECTION, "invalid-word")

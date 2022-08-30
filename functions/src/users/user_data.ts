@@ -256,7 +256,7 @@ const addToCollection = async (coll: string, value: string): Promise<WriteResult
   if (!value) {
     return Promise.resolve("no value")
   }
-  const lineSplit = Array.isArray(value) ? value : value.split(" ")
+  const lineSplit = value.split(" ")
   if (lineSplit.length <= 0) {
     return Promise.resolve("no value")
   }
