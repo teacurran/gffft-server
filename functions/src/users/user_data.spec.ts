@@ -13,6 +13,7 @@ import {
   exportedForTesting,
   getUser,
   getUserBookmarks,
+  getUsername,
 } from "./user_data"
 import {WriteResult} from "@google-cloud/firestore"
 import {assert, expect} from "chai"
@@ -216,12 +217,11 @@ describe("users_data", function() {
   describe("getUserBookmarks", function() {
     const uid1 = "cb-test-uid"
     const uid2 = "cb-test-uid2"
+    const gid1 = "cb-test-gid1"
 
     const gid2 = "cb-test-gid2"
     const userId2 = "cb-test-uid4"
     let gffft: Gffft
-
-    const actorId = uuid()
 
     before(async function() {
       gffft = await factories.gffft.create({uid: uid1, name: "Salads", key: "", enabled: false})
@@ -235,6 +235,8 @@ describe("users_data", function() {
     })
 
     it("will create a bookmark for a user", async function() {
+      const actorId = uuid()
+
       await createBookmark(uid1, gffft.id, actorId)
       await createBookmark(uid2, gid2, actorId)
       await createBookmark(uid1, gffft.id, userId2)
@@ -259,13 +261,13 @@ describe("users_data", function() {
     })
 
     describe("deleteBookmark", function() {
-      const uid1 = "cb-test-uid"
-      const uid2 = "cb-test-uid2"
-      const gid1 = "cb-test-gid1"
-
-      const gid2 = "cb-test-gid2"
-      const userId2 = "cb-test-uid4"
       const actorId = "deleteBookmarkActor"
+
+      after(async function() {
+        return firestore.collection(COLLECTION_USERS).doc(actorId)
+          .get()
+          .then((doc) => firestore.recursiveDelete(doc.ref))
+      })
 
       it("will create a bookmark for a user", async function() {
         await createBookmark(uid1, gid1, actorId)
@@ -274,6 +276,9 @@ describe("users_data", function() {
         await createBookmark(uid2, gid2, userId2)
 
         const bookmarks = await getUserBookmarks(actorId)
+        bookmarks.forEach((b) => {
+          console.log(`bookmark: ${JSON.stringify(b)}`)
+        })
         expect(bookmarks).to.not.be.empty
         expect(bookmarks.length).to.eq(2)
 
@@ -281,6 +286,34 @@ describe("users_data", function() {
         const bookmarks2 = await getUserBookmarks(actorId)
         expect(bookmarks2).to.not.be.empty
         expect(bookmarks2.length).to.eq(1)
+      })
+    })
+
+    describe("getUsername", function() {
+      const adjectives = ["avenged", "calibrated", "cantering", "embolic", "malted", "mythic", "normative", "official", "parabolic", "septic"]
+      const verbs = ["abetted", "bagged", "barred", "chapping", "chiselled", "chugged", "forspoken", "overshot", "scarred", "scramming"]
+      const nouns = ["adulator", "adult", "aster", "basketeer", "bomber", "carhop", "cinch", "kayak", "lead", "machine"]
+
+      before(async function() {
+        await Promise.all(adjectives.map((word) => addAdjective(word)))
+        await Promise.all(verbs.map((word) => addVerb(word)))
+        await Promise.all(nouns.map((word) => addNoun(word)))
+      })
+
+      describe("getUsername", function() {
+        const usernames = [] as string[]
+        [...Array(10)].forEach(async () => {
+          const username = await getUsername()
+
+          expect(usernames).to.not.include(username)
+          usernames.push(username)
+
+          const unSplit = username.split("-")
+          expect(unSplit.length).to.eq(2)
+
+          expect([...adjectives, ...verbs]).to.include(unSplit[0])
+          expect(nouns).to.include(unSplit[1])
+        })
       })
     })
   })

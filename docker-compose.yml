@@ -13,6 +13,7 @@ services:
 
   firebase-emulator:
     image: gffft-firebase-emulator
+    platform: linux/arm64
     build:
       context: ./
       dockerfile: ./firebase-emulator/Dockerfile

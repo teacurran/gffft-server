@@ -179,7 +179,7 @@ export async function getUniqueUsername(isNpc: boolean): Promise<string> {
   throw new Error("unable to find a unique username")
 }
 
-async function getUsername(): Promise<string> {
+export async function getUsername(): Promise<string> {
   const [noun, verb, adjective] = await Promise.all([
     getRandomItem(COLLECTION_NOUNS),
     getRandomItem(COLLECTION_VERBS),

@@ -11,14 +11,10 @@ firebaseAdmin.initializeApp({
 
 export const addNouns = functions.https.onRequest(async (req, res) => {
   console.log("addNouns()")
-  const writes: Promise<WriteResult | string>[] = []
   if (req.method === "DELETE") throw new Error("not yet built")
   if (req.method === "POST") {
     const lines = req.rawBody.toString().split("\n")
-    lines.forEach((line) => {
-      writes.push(addNoun(line.split(" ").reverse()[0]))
-    })
-    await Promise.all(writes).then(() => {
+    await Promise.all(lines.map((line) => addNoun(line.split(" ").reverse()[0]))).then(() => {
       return res.status(200).send("promise I'm done")
     })
   }

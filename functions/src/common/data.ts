@@ -31,10 +31,7 @@ export const itemOrUndefined = <T extends ItemWithId>(snapshot: Doc<T> | null): 
   return item
 }
 
-export const deleteFirestoreItem = async <T extends ItemWithId>(snapshot: DocumentData | null): Promise<void> => {
-  if (!snapshot) {
-    return
-  }
+export const deleteFirestoreItem = async <T extends ItemWithId>(snapshot: DocumentData): Promise<void> => {
   if (snapshot != null) {
     if (snapshot.exists) {
       return snapshot.ref.delete()
