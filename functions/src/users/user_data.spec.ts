@@ -8,6 +8,7 @@ import {
   COLLECTION_BOOKMARKS,
   COLLECTION_NOUNS,
   COLLECTION_USERS,
+  COLLECTION_VERBS,
   createBookmark,
   deleteBookmark,
   exportedForTesting,
@@ -320,7 +321,31 @@ describe("users_data", function() {
           const unSplit = username.split("-")
           expect(unSplit.length).to.eq(2)
 
-          expect([...adjectives, ...verbs]).to.include(unSplit[0])
+          const term = unSplit[0]
+          expect([...adjectives, ...verbs]).to.include(term)
+          if (adjectives.includes(term)) {
+            return firestore.collection(COLLECTION_ADJECTIVES).doc(term)
+              .get()
+              .then((snapshot) => {
+                expect(snapshot.exists).to.be.true
+                const data = snapshot.data()
+                if (data) {
+                  expect(data.get("count")).to.eq(1)
+                }
+              })
+          }
+          if (verbs.includes(term)) {
+            return firestore.collection(COLLECTION_VERBS).doc(term)
+              .get()
+              .then((snapshot) => {
+                expect(snapshot.exists).to.be.true
+                const data = snapshot.data()
+                if (data) {
+                  expect(data.get("count")).to.eq(1)
+                }
+              })
+          }
+
           expect(nouns).to.include(unSplit[1])
         })
       })

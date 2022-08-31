@@ -195,7 +195,7 @@ export async function getUsername(): Promise<string> {
 
   // half the time, start with a verb. the other half start with an adjective
   if (Math.floor(Math.random() * 2) === 0) {
-    usernameRaw = `${verb.id}-${noun.id}`
+    usernameRaw = verb.id + "-" + noun.id
     await firestore
       .collection(COLLECTION_VERBS)
       .doc(verb.id)

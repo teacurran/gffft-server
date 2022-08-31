@@ -3,6 +3,11 @@
 [link=https://sonarcloud.io/summary/new_code?id=teacurran_gffft-server]
 image::https://sonarcloud.io/api/project_badges/measure?project=teacurran_gffft-server&metric=alert_status[]
 
+
+[link=https://sonarcloud.io/summary/new_code?id=teacurran_gffft-server]
+image::https://sonarcloud.io/api/project_badges/measure?project=teacurran_gffft-server&metric=coverage[]
+
+
 ## testing
 
 Prerequesites:
@@ -19,7 +24,7 @@ Make commands:
 
 `make start` will start up the server in development mode.
 
-`make test` will run all of the unit tests against a running database and an emulated 
+`make test` will run all of the unit tests against a running database and an emulated
 Firestore authentication service.
 
 ## running npc:
