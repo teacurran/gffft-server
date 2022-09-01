@@ -3,18 +3,18 @@ import {Link} from "../link-sets/link_set_models"
 import {HydratedUser, User} from "../users/user_models"
 
 export type Board = {
-    id: string
-    key?: string
-    name?: string
-    description?: string
-    threadCount?: number
-    postCount?: number
-    whoCanView?: string
-    whoCanPost?: string
-    latestPost?: Ref<HydratedUser>
-    createdAt: Date
-    updatedAt: Date
-  }
+  id: string
+  key?: string
+  name?: string
+  description?: string
+  threadCount: number
+  postCount: number
+  whoCanView?: string
+  whoCanPost?: string
+  latestPost?: Ref<HydratedUser>
+  createdAt: Date
+  updatedAt: Date
+}
 
 export type BoardThreadPostCounterNoAuthor = {
   threadCount: number
@@ -41,7 +41,7 @@ export type Thread = {
   subject: string
   firstPost: Ref<User>
   latestPost: Ref<User>
-  topReaction?: string
+  topReaction: string
   postCount: number
   createdAt: Date
   updatedAt: Date

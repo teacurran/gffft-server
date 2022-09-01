@@ -1,8 +1,7 @@
 import * as functions from "firebase-functions"
-import {ref, upset, value} from "typesaurus"
-import {boardsCollection} from "../boards/board_data"
+import {upset, value} from "typesaurus"
+import {getBoardRef} from "../boards/board_data"
 import {BoardThreadCounter, BoardThreadPostCounterNoAuthor} from "../boards/board_models"
-import {gffftsCollection} from "../gfffts/gffft_data"
 import {incrementMemberCounter} from "./common"
 
 // eslint-disable-next-line max-len
@@ -17,12 +16,10 @@ export const threadCreateCounter = functions.firestore
     const beforeData = change.before.data()
     const newThread = change.after.data()
 
-    const gfffts = gffftsCollection(uid)
-    const boards = boardsCollection(ref(gfffts, gid))
-
+    const boardRef = getBoardRef(uid, gid, bid)
     if (!change.before.exists && newThread != null) {
       await incrementMemberCounter("boardThreads", uid, gid)
-      return upset<BoardThreadCounter>(boards, bid, {
+      return upset<BoardThreadCounter>(boardRef, {
         threadCount: value("increment", 1),
         updatedAt: newThread.createdAt ? newThread.createdAt.toDate() : new Date(),
       })
@@ -30,7 +27,7 @@ export const threadCreateCounter = functions.firestore
       // do nithing for post updates
     } else if (!change.after.exists && beforeData) {
       if (beforeData.postCount) {
-        return upset<BoardThreadPostCounterNoAuthor>(boards, bid, {
+        return upset<BoardThreadPostCounterNoAuthor>(boardRef, {
           threadCount: value("increment", -1),
           postCount: value("increment", -beforeData.postCount),
         })

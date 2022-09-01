@@ -3,12 +3,12 @@ import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
-import {COLLECTION_GFFFTS, createGffftMembership, getGffft, getGffftMembership} from "../gfffts/gffft_data"
+import {createGffftMembership, getGffft, getGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
 import {Gffft} from "../gfffts/gffft_models"
 import {assert} from "console"
-import {COLLECTION_USERS, getUser, getUserBookmarks} from "../users/user_data"
-import * as firebaseAdmin from "firebase-admin"
+import {getUser, getUserBookmarks} from "../users/user_data"
+import {recursivelyDeleteGfffts} from "../test/delete_utils"
 
 chai.use(chaiHttp)
 chai.should()
@@ -16,7 +16,6 @@ chai.should()
 describe("gfffts API", function(this: Suite) {
   // eslint-disable-next-line no-invalid-this
   this.timeout(20000)
-  let firestore: firebaseAdmin.firestore.Firestore
 
   const user2Handle = "ponyboy"
   let uid1: string
@@ -27,7 +26,6 @@ describe("gfffts API", function(this: Suite) {
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
-    firestore = firebaseAdmin.firestore()
 
     uid1 = MOCK_AUTH_USER_1.user_id
     uid2 = MOCK_AUTH_USER_2.user_id
@@ -47,14 +45,7 @@ describe("gfffts API", function(this: Suite) {
   })
 
   after(async function() {
-    await firestore.collection(COLLECTION_USERS).doc(uid1)
-      .collection(COLLECTION_GFFFTS)
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach(async (doc) => {
-          await firestore.recursiveDelete(doc.ref)
-        })
-      })
+    return recursivelyDeleteGfffts(uid1)
   })
 
   describe("fruit-code", function() {

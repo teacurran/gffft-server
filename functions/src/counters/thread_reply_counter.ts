@@ -1,8 +1,7 @@
 import * as functions from "firebase-functions"
-import {pathToRef, ref, upset, value} from "typesaurus"
-import {boardsCollection, threadsCollection} from "../boards/board_data"
-import {BoardPostCounterWithAuthor, ThreadPostCounterWithAuthor} from "../boards/board_models"
-import {gffftsCollection} from "../gfffts/gffft_data"
+import {get, Ref, ref, upset, value} from "typesaurus"
+import {getBoardCollection, getBoardRef, threadsCollection} from "../boards/board_data"
+import {BoardPostCounter, BoardPostCounterWithAuthor, Thread, ThreadPostCounter, ThreadPostCounterWithAuthor} from "../boards/board_models"
 import {User} from "../users/user_models"
 import {incrementMemberCounter} from "./common"
 
@@ -20,20 +19,25 @@ export const threadReplyCounter = functions.firestore
     const oldPost = change.before.data()
     const newPost = change.after.data()
 
-    const gfffts = gffftsCollection(uid)
-    const boards = boardsCollection(ref(gfffts, gid))
+    const boardRef = getBoardRef(uid, gid, bid)
+    const boards = getBoardCollection(uid, gid)
     const threads = threadsCollection(ref(boards, bid))
 
     if (!change.before.exists && newPost != null) {
       await incrementMemberCounter("boardPosts", uid, gid)
 
-      const authorRef = pathToRef<User>(newPost.author.path)
-      await upset<ThreadPostCounterWithAuthor>(threads, tid, {
-        postCount: value("increment", 1),
-        latestPost: authorRef,
-        updatedAt: newPost.createdAt ? newPost.createdAt.toDate() : new Date(),
+      const authorRef = newPost.author as Ref<User>
+      await get<Thread>(threads, tid).then((item) => {
+        if (item == null) {
+          return
+        }
+        return upset<ThreadPostCounterWithAuthor>(threads, tid, {
+          postCount: value("increment", 1),
+          latestPost: authorRef,
+          updatedAt: newPost.createdAt ? newPost.createdAt.toDate() : new Date(),
+        })
       })
-      return upset<BoardPostCounterWithAuthor>(boards, bid, {
+      return upset<BoardPostCounterWithAuthor>(boardRef, {
         postCount: value("increment", 1),
         latestPost: authorRef,
         updatedAt: newPost.createdAt ? newPost.createdAt.toDate() : new Date(),
@@ -41,15 +45,17 @@ export const threadReplyCounter = functions.firestore
     } else if (change.before.exists && change.after.exists && oldPost && newPost) {
       // do nithing for post updates
     } else if (!change.after.exists && oldPost) {
-      // not updating the counts for post deletes right now
-      // it may have conflicts with thread deleting
-      // test out those two scenarios together.
-      // await upset<ThreadPostCounter>(ref(threads, tid), {
-      //   postCount: value("increment", -1),
-      // })
-      // return upset<BoardPostCounter>(boardRef, {
-      //   postCount: value("increment", -1),
-      // })
+      await get<Thread>(threads, tid).then((item) => {
+        if (item == null) {
+          return
+        }
+        return upset<ThreadPostCounter>(ref(threads, tid), {
+          postCount: value("increment", -1),
+        })
+      })
+      return upset<BoardPostCounter>(boardRef, {
+        postCount: value("increment", -1),
+      })
     }
   })
 

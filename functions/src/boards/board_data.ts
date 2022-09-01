@@ -41,6 +41,8 @@ export async function getOrCreateDefaultBoard(uid: string, gid: string): Promise
     board = {
       key: DEFAULT_BOARD_KEY,
       name: DEFAULT_BOARD_NAME,
+      threadCount: 0,
+      postCount: 0,
     } as Board
     const result = await add<Board>(userBoards, board)
     board.id = result.id
