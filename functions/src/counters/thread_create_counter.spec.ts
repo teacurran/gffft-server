@@ -20,6 +20,7 @@ describe("thread_create_counter", function() {
   let board: Board
   const userPath = `users/${uid1}`
   let boardPath: string
+  let eventParams: EventContextOptions
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
@@ -33,6 +34,15 @@ describe("thread_create_counter", function() {
       threadCount: 0,
       updatedAt: new Date(),
     })
+
+    eventParams = {
+      params: {
+        uid: uid1,
+        gid: gid,
+        bid: board.id,
+        tid: iid,
+      },
+    }
   })
 
   describe("increments thread counter", function() {
@@ -51,6 +61,16 @@ describe("thread_create_counter", function() {
       deleted: false,
     }, `${boardPath}/threads/{tid}`)
 
+    const itemSnapshotNoCount = firebaseTest.firestore.makeDocumentSnapshot({
+      id: "test-thread-61",
+      subject: "test-subject",
+      firstPost: pathToRef<User>(userPath),
+      latestPost: pathToRef<User>(userPath),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deleted: false,
+    }, `${boardPath}/threads/{tid}`)
+
     const nonExistantSnapshot = {
       exists: false,
       data() {
@@ -60,15 +80,6 @@ describe("thread_create_counter", function() {
     } as DocumentSnapshot
 
     it("handles insert", async function() {
-      const eventParams = {
-        params: {
-          uid: uid1,
-          gid: gid,
-          bid: board.id,
-          tid: iid,
-        },
-      } as EventContextOptions
-
       expect((await getOrCreateDefaultBoard(uid1, gid)).threadCount).to.equal(0)
 
       const changeEvent = firebaseTest.makeChange(
@@ -86,15 +97,6 @@ describe("thread_create_counter", function() {
     })
 
     it("handles update", async function() {
-      const eventParams = {
-        params: {
-          uid: uid1,
-          gid: gid,
-          bid: board.id,
-          iid: iid,
-        },
-      } as EventContextOptions
-
       expect((await getOrCreateDefaultBoard(uid1, gid)).threadCount).to.equal(2)
 
       const changeEvent = {
@@ -107,15 +109,6 @@ describe("thread_create_counter", function() {
     })
 
     it("handles delete", async function() {
-      const eventParams = {
-        params: {
-          uid: uid1,
-          gid: gid,
-          bid: board.id,
-          iid: iid,
-        },
-      } as EventContextOptions
-
       expect((await getOrCreateDefaultBoard(uid1, gid)).threadCount).to.equal(2)
 
       const changeEvent = {
@@ -127,16 +120,19 @@ describe("thread_create_counter", function() {
       expect((await getOrCreateDefaultBoard(uid1, gid)).threadCount).to.equal(1)
     })
 
-    it("neither before nor after exists", async function() {
-      const eventParams = {
-        params: {
-          uid: uid1,
-          gid: gid,
-          bid: board.id,
-          iid: iid,
-        },
-      } as EventContextOptions
+    it("handles delete with no post count", async function() {
+      expect((await getOrCreateDefaultBoard(uid1, gid)).threadCount).to.equal(1)
 
+      const changeEvent = {
+        before: itemSnapshotNoCount,
+        after: nonExistantSnapshot,
+      } as Change<DocumentSnapshot>
+      await wrappedFn(changeEvent, eventParams)
+
+      expect((await getOrCreateDefaultBoard(uid1, gid)).threadCount).to.equal(1)
+    })
+
+    it("neither before nor after exists", async function() {
       expect((await getOrCreateDefaultBoard(uid1, gid)).threadCount).to.equal(1)
 
       const changeEvent = {
