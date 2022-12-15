@@ -12,6 +12,9 @@ import users from "./users/user_api"
 import links from "./link-sets/link_set_api"
 import compression from "compression"
 import firebase from "@firebase/app-compat"
+import * as dotenv from "dotenv"
+
+dotenv.config({path: __dirname+"/../.env"})
 
 const PORT = process.env.PORT || 3000
 

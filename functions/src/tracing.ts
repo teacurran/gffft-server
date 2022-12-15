@@ -1,5 +1,3 @@
-// tracing.js
-
 import process from "process"
 import {Metadata, credentials} from "@grpc/grpc-js"
 
@@ -10,10 +8,21 @@ import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions"
 import {OTLPTraceExporter} from "@opentelemetry/exporter-trace-otlp-grpc"
 
 const metadata = new Metadata()
-metadata.set("x-honeycomb-team", "160965349838cd907f5532a79ee04410")
-metadata.set("x-honeycomb-dataset", "gffft")
+
+if (process.env.HONEYCOMB_KEY) {
+  metadata.set("x-honeycomb-team", process.env.HONEYCOMB_KEY)
+}
+if (process.env.HONEYCOMB_DATASET) {
+  metadata.set("x-honeycomb-dataset", process.env.HONEYCOMB_DATASET)
+}
+
+let otlpUrl = "https://api.honeycomb.io:443"
+if (process.env.OTLP_EXPORTER) {
+  otlpUrl = process.env.OTLP_EXPORTER
+}
+
 const traceExporter = new OTLPTraceExporter({
-  url: "grpc://api.honeycomb.io:443/",
+  url: otlpUrl,
   credentials: credentials.createSsl(),
   metadata,
 })

@@ -99,6 +99,15 @@ steps:
   #    args: ['test']
   #    dir: 'functions'
 
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ["run", "create-env"]
+    env:
+      - 'DOMAIN_NAME=gffft.app'
+      - 'HONEYCOMB_KEY=$$HONEYCOMB_KEY'
+      - 'HONEYCOMB_DATASET=$$HONEYCOMB_DATASET'
+      - 'OTLP_EXPORTER=grpc://api.honeycomb.io:443/'
+    secretEnv: ['HONEYCOMB_KEY', 'HONEYCOMB_DATASET']
+
   - name: "gcr.io/cloud-builders/gcloud"
     args: ["app", "deploy"]
     timeout: "1600s"
@@ -116,6 +125,10 @@ availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
       env: 'SONAR_TOKEN'
+    - versionName: projects/$PROJECT_ID/secrets/honeycomb-key/versions/1
+      env: 'HONEYCOMB_KEY'
+    - versionName: projects/$PROJECT_ID/secrets/honeycomb-dataset/versions/1
+      env: 'HONEYCOMB_KEY'
 substitutions:
   _ARTIFACT_REPO: us-central1-docker.pkg.dev
 

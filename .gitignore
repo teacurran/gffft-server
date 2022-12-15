@@ -69,3 +69,4 @@ node_modules/
 
 .DS_Store
 gffft-auth-b0debe95266a.json
+functions/.env
