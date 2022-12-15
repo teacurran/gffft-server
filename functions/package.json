@@ -10,7 +10,7 @@
     "api-dev": "nodemon src/server.ts",
     "deploy": "npm run env && firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "start": "node -r ./lib/tracing lib/server",
+    "start": "node lib/server",
     "env": "test -f env.json && firebase functions:config:unset env && firebase functions:config:set env=\"$(cat env.json)\" || echo \"Please add the file env.json before deploy.\"",
     "env-local": "firebase functions:config:get > .runtimeconfig.json",
     "test": "cross-env TS_NODE_FILES=true mocha --exit --require ts-node/register --require mocha-steps --colors \"{,!(node_modules)/**}/*.spec.ts\" --timeout 5000 --reporter spec",

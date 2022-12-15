@@ -12,6 +12,7 @@ import users from "./users/user_api"
 import links from "./link-sets/link_set_api"
 import compression from "compression"
 import firebase from "@firebase/app-compat"
+import "./tracing"
 import * as dotenv from "dotenv"
 
 dotenv.config({path: __dirname+"/../.env"})
