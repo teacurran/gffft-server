@@ -128,7 +128,7 @@ availableSecrets:
     - versionName: projects/$PROJECT_ID/secrets/honeycomb-key/versions/1
       env: 'HONEYCOMB_KEY'
     - versionName: projects/$PROJECT_ID/secrets/honeycomb-dataset/versions/1
-      env: 'HONEYCOMB_KEY'
+      env: 'HONEYCOMB_DATASET'
 substitutions:
   _ARTIFACT_REPO: us-central1-docker.pkg.dev
 
