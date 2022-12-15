@@ -103,8 +103,6 @@ steps:
     args: ["run", "create-env"]
     env:
       - 'DOMAIN_NAME=gffft.app'
-      - 'HONEYCOMB_KEY=$$HONEYCOMB_KEY'
-      - 'HONEYCOMB_DATASET=$$HONEYCOMB_DATASET'
       - 'OTLP_EXPORTER=grpc://api.honeycomb.io:443/'
     dir: 'functions'
     secretEnv: ['HONEYCOMB_KEY', 'HONEYCOMB_DATASET']
