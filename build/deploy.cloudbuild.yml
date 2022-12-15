@@ -106,6 +106,7 @@ steps:
       - 'HONEYCOMB_KEY=$$HONEYCOMB_KEY'
       - 'HONEYCOMB_DATASET=$$HONEYCOMB_DATASET'
       - 'OTLP_EXPORTER=grpc://api.honeycomb.io:443/'
+    dir: 'functions'
     secretEnv: ['HONEYCOMB_KEY', 'HONEYCOMB_DATASET']
 
   - name: "gcr.io/cloud-builders/gcloud"
