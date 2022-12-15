@@ -6,6 +6,7 @@ import {getNodeAutoInstrumentations} from "@opentelemetry/auto-instrumentations-
 import {Resource} from "@opentelemetry/resources"
 import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions"
 import {OTLPTraceExporter} from "@opentelemetry/exporter-trace-otlp-grpc"
+import * as OTELApi from "@opentelemetry/api"
 
 const metadata = new Metadata()
 
@@ -38,6 +39,8 @@ const sdk = new NodeSDK({
 sdk.start()
   .then(() => console.log("Tracing initialized"))
   .catch((error) => console.log("Error initializing tracing", error))
+
+OTELApi.diag.setLogger(new OTELApi.DiagConsoleLogger(), OTELApi.DiagLogLevel.DEBUG)
 
 process.on("SIGTERM", () => {
   sdk.shutdown()
