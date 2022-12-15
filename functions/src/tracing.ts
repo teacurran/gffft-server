@@ -7,6 +7,9 @@ import {Resource} from "@opentelemetry/resources"
 import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions"
 import {OTLPTraceExporter} from "@opentelemetry/exporter-trace-otlp-grpc"
 import * as OTELApi from "@opentelemetry/api"
+import * as dotenv from "dotenv"
+
+dotenv.config({path: __dirname+"/../.env"})
 
 const metadata = new Metadata()
 
