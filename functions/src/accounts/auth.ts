@@ -12,7 +12,7 @@ export type LoggedInUser = {
 
 async function checkForNpc(idToken: string): Promise<string|null> {
   if (idToken.startsWith("npc-")) {
-    console.log("token appears to be npc")
+    observeNpc(idToken)
     const splitToken = idToken.split("-")
     if (splitToken.length == 3) {
       const npc = await getNpc(splitToken[1])
@@ -27,9 +27,8 @@ async function checkForNpc(idToken: string): Promise<string|null> {
 }
 
 async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
-  if (process.env.LOG_AUTH === "true") {
-    console.log(`authenticating user: ${idToken}`)
-  }
+  observeItem("auth.token", idToken)
+
   const npcUserId = await checkForNpc(idToken)
   if (npcUserId) {
     return {id: npcUserId}
@@ -50,9 +49,7 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
   if (cacheContainer) {
     uid = await cacheContainer.getItem<string>(idToken)
   }
-  if (uid) {
-    console.debug(`got cache hit: ${uid}`)
-  } else {
+  if (!uid) {
     try {
       const userRecord = await firebaseAdmin.auth().getUser(userId)
       uid = userRecord.uid
@@ -60,7 +57,7 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
         await cacheContainer.setItem(idToken, uid, {ttl: 60})
       }
     } catch (e) {
-      console.debug(`error getting user record: ${e}`)
+      observeException(e)
       return null
     }
   }
@@ -72,13 +69,24 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
   }
 }
 
-function observeUserId(userId: string) {
+function observeItem(key: string, value: string) {
   const activeSpan = trace.getSpan(context.active())
   if (activeSpan != null) {
-    activeSpan.setAttribute("user.id", userId)
+    activeSpan.setAttribute(key, value)
   }
 }
 
+function observeUserId(userId: string) {
+  observeItem("user.id", userId)
+}
+
+function observeNpc(token: string) {
+  observeItem("npc.id", token)
+}
+
+function observeException(e: any) {
+  trace.getSpan(context.active())?.recordException({message: `${e}`})
+}
 
 export const requiredAuthentication = async (
   req: Request,
@@ -110,7 +118,7 @@ export const requiredAuthentication = async (
 
     res.locals.iamUser = iamUser
   } catch (error) {
-    console.log(error)
+    observeException(error)
     res.status(403).send("Unauthorized: Token expired")
     return
   }
@@ -139,14 +147,18 @@ export const requiredGffftMembership = async (
   res.locals.uid = uid
   res.locals.gid = gffft.id
 
+  observeItem("uid", uid)
+  observeItem("gid", gid)
+
   const membership = await getGffftMembership(uid, gid, res.locals.iamUser.id)
   if (!membership) {
-    console.log("poster is not a member of this gffft")
+    observeItem("error.not_a_member.uid", res.locals.iamUser.id)
+
     res.sendStatus(403)
     return
   }
   if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
-    console.log("poster is not an approved member of this board")
+    observeItem("error.not_approved.uid", res.locals.iamUser.id)
     res.sendStatus(403)
     return
   }

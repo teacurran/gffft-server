@@ -60,7 +60,7 @@ export async function createBookmark(uid: string, gid: string, memberId: string)
 export async function getUser(userId: string): Promise<User> {
   const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
   if (activeSpan) {
-    activeSpan.setAttribute("user.id", userId)
+    activeSpan.setAttribute("query.user.id", userId)
   }
 
   let user = await get(usersCollection, userId).then((snapshot) => itemOrNull(snapshot))
