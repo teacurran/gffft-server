@@ -33,6 +33,7 @@ import {getLinkSetByRefString} from "../link-sets/link_set_data"
 import cacheContainer from "../common/redis"
 import {Notebook} from "../notebooks/notebook_models"
 import {IGffftFeatureRef} from "./gffft_interfaces"
+import * as opentelemetry from "@opentelemetry/api"
 
 export const COLLECTION_GFFFTS = "gfffts"
 export const COLLECTION_GFFFT_MEMBERS = "members"
@@ -291,7 +292,12 @@ export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
 }
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
-  console.log(`looking for gffft:${gid} uid:${uid}`)
+  const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
+  if (activeSpan) {
+    activeSpan.setAttribute("gid", gid)
+    activeSpan.setAttribute("uid", uid)
+  }
+
   if (gid == "default") {
     return getDefaultGffft(uid)
   }
