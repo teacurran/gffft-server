@@ -46,6 +46,8 @@ const ULTRA_RARE_FRUITS = [..."🥨🐈💾🧀"]
 const PI_DAY_FRUITS = [..."🥧🍕𝜋"]
 const FRUIT_CODE_LENGTH = 9
 
+const tracer = opentelemetry.trace.getTracer('gffft_data');
+
 export const gffftsCollection = subcollection<Gffft, User>(COLLECTION_GFFFTS, usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>(COLLECTION_GFFFT_MEMBERS, gffftsCollection)
 export const gffftsStatsCollection = subcollection<GffftStats, Gffft, User>(COLLECTION_GFFFT_STATS, gffftsCollection)
@@ -292,81 +294,89 @@ export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
 }
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
-  const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
-  if (activeSpan) {
-    activeSpan.setAttribute("gid", gid)
-    activeSpan.setAttribute("uid", uid)
-  }
+  return tracer.startActiveSpan("getGffft", (span) => {
+      span.setAttribute("gid", gid)
+      span.setAttribute("uid", uid)
 
-  if (gid == "default") {
-    return getDefaultGffft(uid)
-  }
-  const userGfffts = gffftsCollection(uid)
-  const gffftRef = ref(userGfffts, gid)
+      if (gid == "default") {
+        return getDefaultGffft(uid)
+      }
+      const userGfffts = gffftsCollection(uid)
+      const gffftRef = ref(userGfffts, gid)
 
-  return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
+      return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
+  })
 }
 
 export async function getGfffts(offset?: string, maxResults = 20, q?: string, memberId?: string): Promise<Gffft[]> {
-  const queries: Query<Gffft, keyof Gffft>[] = [where("enabled", "==", true)]
-
-  let maybeFruit: string | null = null
-  if (q) {
-    console.log(`using query search: ${q}`)
-
-    let qFiltered = decodeURI(q)
-    qFiltered = qFiltered.replace(/(\s|\r\n|\n|\r)/gm, "")
-    if (qFiltered.indexOf("!") > -1) {
-      maybeFruit = qFiltered.substring(qFiltered.indexOf("!") + 1).trim()
-    } else {
-      maybeFruit = qFiltered.trim()
+  return tracer.startActiveSpan("getGfffts", async (span) => {
+    if (q) {
+      span.setAttribute("query", q)
+    }
+    if (memberId) {
+      span.setAttribute("memberId", memberId)
     }
 
-    // this is a real basic prefix search
-    // will probalby upgrade to an external full text later
-    const qLower = qFiltered.toLowerCase()
+    const queries: Query<Gffft, keyof Gffft>[] = [where("enabled", "==", true)]
 
-    console.log(`searching for: ${qLower}`)
-    queries.push(where("nameLower", ">=", qLower))
-    queries.push(where("nameLower", "<=", qLower + "\uf8ff"))
-    if (offset) {
-      queries.push(order("nameLower", "asc", [startAfter(offset.toLowerCase())]))
-    }
-  } else {
-    if (offset) {
-      console.log(`using non-query offset search: ${offset}`)
-      queries.push(order("nameLower", "asc", [startAfter(offset.toLowerCase())]))
-    } else {
-      queries.push(order("nameLower", "asc"))
-    }
-  }
+    let maybeFruit: string | null = null
+    if (q) {
+      console.log(`using query search: ${q}`)
 
-  // try searching by fruit first, see if we get results.
-  if (maybeFruit != null) {
-    console.log(`looking for maybe fruit: ${maybeFruit}`)
-    const fruitResults = await query(gffftsGroup, [where("fruitCode", "==", maybeFruit), limit(1)])
-    if (fruitResults != null && fruitResults.length > 0) {
-      const gffft = fruitResults[0].data
-      console.log(`found by fruit: ${gffft.id}`)
-      return [gffft]
-    }
-  }
-
-  queries.push(limit(maxResults))
-
-  return query(gffftsGroup, queries).then(async (results) => {
-    const gfffts: Gffft[] = []
-    for (const snapshot of results) {
-      const item = snapshot.data
-      item.id = snapshot.ref.id
-
-      if (item.uid && item.id && memberId) {
-        item.membership = await getGffftMembership(item.uid, item.id, memberId)
+      let qFiltered = decodeURI(q)
+      qFiltered = qFiltered.replace(/(\s|\r\n|\n|\r)/gm, "")
+      if (qFiltered.indexOf("!") > -1) {
+        maybeFruit = qFiltered.substring(qFiltered.indexOf("!") + 1).trim()
+      } else {
+        maybeFruit = qFiltered.trim()
       }
 
-      gfffts.push(item)
+      // this is a real basic prefix search
+      // will probalby upgrade to an external full text later
+      const qLower = qFiltered.toLowerCase()
+
+      console.log(`searching for: ${qLower}`)
+      queries.push(where("nameLower", ">=", qLower))
+      queries.push(where("nameLower", "<=", qLower + "\uf8ff"))
+      if (offset) {
+        queries.push(order("nameLower", "asc", [startAfter(offset.toLowerCase())]))
+      }
+    } else {
+      if (offset) {
+        console.log(`using non-query offset search: ${offset}`)
+        queries.push(order("nameLower", "asc", [startAfter(offset.toLowerCase())]))
+      } else {
+        queries.push(order("nameLower", "asc"))
+      }
     }
-    return gfffts
+
+    // try searching by fruit first, see if we get results.
+    if (maybeFruit != null) {
+      console.log(`looking for maybe fruit: ${maybeFruit}`)
+      const fruitResults = await query(gffftsGroup, [where("fruitCode", "==", maybeFruit), limit(1)])
+      if (fruitResults != null && fruitResults.length > 0) {
+        const gffft = fruitResults[0].data
+        console.log(`found by fruit: ${gffft.id}`)
+        return [gffft]
+      }
+    }
+
+    queries.push(limit(maxResults))
+
+    return query(gffftsGroup, queries).then(async (results) => {
+      const gfffts: Gffft[] = []
+      for (const snapshot of results) {
+        const item = snapshot.data
+        item.id = snapshot.ref.id
+
+        if (item.uid && item.id && memberId) {
+          item.membership = await getGffftMembership(item.uid, item.id, memberId)
+        }
+
+        gfffts.push(item)
+      }
+      return gfffts
+    })
   })
 }
 
@@ -413,55 +423,58 @@ export async function getFullGffft(uid: string, gid: string, currentUid?: string
 }
 
 export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: string): Promise<HydratedGffft> {
-  gffft.uid = uid
+  return tracer.startActiveSpan("getGfffts", async (span) => {
 
-  const boards: Board[] = []
-  const galleries: Gallery[] = []
-  const notebooks: Notebook[] = []
-  const features: IGffftFeatureRef[] = []
-  const linkSets: LinkSet[] = []
+    gffft.uid = uid
 
-  if (gffft.features) {
-    const featurePromises: Promise<void>[] = []
-    for (const feature of gffft.features) {
-      console.log(`looking at feature: ${feature}`)
-      if (feature.indexOf("/boards/") != -1) {
-        featurePromises.push(getBoardPromise(features, feature, boards))
-      } else if (feature.indexOf("/galleries/") != -1) {
-        featurePromises.push(getGalleryPromise(features, feature, galleries))
-      } else if (feature.indexOf("/link-sets/") != -1) {
-        featurePromises.push(getLinkSetPromise(features, feature, linkSets))
-      } else if (feature == "fruitCode") {
-        features.push({
-          type: "fruitCode",
-          id: "fruitCode",
-        })
+    const boards: Board[] = []
+    const galleries: Gallery[] = []
+    const notebooks: Notebook[] = []
+    const features: IGffftFeatureRef[] = []
+    const linkSets: LinkSet[] = []
+
+    if (gffft.features) {
+      const featurePromises: Promise<void>[] = []
+      for (const feature of gffft.features) {
+        console.log(`looking at feature: ${feature}`)
+        if (feature.indexOf("/boards/") != -1) {
+          featurePromises.push(getBoardPromise(features, feature, boards))
+        } else if (feature.indexOf("/galleries/") != -1) {
+          featurePromises.push(getGalleryPromise(features, feature, galleries))
+        } else if (feature.indexOf("/link-sets/") != -1) {
+          featurePromises.push(getLinkSetPromise(features, feature, linkSets))
+        } else if (feature == "fruitCode") {
+          features.push({
+            type: "fruitCode",
+            id: "fruitCode",
+          })
+        }
+
+        await Promise.all(featurePromises)
       }
-
-      await Promise.all(featurePromises)
     }
-  }
 
-  let membership: GffftMember | undefined
-  let bookmark: UserBookmark | undefined
-  let user: User | undefined
-  if (currentUid) {
-    membership = await getOrCreateGffftMembership(uid, gffft.id, currentUid)
-    bookmark = await getBookmark(uid, gffft.id, currentUid)
-    user = await getUser(uid)
-  }
+    let membership: GffftMember | undefined
+    let bookmark: UserBookmark | undefined
+    let user: User | undefined
+    if (currentUid) {
+      membership = await getOrCreateGffftMembership(uid, gffft.id, currentUid)
+      bookmark = await getBookmark(uid, gffft.id, currentUid)
+      user = await getUser(uid)
+    }
 
-  return {
-    ...gffft,
-    me: user,
-    membership: membership,
-    bookmark: bookmark,
-    featureSet: features,
-    boards: boards,
-    galleries: galleries,
-    notebooks: notebooks,
-    linkSets: linkSets,
-  } as HydratedGffft
+    return {
+      ...gffft,
+      me: user,
+      membership: membership,
+      bookmark: bookmark,
+      featureSet: features,
+      boards: boards,
+      galleries: galleries,
+      notebooks: notebooks,
+      linkSets: linkSets,
+    } as HydratedGffft
+  })
 }
 
 export async function getGffftByRef(refId: string): Promise<Gffft | null> {
