@@ -3,11 +3,13 @@ import {Metadata, credentials} from "@grpc/grpc-js"
 
 import {NodeSDK} from "@opentelemetry/sdk-node"
 import {getNodeAutoInstrumentations} from "@opentelemetry/auto-instrumentations-node"
+import {HttpInstrumentation} from "@opentelemetry/instrumentation-http"
 import {Resource} from "@opentelemetry/resources"
 import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions"
 import {OTLPTraceExporter} from "@opentelemetry/exporter-trace-otlp-grpc"
-import * as OTELApi from "@opentelemetry/api"
+import * as opentelemetry from "@opentelemetry/api"
 import * as dotenv from "dotenv"
+import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express";
 
 dotenv.config({path: __dirname+"/../.env"})
 
@@ -36,14 +38,18 @@ const sdk = new NodeSDK({
     [SemanticResourceAttributes.SERVICE_NAME]: "api",
   }),
   traceExporter,
-  instrumentations: [getNodeAutoInstrumentations()],
+  instrumentations: [
+    getNodeAutoInstrumentations(),
+    new HttpInstrumentation(),
+    new ExpressInstrumentation()
+  ]
 })
 
 sdk.start()
   .then(() => console.log("Tracing initialized"))
   .catch((error) => console.log("Error initializing tracing", error))
 
-OTELApi.diag.setLogger(new OTELApi.DiagConsoleLogger(), OTELApi.DiagLogLevel.DEBUG)
+opentelemetry.diag.setLogger(new opentelemetry.DiagConsoleLogger(), opentelemetry.DiagLogLevel.DEBUG)
 
 process.on("SIGTERM", () => {
   sdk.shutdown()
