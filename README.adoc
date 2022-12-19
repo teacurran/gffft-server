@@ -11,10 +11,12 @@ image::https://sonarcloud.io/api/project_badges/measure?project=teacurran_gffft-
 ## testing
 
 Prerequesites:
+
 * docker
 * make
 
 Make commands:
+
 * make build
 * make start
 * make stop
