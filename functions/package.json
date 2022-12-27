@@ -49,7 +49,7 @@
     "express-joi-validation": "^5.0.1",
     "express-jsdoc-swagger": "^1.6.7",
     "faker": "^5.5.3",
-    "firebase-admin": "^11.4.0",
+    "firebase-admin": "^11.4.1",
     "firebase-functions": "^3.24.1",
     "fishery": "^2.1.0",
     "fs-extra": "^10.0.0",
