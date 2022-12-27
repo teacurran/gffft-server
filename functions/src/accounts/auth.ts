@@ -57,7 +57,7 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
         await cacheContainer.setItem(idToken, uid, {ttl: 60})
       }
     } catch (e) {
-      observeException(e)
+      observeError(e)
       return null
     }
   }
@@ -84,8 +84,13 @@ function observeNpc(token: string) {
   observeItem("npc.id", token)
 }
 
-function observeException(e: any) {
-  trace.getSpan(context.active())?.recordException({message: `${e}`})
+function observeError(e: Error | unknown) {
+  const activeSpan = trace.getSpan(context.active())
+  if (e instanceof Error) {
+    activeSpan?.recordException(e)
+  } else {
+    activeSpan?.recordException({message: `${e}`})
+  }
 }
 
 export const requiredAuthentication = async (
@@ -118,7 +123,7 @@ export const requiredAuthentication = async (
 
     res.locals.iamUser = iamUser
   } catch (error) {
-    observeException(error)
+    observeError(error)
     res.status(403).send("Unauthorized: Token expired")
     return
   }

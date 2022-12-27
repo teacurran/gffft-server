@@ -20,7 +20,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: 98puOInkjbO&YiubkBt8guhvjhvredrg
-      WAIT_HOSTS: firebase-emulator:9199,redis:6379
+      WAIT_HOSTS: firebase-emulator:9199,firebase-emulator:8080,redis:6379
       WAIT_TIMEOUT: 240
     command: >
       bash -c "/wait && npm install && npm run test:coverage"

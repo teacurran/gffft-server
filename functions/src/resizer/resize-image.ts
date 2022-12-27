@@ -3,7 +3,7 @@ import * as path from "path"
 import * as fs from "fs"
 
 import {Bucket} from "@google-cloud/storage"
-import {ObjectMetadata} from "firebase-functions/lib/providers/storage"
+import {ObjectMetadata} from "firebase-functions/lib/v1/providers/storage"
 import {uuid} from "uuidv4"
 
 import * as logs from "./logs"

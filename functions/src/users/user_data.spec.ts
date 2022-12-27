@@ -49,6 +49,7 @@ describe("users_data", function() {
   describe("addToCollection", function() {
     it("it will add an item to a collection", async function() {
       const addResult = await addToCollection(TEST_COLLECTION, "test")
+      console.log(`WriteResult2: ${addResult}"`)
       expect(addResult).to.be.an.instanceof(WriteResult)
 
       if (addResult instanceof WriteResult) {

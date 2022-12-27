@@ -12,7 +12,8 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2017",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "useUnknownInCatchVariables": true
     },
   "compileOnSave": true,
   "include": [
