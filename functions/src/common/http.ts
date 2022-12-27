@@ -16,8 +16,8 @@ const headers: Readonly<AxiosRequestHeaders> = {
 }
 
 export class Http {
-  private axios: AxiosInstance;
-  private authToken?: string;
+  private axios: AxiosInstance
+  private authToken?: string
 
   constructor(baseUrl: string, authToken?: string) {
     this.axios = axios.create({

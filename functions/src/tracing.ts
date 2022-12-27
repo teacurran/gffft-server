@@ -9,7 +9,7 @@ import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions"
 import {OTLPTraceExporter} from "@opentelemetry/exporter-trace-otlp-grpc"
 import * as opentelemetry from "@opentelemetry/api"
 import * as dotenv from "dotenv"
-import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express";
+import {ExpressInstrumentation} from "@opentelemetry/instrumentation-express"
 
 dotenv.config({path: __dirname+"/../.env"})
 
@@ -41,8 +41,8 @@ const sdk = new NodeSDK({
   instrumentations: [
     getNodeAutoInstrumentations(),
     new HttpInstrumentation(),
-    new ExpressInstrumentation()
-  ]
+    new ExpressInstrumentation(),
+  ],
 })
 
 sdk.start()

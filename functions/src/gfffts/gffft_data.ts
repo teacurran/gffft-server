@@ -46,7 +46,7 @@ const ULTRA_RARE_FRUITS = [..."🥨🐈💾🧀"]
 const PI_DAY_FRUITS = [..."🥧🍕𝜋"]
 const FRUIT_CODE_LENGTH = 9
 
-const tracer = opentelemetry.trace.getTracer('gffft_data');
+const tracer = opentelemetry.trace.getTracer("gffft_data")
 
 export const gffftsCollection = subcollection<Gffft, User>(COLLECTION_GFFFTS, usersCollection)
 export const gffftsMembersCollection = subcollection<GffftMember, Gffft, User>(COLLECTION_GFFFT_MEMBERS, gffftsCollection)
@@ -295,16 +295,16 @@ export async function getDefaultGffft(userId: string): Promise<Gffft | null> {
 
 export async function getGffft(uid: string, gid: string): Promise<Gffft | null> {
   return tracer.startActiveSpan("getGffft", (span) => {
-      span.setAttribute("gid", gid)
-      span.setAttribute("uid", uid)
+    span.setAttribute("gid", gid)
+    span.setAttribute("uid", uid)
 
-      if (gid == "default") {
-        return getDefaultGffft(uid)
-      }
-      const userGfffts = gffftsCollection(uid)
-      const gffftRef = ref(userGfffts, gid)
+    if (gid == "default") {
+      return getDefaultGffft(uid)
+    }
+    const userGfffts = gffftsCollection(uid)
+    const gffftRef = ref(userGfffts, gid)
 
-      return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
+    return get(gffftRef).then((snapshot) => itemOrNull(snapshot))
   })
 }
 
@@ -424,7 +424,6 @@ export async function getFullGffft(uid: string, gid: string, currentUid?: string
 
 export async function hydrateGffft(uid: string, gffft: Gffft, currentUid?: string): Promise<HydratedGffft> {
   return tracer.startActiveSpan("getGfffts", async (span) => {
-
     gffft.uid = uid
 
     const boards: Board[] = []

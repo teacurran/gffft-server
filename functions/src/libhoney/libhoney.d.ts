@@ -14,8 +14,8 @@ declare module "libhoney" {
      * Represents an individual event to send to Honeycomb.
      */
     class Event {
-      public timestamp: string;
-      public data: Fields;
+      public timestamp: string
+      public data: Fields
 
       constructor(
         libhoney: Libhoney,
@@ -97,22 +97,22 @@ declare module "libhoney" {
      * libhoney aims to make it as easy as possible to create events and send them on into Honeycomb.
      */
     class Libhoney {
-      public sampleRate: number;
-      public dataset: number;
-      public writeKey: string;
-      public apiHost: string;
+      public sampleRate: number
+      public dataset: number
+      public writeKey: string
+      public apiHost: string
       /*
        * Constructs a libhoney context in order to configure default behavior,
        * though each of its members (`apiHost`, `writeKey`, `dataset`, and
        * `sampleRate`) may in fact be overridden on a specific Builder or Event.
        */
       constructor(options: LibhoneyOptions);
-      add: Builder["add"];
-      addField: Builder["addField"];
-      addDynamicField: Builder["addDynamicField"];
-      sendNow: Builder["sendNow"];
-      newEvent: Builder["newEvent"];
-      newBuilder: Builder["newBuilder"];
+      add: Builder["add"]
+      addField: Builder["addField"]
+      addDynamicField: Builder["addDynamicField"]
+      sendNow: Builder["sendNow"]
+      newEvent: Builder["newEvent"]
+      newBuilder: Builder["newBuilder"]
       /**
        * Allows you to easily wait for everything to be sent to Honeycomb (and for responses to come back for
        * events). Also initializes a transmission instance for libhoney to use, so any events sent
