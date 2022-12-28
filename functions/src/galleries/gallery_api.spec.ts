@@ -14,6 +14,7 @@ import {get} from "typesaurus"
 import {deleteFirestoreItem} from "../common/data"
 import * as request from "superagent"
 import {IGallery} from "./gallery_interfaces"
+import fs from "fs"
 
 chai.use(chaiHttp)
 chai.should()
@@ -406,6 +407,43 @@ describe("galleries API", function(this: Suite) {
             res.should.have.status(500)
           })
       })
+    })
+  })
+
+  describe("update gallery item", function() {
+    let itemId: string
+    const itemDesc = "photo of the lake"
+
+    step("create item", async function() {
+      return chai
+        .request(server)
+        .post("/api/galleries")
+        .set(USER_2_AUTH)
+        .set("Accept", "application/json")
+        .attach("file", fs.readFileSync("src/test/avatar.png"), "avatar.png")
+        .send({
+          uid: gffft.uid,
+          gid: gffft.id,
+          mid: gallery.id,
+          description: itemDesc,
+        })
+        .then(async (res) => {
+          res.should.have.status(200)
+          res.body["count"].should.equal(1)
+          itemId = res.body["id"]
+
+          res.should.have.status(500)
+        })
+    })
+
+    step("update item", async function() {
+      return chai
+        .request(server)
+        .patch(`/api/users/${uid}/gfffts/${gid}/galleries/${gallery.id}/${itemId}`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(200)
+        })
     })
   })
 })

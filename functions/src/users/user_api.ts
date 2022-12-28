@@ -1,33 +1,31 @@
 import * as Joi from "joi"
 import express, {Request, Response} from "express"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {field, ref, remove, update, upset} from "typesaurus"
+import {field, update} from "typesaurus"
 import {LoggedInUser, optionalAuthentication, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
 import {getBoard, getThread, getThreads, threadsCollection} from "../boards/board_data"
 import {threadsToJson, threadToJson} from "../boards/board_interfaces"
 import {resetMemberCounter} from "../counters/common"
 import {
-  galleryCollection,
-  galleryItemsCollection,
-  getGallery, getGalleryItem,
-  getGalleryItems, hydrateGallery,
-} from "../galleries/gallery_data"
-import {galleryItemToJson, galleryToJsonWithItems} from "../galleries/gallery_interfaces"
-import {
   checkGffftHandle, createGffftMembership, deleteGffftMembership, getFullGffft, getGffft,
   getGffftMembership,
-  gffftsCollection,
 } from "../gfffts/gffft_data"
 import {gffftToJson} from "../gfffts/gffft_interfaces"
-import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
+import {TYPE_OWNER} from "../gfffts/gffft_models"
 import {getLinkSet, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
 import {linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
 import {
   createBookmark, deleteBookmark, getHydratedUserBookmarks,
-  getUser, usersCollection,
+  getUser,
 } from "./user_data"
 import {bookmarksToJson, iamUserToJson} from "./user_interfaces"
 import {User} from "./user_models"
+import {getGalleryItemPathParams} from "../galleries/api/get_gallery_item_request"
+import {getGalleryPathParams, getGalleryQueryParams} from "../galleries/api/get_gallery_request"
+import {getGalleryItemRequest} from "../galleries/api/get_gallery_item"
+import {deleteGalleryItemRequest} from "../galleries/api/delete_gallery_item"
+import {updateGalleryItemParams} from "../galleries/api/update_gallery_item_request"
+import {updateGalleryItemRequest} from "../galleries/api/update_gallery_item"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -392,102 +390,14 @@ router.delete(
     res.sendStatus(204)
   })
 
-export const getGalleryPathParams = Joi.object({
-  uid: Joi.string().required(),
-  gid: Joi.string().required(),
-  mid: Joi.string().required(),
-})
-export const getGalleryQueryParams = Joi.object({
-  max: Joi.string().optional(),
-  offset: Joi.string().optional(),
-})
-export interface GetGalleryRequest extends ValidatedRequestSchema {
-  [ContainerTypes.Params]: {
-    uid: string
-    gid: string
-    mid: string
-  }
-  [ContainerTypes.Query]: {
-    max?: number
-    offset?: string
-  };
-}
 
 router.get(
   "/:uid/gfffts/:gid/galleries/:mid",
   optionalAuthentication,
   validator.params(getGalleryPathParams),
   validator.query(getGalleryQueryParams),
-  async (req: ValidatedRequest<GetGalleryRequest>, res: Response) => {
-    const iamUser: LoggedInUser | null = res.locals.iamUser
-
-    let uid = req.params.uid
-    let gid = req.params.gid
-    const mid = req.params.mid
-
-    if (uid == "me") {
-      if (iamUser == null) {
-        res.sendStatus(404)
-        return
-      }
-      uid = iamUser.id
-    }
-    const posterUid = iamUser?.id
-
-    const gffftPromise = getGffft(uid, gid)
-    const membershipPromise = getGffftMembership(uid, gid, posterUid)
-    const galleryPromise = getGallery(uid, gid, mid)
-    const galleryItemsPromise = getGalleryItems(uid, gid, mid, req.query.offset, req.query.max, iamUser?.id)
-    const resetPhotoCounterPromise = resetMemberCounter(iamUser, "galleryPhotos", uid, gid)
-    const resetVideoCounterPromise = resetMemberCounter(iamUser, "galleryVideos", uid, gid)
-
-    const gffft = await gffftPromise
-    // make sure the gffft exists
-    if (!gffft) {
-      console.log(`gffft not found, gid: ${gid}`)
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
-
-    const membership = await membershipPromise
-    const gallery = await galleryPromise
-
-    if (!gallery) {
-      console.error(`gallery not found, uid: ${uid} gid: ${gid} mid: ${mid}`)
-      res.sendStatus(404)
-      return
-    }
-
-    await resetPhotoCounterPromise
-    await resetVideoCounterPromise
-
-    const items = await galleryItemsPromise
-
-    const hydratedGallery = await hydrateGallery(uid, gid, gallery, items)
-
-    res.json(galleryToJsonWithItems(hydratedGallery, iamUser, membership))
-  }
+  getGalleryItemRequest
 )
-
-export const getGalleryItemPathParams = Joi.object({
-  uid: Joi.string().required(),
-  gid: Joi.string().required(),
-  mid: Joi.string().required(),
-  iid: Joi.string().required(),
-})
-export interface GetGalleryItemRequest extends ValidatedRequestSchema {
-  [ContainerTypes.Params]: {
-    uid: string
-    gid: string
-    mid: string
-    iid: string
-  }
-  [ContainerTypes.Query]: {
-    max?: number
-    offset?: string
-  };
-}
 
 router.delete(
   "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
@@ -495,65 +405,8 @@ router.delete(
   requiredGffftMembership,
   validator.params(getGalleryItemPathParams),
   validator.query(getGalleryQueryParams),
-  async (req: ValidatedRequest<GetGalleryItemRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
-
-    const uid = res.locals.uid
-    const gid = res.locals.gid
-
-    const mid = req.params.mid
-    const iid = req.params.iid
-
-    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
-    const itemPromise = getGalleryItem(uid, gid, mid, iid)
-
-    const item = await itemPromise
-    if (!item) {
-      res.sendStatus(404)
-      return
-    }
-
-    const membership = await membershipPromise
-
-    let canEdit = false
-    if (item.author.id == iamUser.id) {
-      canEdit = true
-    }
-    if (membership && membership.type == TYPE_OWNER) {
-      canEdit = true
-    }
-
-    if (!canEdit) {
-      res.status(403).send("user does not have permission to edit item")
-      return
-    }
-
-    const gfffts = gffftsCollection(ref(usersCollection, uid))
-    const galleries = galleryCollection(ref(gfffts, gid))
-    const galleryRef = ref(galleries, mid)
-    const galleryItems = galleryItemsCollection(galleryRef)
-    const itemRef = ref(galleryItems, iid)
-
-    await remove(itemRef)
-
-    res.sendStatus(204)
-  }
+  deleteGalleryItemRequest
 )
-
-const updateGalleryItemParams = Joi.object({
-  description: Joi.string().optional().allow(null, ""),
-})
-export interface UpdateGalleryItemRequest extends ValidatedRequestSchema {
-  [ContainerTypes.Params]: {
-    uid: string
-    gid: string
-    mid: string
-    iid: string
-  }
-  [ContainerTypes.Body]: {
-    description?: string
-  }
-}
 
 router.patch(
   "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
@@ -561,99 +414,15 @@ router.patch(
   requiredGffftMembership,
   validator.params(getGalleryItemPathParams),
   validator.body(updateGalleryItemParams),
-  async (req: ValidatedRequest<UpdateGalleryItemRequest>, res: Response) => {
-    const iamUser: LoggedInUser = res.locals.iamUser
-
-    const uid = res.locals.uid
-    const gid = res.locals.gid
-
-    const mid = req.params.mid
-    const iid = req.params.iid
-
-    const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
-    const itemPromise = getGalleryItem(uid, gid, mid, iid)
-
-    const item = await itemPromise
-    if (!item) {
-      res.sendStatus(404)
-      return
-    }
-
-    const membership = await membershipPromise
-
-    let canEdit = false
-    if (item.author.id == iamUser.id) {
-      canEdit = true
-    }
-    if (membership && membership.type == TYPE_OWNER) {
-      canEdit = true
-    }
-
-    if (!canEdit) {
-      res.status(403).send("user does not have permission to edit item")
-      return
-    }
-
-    item.description = req.body.description
-
-    const gfffts = gffftsCollection(ref(usersCollection, uid))
-
-    const galleries = galleryCollection(ref(gfffts, gid))
-    const galleryRef = ref(galleries, mid)
-    const galleryItems = galleryItemsCollection(galleryRef)
-    const itemRef = ref(galleryItems, iid)
-
-    upset(itemRef, item)
-
-    res.json(galleryItemToJson(iamUser, membership, item))
-  }
+  updateGalleryItemRequest
 )
 
 router.get(
   "/:uid/gfffts/:gid/galleries/:mid/i/:iid",
   optionalAuthentication,
   validator.params(getGalleryItemPathParams),
-  async (req: ValidatedRequest<GetGalleryItemRequest>, res: Response) => {
-    const iamUser: LoggedInUser | null = res.locals.iamUser
-
-    let uid = req.params.uid
-    let gid = req.params.gid
-    const mid = req.params.mid
-
-    if (uid == "me") {
-      if (iamUser == null) {
-        res.sendStatus(404)
-        return
-      }
-      uid = iamUser.id
-    }
-
-    // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
-
-    let gffftMembership: GffftMember | undefined
-    if (iamUser != null) {
-      gffftMembership = await getGffftMembership(uid, gid, iamUser.id)
-    }
-
-    const gallery = await getGallery(uid, gid, mid)
-
-    if (!gallery) {
-      res.sendStatus(404)
-      return
-    }
-
-    const item = await getGalleryItem(uid, gid, mid, req.params.iid)
-
-    res.json(galleryItemToJson(iamUser, gffftMembership, item))
-  }
+  getGalleryItemRequest
 )
-
 
 export const getLinkSetPathParams = Joi.object({
   uid: Joi.string().required(),
