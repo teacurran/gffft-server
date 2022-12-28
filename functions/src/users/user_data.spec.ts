@@ -17,7 +17,6 @@ import {
   getUserBookmarks,
   getUsername,
 } from "./user_data"
-import {WriteResult} from "@google-cloud/firestore"
 import {assert, expect} from "chai"
 import * as firebaseAdmin from "firebase-admin"
 import {uuid} from "uuidv4"
@@ -48,18 +47,15 @@ describe("users_data", function() {
 
   describe("addToCollection", function() {
     it("it will add an item to a collection", async function() {
-      const addResult = await addToCollection(TEST_COLLECTION, "test")
-      expect(addResult).to.be.an.instanceof(WriteResult)
-      if (addResult instanceof WriteResult) {
-        firestore
-          .collection(TEST_COLLECTION)
-          .doc("test")
-          .get()
-          .then((doc) => {
-            expect(doc.get("count")).to.equal(0)
-            expect(doc.get("random")).to.be.gt(0)
-          })
-      }
+      await addToCollection(TEST_COLLECTION, "test")
+      firestore
+        .collection(TEST_COLLECTION)
+        .doc("test")
+        .get()
+        .then((doc) => {
+          expect(doc.get("count")).to.equal(0)
+          expect(doc.get("random")).to.be.gt(0)
+        })
     })
 
     describe("when value is null", function() {
@@ -93,58 +89,49 @@ describe("users_data", function() {
 
   describe("addAdjective", function() {
     it("it will add an item to a collection", async function() {
-      const addResult = await addAdjective("testAdj")
-      expect(addResult).to.be.an.instanceof(WriteResult)
+      await addAdjective("testAdj")
 
-      if (addResult instanceof WriteResult) {
-        return firestore
-          .collection(COLLECTION_ADJECTIVES)
-          .doc("testAdj")
-          .get()
-          .then((doc) => {
-            expect(doc.get("count")).to.equal(0)
-            expect(doc.get("random")).to.be.gt(0)
-            return doc.ref.delete()
-          })
-      }
+      return firestore
+        .collection(COLLECTION_ADJECTIVES)
+        .doc("testAdj")
+        .get()
+        .then((doc) => {
+          expect(doc.get("count")).to.equal(0)
+          expect(doc.get("random")).to.be.gt(0)
+          return doc.ref.delete()
+        })
     })
   })
 
   describe("addNoun", function() {
     it("it will add an item to a collection", async function() {
-      const addResult = await addNoun("testNoun")
-      expect(addResult).to.be.an.instanceof(WriteResult)
+      await addNoun("testNoun")
 
-      if (addResult instanceof WriteResult) {
-        return firestore
-          .collection(COLLECTION_NOUNS)
-          .doc("testNoun")
-          .get()
-          .then((doc) => {
-            expect(doc.get("count")).to.equal(0)
-            expect(doc.get("random")).to.be.gt(0)
-            return doc.ref.delete()
-          })
-      }
+      return firestore
+        .collection(COLLECTION_NOUNS)
+        .doc("testNoun")
+        .get()
+        .then((doc) => {
+          expect(doc.get("count")).to.equal(0)
+          expect(doc.get("random")).to.be.gt(0)
+          return doc.ref.delete()
+        })
     })
   })
 
   describe("addVerb", function() {
     it("it will add an item to a collection", async function() {
-      const addResult = await addVerb("testVerb")
-      expect(addResult).to.be.an.instanceof(WriteResult)
+      await addVerb("testVerb")
 
-      if (addResult instanceof WriteResult) {
-        firestore
-          .collection(COLLECTION_NOUNS)
-          .doc("testVerb")
-          .get()
-          .then((doc) => {
-            expect(doc.get("count")).to.equal(0)
-            expect(doc.get("random")).to.be.gt(0)
-            return doc.ref.delete()
-          })
-      }
+      firestore
+        .collection(COLLECTION_NOUNS)
+        .doc("testVerb")
+        .get()
+        .then((doc) => {
+          expect(doc.get("count")).to.equal(0)
+          expect(doc.get("random")).to.be.gt(0)
+          return doc.ref.delete()
+        })
     })
   })
 

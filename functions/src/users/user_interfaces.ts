@@ -29,17 +29,15 @@ export interface IBookmarkResults {
 /**
  * Serialized iam user to json
  * @param {User} user
- * @param {Board} board
- * @return {IIAMUserType}
+ * @return {IUserType}
  */
 export function iamUserToJson(
   user: User
 ): IUserType {
-  const item: IUserType = {
+  return {
     id: user.id,
     createdAt: user.createdAt ?? new Date(),
   }
-  return item
 }
 
 export function bookmarkToJson(

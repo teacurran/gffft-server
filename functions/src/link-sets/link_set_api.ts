@@ -12,10 +12,10 @@ import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem,
 import {LinkSetItem, UpdateLink} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
 import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
-import {hny} from "../common/utils"
 import urlParser from "url-parse"
 import {getOrCreateDefaultBoard, threadPostsCollection, threadsCollection} from "../boards/board_data"
 import {Thread} from "../boards/board_models"
+import * as opentelemetry from "@opentelemetry/api"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -144,12 +144,10 @@ router.post(
     } as LinkSetItem
     const linkSetItemRef = await add(linkSetItems, item)
 
-    const event = hny.newEvent()
-    event.addField("name", "link")
-    event.addField("action", "save")
-    event.addField("domain", parsedUrl.hostname)
-    event.addField("url", url)
-    event.send()
+
+    const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
+    activeSpan?.setAttribute("link.url", url)
+    activeSpan?.setAttribute("link.domain", parsedUrl.hostname)
 
     item.id = linkSetItemRef.id
     const hgi = await hydrateLinkSetItem(uid, gid, item, link)

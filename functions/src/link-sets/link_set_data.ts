@@ -17,9 +17,9 @@ import domino from "domino"
 import {uuid} from "uuidv4"
 
 import urlParser from "url-parse"
-import {hny} from "../common/utils"
 import {parse as parseHtml, HTMLElement} from "node-html-parser"
 import {getThreadByRef} from "../boards/board_data"
+import * as opentelemetry from "@opentelemetry/api"
 
 
 const DEFAULT_LINK_SET_KEY = "default"
@@ -337,14 +337,12 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
   }
   const parsedUrl = urlParser(finalUrl)
 
-  const event = hny.newEvent()
-  event.addField("name", "link")
-  event.addField("action", "get")
-  event.addField("domain", parsedUrl.hostname)
-  event.addField("url", url)
-  event.send()
+  const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
+  activeSpan?.setAttribute("link.url", url)
+  activeSpan?.setAttribute("link.domain", parsedUrl.hostname)
 
-  console.log(`checking link ${finalUrl}`)
+  activeSpan?.addEvent("checking link")
+
   let linkCache: LinkCache | null = null
   let link = await getLink(finalUrl)
   if (link == null) {
