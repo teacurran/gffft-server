@@ -420,26 +420,21 @@ describe("galleries API", function(this: Suite) {
         .post("/api/galleries")
         .set(USER_2_AUTH)
         .set("Accept", "application/json")
-        .attach("file", fs.readFileSync("src/test/avatar.png"), "avatar.png")
-        .send({
-          uid: gffft.uid,
-          gid: gffft.id,
-          mid: gallery.id,
-          description: itemDesc,
-        })
-        .then(async (res) => {
+        .attach("files", fs.readFileSync("src/test/avatar.png"), "avatar.png")
+        .field("uid", uid)
+        .field("gid", gffft.id)
+        .field("mid", gallery.id)
+        .field("description", itemDesc)
+        .then((res) => {
           res.should.have.status(200)
-          res.body["count"].should.equal(1)
           itemId = res.body["id"]
-
-          res.should.have.status(500)
         })
     })
 
     step("update item", async function() {
       return chai
         .request(server)
-        .patch(`/api/users/${uid}/gfffts/${gid}/galleries/${gallery.id}/${itemId}`)
+        .patch(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/${itemId}`)
         .set(USER_2_AUTH)
         .then((res) => {
           res.should.have.status(200)

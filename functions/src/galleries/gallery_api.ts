@@ -93,7 +93,6 @@ router.post(
     const file = files[0]
     const type = file.originalname.split(".")[1]
     const itemId = uuid()
-
     const fileName = `${itemId}.${type}`
 
     const filePath = `users/${iamUser.id}/gfffts/${gid}/galleries/${mid}/items`

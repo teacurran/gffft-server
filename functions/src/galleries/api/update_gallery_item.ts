@@ -21,6 +21,8 @@ export const updateGalleryItemRequest = async (req: ValidatedRequest<UpdateGalle
   const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
   const itemPromise = getGalleryItem(uid, gid, mid, iid)
 
+  console.log(`updateGalleryItemRequest: uid:${uid} gid:${gid} mid:${mid} iid:${iid}`)
+
   const item = await itemPromise
   if (!item) {
     res.sendStatus(404)
