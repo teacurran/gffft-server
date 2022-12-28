@@ -77,7 +77,14 @@ router.post(
     }
     gid = gffft.id
 
-    console.log(`uid:${uid} gid:${gid} bid:${lid} url: ${url} description: ${description}`)
+    const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
+
+    activeSpan?.setAttribute("uid", uid)
+    activeSpan?.setAttribute("gid", gid)
+    activeSpan?.setAttribute("lid", lid)
+    activeSpan?.setAttribute("link.url", url)
+    activeSpan?.setAttribute("link.description", description)
+    activeSpan?.setAttribute("link.domain", parsedUrl.hostname)
 
     const gffftMembers = gffftsMembersCollection([uid, gid])
 
@@ -106,6 +113,7 @@ router.post(
       res.status(500).send("unable to fetch url")
       return
     }
+    activeSpan?.setAttribute("link.id", link.id)
 
     const gfffts = gffftsCollection(ref(usersCollection, uid))
     const linkSets = linkSetCollection(ref(gfffts, gid))
@@ -143,11 +151,6 @@ router.post(
       description: description,
     } as LinkSetItem
     const linkSetItemRef = await add(linkSetItems, item)
-
-
-    const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
-    activeSpan?.setAttribute("link.url", url)
-    activeSpan?.setAttribute("link.domain", parsedUrl.hostname)
 
     item.id = linkSetItemRef.id
     const hgi = await hydrateLinkSetItem(uid, gid, item, link)
