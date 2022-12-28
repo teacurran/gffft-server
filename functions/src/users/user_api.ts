@@ -31,6 +31,7 @@ import {
 import {apiDeleteGffftMembership} from "../gfffts/api/delete_gffft_membership"
 import {apiCreateBookmark} from "./api/create_bookmark"
 import {deleteBookmarkParams} from "./api/delete_bookmark_request"
+import {apiDeleteBookmark} from "./api/delete_bookmark"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -104,6 +105,7 @@ router.delete(
   "/me/bookmarks",
   requiredAuthentication,
   validator.body(deleteBookmarkParams),
+  apiDeleteBookmark
 )
 
 router.get(
