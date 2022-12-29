@@ -9,7 +9,7 @@ import {Gffft} from "../gfffts/gffft_models"
 import {COLLECTION_USERS, getUser} from "../users/user_data"
 import * as firebaseAdmin from "firebase-admin"
 import {deleteFirestoreItem} from "../common/data"
-import {getOrCreateDefaultCollection, updateCollection, WHO_MEMBER, WHO_OWNER} from "./collection_data"
+import {getOrCreateDefaultCollection, updateCollection, WHO_MEMBER, WHO_OWNER, WHO_PUBLIC} from "./collection_data"
 import {Collection, CollectionType} from "./collection_models"
 import * as request from "superagent"
 import {ICollection} from "./collection_interfaces"
@@ -110,6 +110,12 @@ describe("collections API", function(this: Suite) {
         .request(server)
         .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
         .then(isCollectionValid)
+        .then((res) => {
+          const t = res.body as ICollection
+          expect(t.whoCanReply).to.equal(WHO_MEMBER)
+          expect(t.whoCanPost).to.equal(WHO_MEMBER)
+          expect(t.whoCanView).to.equal(WHO_PUBLIC)
+        })
     })
 
     describe("collection has counts", async function() {
@@ -159,7 +165,7 @@ describe("collections API", function(this: Suite) {
 
     describe("optional collection items", async function() {
       collection.whoCanView = WHO_OWNER
-      collection.whoCanPost = WHO_MEMBER
+      collection.whoCanPost = WHO_OWNER
       collection.whoCanReply = WHO_OWNER
 
       await updateCollection(uid, gid, collection)
@@ -171,7 +177,7 @@ describe("collections API", function(this: Suite) {
           .then((res) => {
             const t = res.body as ICollection
             expect(t.whoCanReply).to.equal(WHO_OWNER)
-            expect(t.whoCanPost).to.equal(WHO_MEMBER)
+            expect(t.whoCanPost).to.equal(WHO_OWNER)
             expect(t.whoCanView).to.equal(WHO_OWNER)
           })
       })
