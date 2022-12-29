@@ -1,7 +1,7 @@
 import {LoggedInUser} from "../accounts/auth"
 import {notEmpty} from "../common/utils"
 import {GffftMember, TYPE_OWNER} from "../gfffts/gffft_models"
-import {ILink, linkToJson} from "../link-sets/link_set_interfaces"
+import {ILink} from "../link-sets/link_set_interfaces"
 import {IUserRef} from "../users/user_interfaces"
 import {WHO_MEMBER, WHO_PUBLIC} from "./collection_data"
 import {AttachmentType, Collection, CollectionType, HydratedCollection,
@@ -64,42 +64,15 @@ export interface IPostResults {
   items: IPost[]
 }
 
-export interface IReply {
-  id: string
-  createdAt: Date
-  author: IUserRef
+export interface IReply extends IPost {
   link?: ILink
   fileName: string
   filePath: string
-  thumbnail: boolean
-  domain?: string,
-  url?: string,
-  title?: string,
-  body?: string
-  canEdit: boolean
-  deleted: boolean
-  topReaction?: string
-  reaction?: string
-  reactions?: Map<string, number>
-  attachments?: IAttachment[]
 }
 
 export interface IReplyResults {
   count: number
   items: IReply[]
-}
-
-
-export function postsToJson(
-  loggedInUser: LoggedInUser | null,
-  gffftMembership: GffftMember | undefined,
-  items: HydratedPost[]
-): IPostResults {
-  const itemsJson = items.map((item) => postToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
-  return {
-    count: items.length,
-    items: itemsJson,
-  }
 }
 
 export function postToJson(
@@ -118,7 +91,7 @@ export function postToJson(
     canEdit = true
   }
 
-  const item: IPost = {
+  return {
     id: post.id,
     subject: post.deleted ? "(deleted)" : post.subject,
     createdAt: post.createdAt ?? new Date(),
@@ -144,9 +117,7 @@ export function postToJson(
     thumbnail: post.thumbnail,
     reaction: post.reaction?.reaction,
   }
-  return item
 }
-
 
 export function collectionToJson(
   collection: Collection,
@@ -176,49 +147,7 @@ export function collectionToJsonWithItems(
 ): ICollection {
   const collectionType = collectionToJson(collection)
 
-  const itemsJson = collection.items?.map((item) => postToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
-  collectionType.posts = itemsJson ?? []
+  collectionType.posts = collection.items.map((item) => postToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
   return collectionType
 }
 
-export function repliesToJson(
-  loggedInUser: LoggedInUser | null,
-  gffftMembership: GffftMember | undefined,
-  items: HydratedPost[]
-): IReply[] {
-  return items.map((item) => replyToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
-}
-
-export function replyToJson(
-  loggedInUser: LoggedInUser | null,
-  gffftMembership: GffftMember | undefined,
-  item: HydratedPost): IReply | null {
-  if (item == null || item.id == null) {
-    return null
-  }
-
-  let canEdit = false
-  if (gffftMembership && gffftMembership.type == TYPE_OWNER) {
-    canEdit = true
-  }
-  if (loggedInUser && item.author && item.author.id == loggedInUser.id) {
-    canEdit = true
-  }
-
-  return {
-    id: item.id,
-    body: item.deleted ? "(deleted)" : item.body,
-    createdAt: item.createdAt,
-    author: item.authorUser ? {
-      id: item.authorUser.id,
-      handle: item.authorUser.handle ?? "",
-    } : {
-      id: "deleted",
-      handle: "deleted",
-    },
-    link: item.link ? linkToJson(item.link) : undefined,
-    canEdit: canEdit,
-    deleted: item.deleted ?? false,
-    reaction: item.reaction ?? undefined,
-  } as IReply
-}
