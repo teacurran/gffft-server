@@ -8,6 +8,7 @@ type GalleryItemTransientParams = {
   uid: string
   gid: string
   mid: string
+  authorId: string
 };
 
 export default Factory.define<GalleryItem, GalleryItemTransientParams>(({transientParams, sequence, onCreate}) => {
@@ -26,7 +27,7 @@ export default Factory.define<GalleryItem, GalleryItemTransientParams>(({transie
   const id = sequence.toString()
   const galleryItem: GalleryItem = {
     id: id,
-    author: ref(usersCollection, "test-user-1"),
+    author: ref(usersCollection, transientParams.authorId ?? "test-user-1"),
     createdAt: new Date(),
     fileName: "filename.jpg",
     filePath: "filename.jpg",

@@ -1,7 +1,7 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_2_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, createGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
@@ -33,8 +33,10 @@ describe("galleries API", function(this: Suite) {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
-    uid = MOCK_AUTH_USER_2.user_id
+    uid = MOCK_AUTH_USER_1.user_id
     await getUser(uid)
+    await getUser(MOCK_AUTH_USER_2.user_id)
+    await getUser(MOCK_AUTH_USER_3.user_id)
 
     gffft = await factories.gffft.create({
       uid: uid,
@@ -53,7 +55,9 @@ describe("galleries API", function(this: Suite) {
       },
     })
 
-    await createGffftMembership(uid, gid, MOCK_AUTH_USER_1.user_id, "ponyboy")
+    await createGffftMembership(uid, gid, MOCK_AUTH_USER_1.user_id, "Sysop")
+    await createGffftMembership(uid, gid, MOCK_AUTH_USER_2.user_id, "Michael")
+    await createGffftMembership(uid, gid, MOCK_AUTH_USER_3.user_id, "Lisa")
   })
 
   after(async function() {
@@ -125,7 +129,7 @@ describe("galleries API", function(this: Suite) {
         return chai
           .request(server)
           .get(`/api/users/me/gfffts/${gid}/galleries/${gallery.id}`)
-          .set(USER_2_AUTH)
+          .set(USER_1_AUTH)
           .then(isGalleryValid)
       })
 
@@ -153,6 +157,7 @@ describe("galleries API", function(this: Suite) {
           uid: uid,
           gid: gid,
           mid: gallery.id,
+          authorId: MOCK_AUTH_USER_2.user_id,
         },
       })
     })
@@ -210,7 +215,7 @@ describe("galleries API", function(this: Suite) {
         return chai
           .request(server)
           .patch("/api/galleries")
-          .set(USER_1_AUTH)
+          .set(USER_3_AUTH)
           .set("Content-Type", "application/json")
           .set("Accept", "application/json")
           .send({
@@ -315,7 +320,7 @@ describe("galleries API", function(this: Suite) {
             if (item2 != null) {
               expect(item2.data.likes).to.not.be.null
               if (item2.data.likes != null) {
-                expect(item2.data.likes[0]).to.eql(uid)
+                expect(item2.data.likes[0]).to.eql(MOCK_AUTH_USER_2.user_id)
                 expect(item2.data.likeCount).to.eql(1)
               }
             }
@@ -438,6 +443,36 @@ describe("galleries API", function(this: Suite) {
         .set(USER_2_AUTH)
         .then((res) => {
           res.should.have.status(200)
+        })
+    })
+
+    step("update item - owner can edit", async function() {
+      return chai
+        .request(server)
+        .patch(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/${itemId}`)
+        .set(USER_1_AUTH)
+        .then((res) => {
+          res.should.have.status(200)
+        })
+    })
+
+    step("update item - doesn't exist", async function() {
+      return chai
+        .request(server)
+        .patch(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/invalid-item-id`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(404)
+        })
+    })
+
+    step("update item - can't edit", async function() {
+      return chai
+        .request(server)
+        .patch(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/${itemId}`)
+        .set(USER_3_AUTH)
+        .then((res) => {
+          res.should.have.status(403)
         })
     })
   })

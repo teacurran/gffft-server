@@ -18,7 +18,7 @@ export const updateGalleryItemRequest = async (req: ValidatedRequest<UpdateGalle
   const mid = req.params.mid
   const iid = req.params.iid
 
-  const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
+  const membershipPromise = getGffftMembership(uid, gid, iamUser.id)
   const itemPromise = getGalleryItem(uid, gid, mid, iid)
 
   console.log(`updateGalleryItemRequest: uid:${uid} gid:${gid} mid:${mid} iid:${iid}`)
