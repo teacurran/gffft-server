@@ -81,15 +81,6 @@ describe("link set API", function(this: Suite) {
           .request(server)
           .get(`/api/users/me/gfffts/${gid}/links/${linkSet.id}`)
           .then((res) => {
-            res.should.have.status(404)
-          })
-      })
-
-      it("doesn't allow me", async function() {
-        return chai
-          .request(server)
-          .get(`/api/users/me/gfffts/${gid}/links/${linkSet.id}`)
-          .then((res) => {
             res.should.have.status(401)
           })
       })
