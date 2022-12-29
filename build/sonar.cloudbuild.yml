@@ -1,0 +1,116 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: 'pull cache'
+    entrypoint: "bash"
+    args:
+      - -c
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest || exit 0
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: 'pull firebase cache'
+    entrypoint: "bash"
+    args:
+      - -c
+      - docker pull ${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest || exit 0
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "docker build"
+    waitFor: [ 'pull cache' ]
+    args:
+      [
+        "build",
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest",
+        "-t", "gffft-api",
+        "--file", "./functions/Dockerfile",
+        "./functions",
+      ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "docker build firebase"
+    waitFor: [ 'pull firebase cache' ]
+    args:
+      [
+        "build",
+        "--cache-from", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest",
+        "-t", "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest",
+        "-t", "gffft-firebase-emulator",
+        "--file", "./firebase-emulator/Dockerfile",
+        "./",
+      ]
+
+  - name: 'docker/compose:1.29.2'
+    id: 'check build'
+    args: [ 'run','api','npm','run','build' ]
+    env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
+
+  - name: 'docker/compose:1.29.2'
+    id: "tests in docker-compose"
+    args: [
+      '-f', 'docker-compose.yml',
+      '-f', 'docker-compose.test.yml',
+      '-f', 'docker-compose.cb.yml',
+      'up',
+      '--exit-code-from', 'api-integration-test',
+      'api-integration-test'
+    ]
+    env: [ 'COMPOSE_HTTP_TIMEOUT=400' ]
+
+  - name: 'gcr.io/cloud-builders/git'
+    id: "restore git metadata"
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        git init
+        git remote add origin git@github.com:/teacurran/$REPO_NAME.git
+        git fetch --unshallow origin $COMMIT_SHA
+        git reset --hard FETCH_HEAD
+        git config -f .gitmodules submodule.core.url git@github.com:/teacurran/$REPO_NAME.git
+        git submodule update --init
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'sonar scan'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        docker run \
+        --rm \
+        -e SONAR_HOST_URL="https://sonarcloud.io" \
+        -e SONAR_LOGIN="$$SONAR_TOKEN" \
+        -v "/$(pwd):/usr/src" \
+        sonarsource/sonar-scanner-cli \
+        -Dsonar.javascript.lcov.reportPaths=functions/coverage/lcov.info
+    secretEnv: [ 'SONAR_TOKEN' ]
+
+  # Check linting
+  # - name: 'docker/compose:1.27.4'0
+  #   id: 'lint check'
+  #   args: [ 'run','api','npm','run','lint' ]
+  #   env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
+
+  - name: 'gcr.io/cloud-builders/npm'
+    args: [ 'install' ]
+    dir: 'functions'
+
+timeout: 5000s
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+
+images:
+  - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-api:latest"
+  - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest"
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
+      env: 'SONAR_TOKEN'
+    - versionName: projects/$PROJECT_ID/secrets/honeycomb-key/versions/1
+      env: 'HONEYCOMB_KEY'
+    - versionName: projects/$PROJECT_ID/secrets/honeycomb-dataset/versions/1
+      env: 'HONEYCOMB_DATASET'
+
+substitutions:
+  _ARTIFACT_REPO: us-central1-docker.pkg.dev
+
