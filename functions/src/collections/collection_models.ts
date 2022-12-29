@@ -31,14 +31,14 @@ export type Collection = {
   whoCanPost?: string
   whoCanReply?: string
   latestPost?: Ref<HydratedUser>
-  counts: CollectionCounters
+  counts?: CollectionCounters
   createdAt: Date
   updatedAt: Date
 }
 
 export interface HydratedCollection extends Collection {
   latestPostUser: HydratedUser | undefined
-  items?: HydratedPost[]
+  items: HydratedPost[]
 }
 
 export type CollectionUpdate = {

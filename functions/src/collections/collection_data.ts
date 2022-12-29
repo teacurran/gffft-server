@@ -149,10 +149,7 @@ export async function getPost(uid: string,
 }
 
 export async function hydrateCollection(uid: string, gid: string, collection: Collection,
-  items: HydratedPost[]): Promise<HydratedCollection | null> {
-  if (collection == null) {
-    return null
-  }
+  items: HydratedPost[]): Promise<HydratedCollection> {
   const latestPostUser = await getGffftUser(uid, gid, collection.latestPost)
 
   return {
