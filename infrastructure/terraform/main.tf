@@ -4,6 +4,13 @@ provider "google" {
   zone    = "us-central1-c"
 }
 
+terraform {
+  backend "gcs" {
+    bucket = "tfstate-035825c0e64e39d3"
+    prefix = "terraform/state"
+  }
+}
+
 resource "google_cloudbuild_trigger" "integration-tests" {
   project  = "gffft-auth"
   provider = google-beta

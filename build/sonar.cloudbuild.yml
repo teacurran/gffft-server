@@ -81,6 +81,7 @@ steps:
         -e SONAR_LOGIN="$$SONAR_TOKEN" \
         -v "/$(pwd):/usr/src" \
         sonarsource/sonar-scanner-cli \
+        -Dsonar.branch.name=$BRANCH_NAME \
         -Dsonar.javascript.lcov.reportPaths=functions/coverage/lcov.info
     secretEnv: [ 'SONAR_TOKEN' ]
 
