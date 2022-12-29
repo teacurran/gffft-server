@@ -9,7 +9,7 @@ import {Gffft} from "../gfffts/gffft_models"
 import {COLLECTION_USERS, getUser} from "../users/user_data"
 import * as firebaseAdmin from "firebase-admin"
 import {deleteFirestoreItem} from "../common/data"
-import {getOrCreateDefaultCollection} from "./collection_data"
+import {getOrCreateDefaultCollection, updateCollection} from "./collection_data"
 import {Collection, CollectionType} from "./collection_models"
 import * as request from "superagent"
 import {ICollection} from "./collection_interfaces"
@@ -60,12 +60,13 @@ describe("collections API", function(this: Suite) {
   })
 
   describe("unauthenticated", function() {
-    function isCollectionValid(res: request.Response) {
+    function isCollectionValid(res: request.Response): request.Response {
       console.log(`collection body: ${JSON.stringify(res.body)} / ${JSON.stringify(collection)}`)
       res.should.have.status(200)
       const t = res.body as ICollection
       expect(t.name).to.equal(collection.name)
       expect(t.id).to.equal(collection.id)
+      return res
     }
 
     it("doesn't allow me", async function() {
@@ -104,11 +105,36 @@ describe("collections API", function(this: Suite) {
         })
     })
 
-    it("gets the collection", function() {
+    it("gets the collection", async function() {
       return chai
         .request(server)
         .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
         .then(isCollectionValid)
+    })
+
+    describe("collection has counts", async function() {
+      collection.counts = {
+        audios: 1,
+        photos: 2,
+        posts: 3,
+        replies: 4,
+        videos: 5,
+      }
+      await updateCollection(uid, gid, collection)
+      it("gets the collection", async function() {
+        return chai
+          .request(server)
+          .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
+          .then(isCollectionValid)
+          .then((res) => {
+            const t = res.body as ICollection
+            expect(t.audioCount).to.equal(1)
+            expect(t.photoCount).to.equal(2)
+            expect(t.postCount).to.equal(3)
+            expect(t.replyCount).to.equal(4)
+            expect(t.videoCount).to.equal(5)
+          })
+      })
     })
   })
 })
