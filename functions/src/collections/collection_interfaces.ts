@@ -150,11 +150,8 @@ export function postToJson(
 
 export function collectionToJson(
   collection: Collection,
-): ICollection | null {
-  if (collection == null || collection.id == null) {
-    return null
-  }
-  const item: ICollection = {
+): ICollection {
+  return {
     id: collection.id,
     name: collection.name,
     description: collection.description,
@@ -170,7 +167,6 @@ export function collectionToJson(
     whoCanPost: collection.whoCanPost ?? WHO_MEMBER,
     whoCanReply: collection.whoCanReply ?? WHO_MEMBER,
   }
-  return item
 }
 
 export function collectionToJsonWithItems(
@@ -178,24 +174,10 @@ export function collectionToJsonWithItems(
   loggedInUser: LoggedInUser | null,
   gffftMembership: GffftMember | undefined,
 ): ICollection {
+  const collectionType = collectionToJson(collection)
+
   const itemsJson = collection.items?.map((item) => postToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
-  const collectionType = {
-    id: collection.id,
-    name: collection.name,
-    description: collection.description,
-    type: collection.type,
-    audioCount: collection?.counts?.audios ?? 0,
-    videoCount: collection?.counts?.videos ?? 0,
-    photoCount: collection?.counts?.photos ?? 0,
-    postCount: collection?.counts?.posts ?? 0,
-    replyCount: collection?.counts?.replies ?? 0,
-    createdAt: collection.createdAt ?? new Date(),
-    updatedAt: collection.updatedAt ?? new Date(),
-    whoCanView: collection.whoCanView ?? WHO_PUBLIC,
-    whoCanPost: collection.whoCanPost ?? WHO_MEMBER,
-    whoCanReply: collection.whoCanReply ?? WHO_MEMBER,
-    posts: itemsJson ?? [],
-  }
+  collectionType.posts = itemsJson ?? []
   return collectionType
 }
 
