@@ -97,13 +97,41 @@ describe("users API", function() {
       })
 
       describe("authenticated", function() {
-        it("returns user bookmarks", async function() {
+        step("get user bookmarks - empty", async function() {
           return chai
             .request(server)
             .get("/api/users/me/bookmarks")
             .set(USER_1_AUTH)
             .then((res) => {
               res.should.have.status(200)
+              res.body["count"].should.equal(0)
+            })
+        })
+
+        step("create yser bookmark", async function() {
+          return chai
+            .request(server)
+            .post("/api/users/me/bookmarks")
+            .set(USER_1_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+            })
+            .then((res) => {
+              res.should.have.status(204)
+            })
+        })
+
+        step("get user bookmarks - populated", async function() {
+          return chai
+            .request(server)
+            .get("/api/users/me/bookmarks")
+            .set(USER_1_AUTH)
+            .then((res) => {
+              res.should.have.status(200)
+              res.body["count"].should.equal(1)
             })
         })
       })

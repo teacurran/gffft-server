@@ -45,6 +45,20 @@ router.get(
   getMeBookmarks
 )
 
+router.post(
+  "/me/bookmarks",
+  requiredAuthentication,
+  validator.body(createGffftMembershipParams),
+  apiCreateBookmark
+)
+
+router.delete(
+  "/me/bookmarks",
+  requiredAuthentication,
+  validator.body(deleteBookmarkParams),
+  apiDeleteBookmark
+)
+
 router.get(
   "/:uid/gfffts/:gid",
   optionalAuthentication,
@@ -88,20 +102,6 @@ router.delete(
   requiredAuthentication,
   validator.body(createGffftMembershipParams),
   apiDeleteGffftMembership
-)
-
-router.post(
-  "/me/bookmarks",
-  requiredAuthentication,
-  validator.body(createGffftMembershipParams),
-  apiCreateBookmark
-)
-
-router.delete(
-  "/me/bookmarks",
-  requiredAuthentication,
-  validator.body(deleteBookmarkParams),
-  apiDeleteBookmark
 )
 
 router.get(
