@@ -21,13 +21,15 @@ import {parse as parseHtml, HTMLElement} from "node-html-parser"
 import {getThreadByRef} from "../boards/board_data"
 import * as opentelemetry from "@opentelemetry/api"
 
+export const COLLECTION_LINKS = "links"
+export const COLLECTION_LINK_SETS = "link-sets"
 export const DEFAULT_LINK_SET_KEY = "default"
 
-export const linksCollection = collection<Link>("links")
+export const linksCollection = collection<Link>(COLLECTION_LINKS)
 export const linkStatsCollection = subcollection<LinkStat, Link>("stats", linksCollection)
 export const linkCacheCollection = subcollection<LinkCache, Link>("cache", linksCollection)
 
-export const linkSetCollection = subcollection<LinkSet, Gffft, User>("link-sets", gffftsCollection)
+export const linkSetCollection = subcollection<LinkSet, Gffft, User>(COLLECTION_LINK_SETS, gffftsCollection)
 export const linkSetItemsCollection = subcollection<LinkSetItem, LinkSet,
   Gffft, [string, string]>("items", linkSetCollection)
 

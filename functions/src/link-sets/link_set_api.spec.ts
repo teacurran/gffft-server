@@ -1,7 +1,7 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, createGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
@@ -12,6 +12,7 @@ import {deleteFirestoreItem} from "../common/data"
 import * as request from "superagent"
 import {LinkSet} from "./link_set_models"
 import {ILinkSet} from "./link_set_interfaces"
+import {COLLECTION_LINK_SETS} from "./link_set_data"
 
 chai.use(chaiHttp)
 chai.should()
@@ -66,6 +67,14 @@ describe("link set API", function(this: Suite) {
       .then(deleteFirestoreItem)
   })
 
+  function isLinkSetValid(res: request.Response) {
+    res.should.have.status(200)
+    console.log(`link-set body: ${JSON.stringify(res.body)} / ${JSON.stringify(linkSet)}`)
+    const t = res.body as ILinkSet
+    expect(t.name).to.equal(linkSet.name)
+    expect(t.id).to.equal(linkSet.id)
+  }
+
   describe("get link", function() {
     describe("unauthenticated", function() {
       it("allows request", async function() {
@@ -99,15 +108,7 @@ describe("link set API", function(this: Suite) {
     })
   })
 
-  describe("get link set", function() {
-    function isLinkSetValid(res: request.Response) {
-      res.should.have.status(200)
-      console.log(`link-set body: ${JSON.stringify(res.body)} / ${JSON.stringify(linkSet)}`)
-      const t = res.body as ILinkSet
-      expect(t.name).to.equal(linkSet.name)
-      expect(t.id).to.equal(linkSet.id)
-    }
-
+  describe("get", function() {
     describe("unauthenticated", function() {
       it("doesn't allow me", async function() {
         return chai
@@ -132,6 +133,55 @@ describe("link set API", function(this: Suite) {
           .request(server)
           .get(`/api/users/${uid}/gfffts/${gid}/links/${linkSet.id}`)
           .then(isLinkSetValid)
+      })
+    })
+  })
+
+  describe("post", function() {
+    describe("unauthenticated", function() {
+      it("returns 401", async function() {
+        return chai
+          .request(server)
+          .post("/api/links")
+          .send({
+            uid: "me",
+            gid: gid,
+            lid: "default",
+          })
+          .then((res) => {
+            res.should.have.status(401)
+          })
+      })
+
+      describe("authenticated", function() {
+        step("create link", async function() {
+          return chai
+            .request(server)
+            .post("/api/links")
+            .set(USER_1_AUTH)
+            .send({
+              uid: "me",
+              gid: gid,
+              lid: "default",
+              url: "https://www.google.com",
+            })
+            .then((res) => {
+              console.log(`link body: ${JSON.stringify(res.body)}`)
+              res.should.have.status(200)
+            })
+        })
+
+        step("delete link set", async function() {
+          await firestore.collection(COLLECTION_USERS).doc(uid)
+            .collection(COLLECTION_GFFFTS).doc(gid)
+            .collection(COLLECTION_LINK_SETS)
+            .get()
+            .then((snapshot) => {
+              snapshot.forEach(async (doc) => {
+                await firestore.recursiveDelete(doc.ref)
+              })
+            })
+        })
       })
     })
   })
