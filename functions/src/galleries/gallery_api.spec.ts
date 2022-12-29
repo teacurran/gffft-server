@@ -476,6 +476,80 @@ describe("galleries API", function(this: Suite) {
         })
     })
   })
+
+  describe("delete gallery item", function() {
+    let itemId: string
+    const itemDesc = "photo of the lake"
+
+    function createItem() {
+      return chai
+        .request(server)
+        .post("/api/galleries")
+        .set(USER_2_AUTH)
+        .set("Accept", "application/json")
+        .attach("files", fs.readFileSync("src/test/avatar.png"), "avatar.png")
+        .field("uid", uid)
+        .field("gid", gffft.id)
+        .field("mid", gallery.id)
+        .field("description", itemDesc)
+        .then((res) => {
+          res.should.have.status(200)
+          itemId = res.body["id"]
+        })
+    }
+
+    step("create item", async function() {
+      return createItem()
+    })
+
+    step("delete item", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/${itemId}`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(204)
+        })
+    })
+
+    step("create item 2", async function() {
+      return createItem()
+    })
+
+    step("delete item - owner can delete", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/${itemId}`)
+        .set(USER_1_AUTH)
+        .then((res) => {
+          res.should.have.status(204)
+        })
+    })
+
+    step("create item 3", async function() {
+      return createItem()
+    })
+
+    step("delete item - doesn't exist", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/invalid-item-id`)
+        .set(USER_2_AUTH)
+        .then((res) => {
+          res.should.have.status(404)
+        })
+    })
+
+    step("update item - can't edit", async function() {
+      return chai
+        .request(server)
+        .delete(`/api/users/${uid}/gfffts/${gffft.id}/galleries/${gallery.id}/i/${itemId}`)
+        .set(USER_3_AUTH)
+        .then((res) => {
+          res.should.have.status(403)
+        })
+    })
+  })
 })
 
 
