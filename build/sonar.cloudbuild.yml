@@ -85,16 +85,6 @@ steps:
         -Dsonar.javascript.lcov.reportPaths=functions/coverage/lcov.info
     secretEnv: [ 'SONAR_TOKEN' ]
 
-  # Check linting
-  # - name: 'docker/compose:1.27.4'0
-  #   id: 'lint check'
-  #   args: [ 'run','api','npm','run','lint' ]
-  #   env: [ 'COMPOSE_HTTP_TIMEOUT=200' ]
-
-  - name: 'gcr.io/cloud-builders/npm'
-    args: [ 'install' ]
-    dir: 'functions'
-
 timeout: 5000s
 
 options:
