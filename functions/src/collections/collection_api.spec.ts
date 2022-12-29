@@ -9,7 +9,7 @@ import {Gffft} from "../gfffts/gffft_models"
 import {COLLECTION_USERS, getUser} from "../users/user_data"
 import * as firebaseAdmin from "firebase-admin"
 import {deleteFirestoreItem} from "../common/data"
-import {getOrCreateDefaultCollection, updateCollection} from "./collection_data"
+import {getOrCreateDefaultCollection, updateCollection, WHO_MEMBER, WHO_OWNER} from "./collection_data"
 import {Collection, CollectionType} from "./collection_models"
 import * as request from "superagent"
 import {ICollection} from "./collection_interfaces"
@@ -133,6 +133,46 @@ describe("collections API", function(this: Suite) {
             expect(t.postCount).to.equal(3)
             expect(t.replyCount).to.equal(4)
             expect(t.videoCount).to.equal(5)
+          })
+      })
+    })
+
+    describe("collection has empty counts", async function() {
+      collection.counts = {
+      }
+      await updateCollection(uid, gid, collection)
+      it("gets the collection", async function() {
+        return chai
+          .request(server)
+          .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
+          .then(isCollectionValid)
+          .then((res) => {
+            const t = res.body as ICollection
+            expect(t.audioCount).to.equal(0)
+            expect(t.photoCount).to.equal(0)
+            expect(t.postCount).to.equal(0)
+            expect(t.replyCount).to.equal(0)
+            expect(t.videoCount).to.equal(0)
+          })
+      })
+    })
+
+    describe("optional collection items", async function() {
+      collection.whoCanView = WHO_OWNER
+      collection.whoCanPost = WHO_MEMBER
+      collection.whoCanReply = WHO_OWNER
+
+      await updateCollection(uid, gid, collection)
+      it("gets the collection", async function() {
+        return chai
+          .request(server)
+          .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
+          .then(isCollectionValid)
+          .then((res) => {
+            const t = res.body as ICollection
+            expect(t.whoCanReply).to.equal(WHO_OWNER)
+            expect(t.whoCanPost).to.equal(WHO_MEMBER)
+            expect(t.whoCanView).to.equal(WHO_OWNER)
           })
       })
     })

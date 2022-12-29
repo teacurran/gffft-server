@@ -38,7 +38,7 @@ export type Collection = {
 
 export interface HydratedCollection extends Collection {
   latestPostUser: HydratedUser | undefined
-  items?: HydratedPost[]
+  items: HydratedPost[]
 }
 
 export type CollectionUpdate = {
