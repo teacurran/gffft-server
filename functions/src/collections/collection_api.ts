@@ -108,10 +108,6 @@ router.get(
     const items = await postsPromise
 
     const hc = await hydrateCollection(uid, gid, collection, items)
-    if (hc == null) {
-      res.sendStatus(404)
-      return
-    }
 
     res.json(collectionToJsonWithItems(hc, iamUser, membership))
   }

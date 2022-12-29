@@ -1,5 +1,5 @@
 import {Suite} from "mocha"
-import chai from "chai"
+import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
 import {MockFirebaseInit, MOCK_AUTH_USER_1} from "../test/auth"
 import server from "../server"
@@ -11,6 +11,8 @@ import * as firebaseAdmin from "firebase-admin"
 import {deleteFirestoreItem} from "../common/data"
 import {getOrCreateDefaultCollection} from "./collection_data"
 import {Collection, CollectionType} from "./collection_models"
+import * as request from "superagent"
+import {ICollection} from "./collection_interfaces"
 
 
 chai.use(chaiHttp)
@@ -58,13 +60,13 @@ describe("collections API", function(this: Suite) {
   })
 
   describe("unauthenticated", function() {
-    // function isCollectionValid(res: request.Response) {
-    //   res.should.have.status(200)
-    //   console.log(`collection body: ${JSON.stringify(res.body)} / ${JSON.stringify(collection)}`)
-    //   const t = res.body as ICollection
-    //   expect(t.name).to.equal(collection.name)
-    //   expect(t.id).to.equal(collection.id)
-    // }
+    function isCollectionValid(res: request.Response) {
+      console.log(`collection body: ${JSON.stringify(res.body)} / ${JSON.stringify(collection)}`)
+      res.should.have.status(200)
+      const t = res.body as ICollection
+      expect(t.name).to.equal(collection.name)
+      expect(t.id).to.equal(collection.id)
+    }
 
     it("doesn't allow me", async function() {
       return chai
@@ -93,11 +95,20 @@ describe("collections API", function(this: Suite) {
         })
     })
 
-    // it("gets the collection", async function() {
-    //   return chai
-    //     .request(server)
-    //     .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
-    //     .then(isCollectionValid)
-    // })
+    it("collection does not exist", async function() {
+      return chai
+        .request(server)
+        .get(`/api/c/${uid}/g/${gid}/c/invalid-cid`)
+        .then((res) => {
+          res.should.have.status(404)
+        })
+    })
+
+    it("gets the collection", function() {
+      return chai
+        .request(server)
+        .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
+        .then(isCollectionValid)
+    })
   })
 })

@@ -159,11 +159,11 @@ export function collectionToJson(
     name: collection.name,
     description: collection.description,
     type: collection.type,
-    audioCount: collection.counts.audios ?? 0,
-    videoCount: collection.counts.videos ?? 0,
-    photoCount: collection.counts.photos ?? 0,
-    postCount: collection.counts.posts ?? 0,
-    replyCount: collection.counts.replies ?? 0,
+    audioCount: collection?.counts?.audios ?? 0,
+    videoCount: collection?.counts?.videos ?? 0,
+    photoCount: collection?.counts?.photos ?? 0,
+    postCount: collection?.counts?.posts ?? 0,
+    replyCount: collection?.counts?.replies ?? 0,
     createdAt: collection.createdAt ?? new Date(),
     updatedAt: collection.updatedAt ?? new Date(),
     whoCanView: collection.whoCanView ?? WHO_PUBLIC,
@@ -179,16 +179,16 @@ export function collectionToJsonWithItems(
   gffftMembership: GffftMember | undefined,
 ): ICollection {
   const itemsJson = collection.items?.map((item) => postToJson(loggedInUser, gffftMembership, item)).filter(notEmpty)
-  return {
+  const collectionType = {
     id: collection.id,
     name: collection.name,
     description: collection.description,
     type: collection.type,
-    audioCount: collection.counts.audios ?? 0,
-    videoCount: collection.counts.videos ?? 0,
-    photoCount: collection.counts.photos ?? 0,
-    postCount: collection.counts.posts ?? 0,
-    replyCount: collection.counts.replies ?? 0,
+    audioCount: collection?.counts?.audios ?? 0,
+    videoCount: collection?.counts?.videos ?? 0,
+    photoCount: collection?.counts?.photos ?? 0,
+    postCount: collection?.counts?.posts ?? 0,
+    replyCount: collection?.counts?.replies ?? 0,
     createdAt: collection.createdAt ?? new Date(),
     updatedAt: collection.updatedAt ?? new Date(),
     whoCanView: collection.whoCanView ?? WHO_PUBLIC,
@@ -196,6 +196,7 @@ export function collectionToJsonWithItems(
     whoCanReply: collection.whoCanReply ?? WHO_MEMBER,
     posts: itemsJson ?? [],
   }
+  return collectionType
 }
 
 export function repliesToJson(

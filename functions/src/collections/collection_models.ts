@@ -31,7 +31,7 @@ export type Collection = {
   whoCanPost?: string
   whoCanReply?: string
   latestPost?: Ref<HydratedUser>
-  counts: CollectionCounters
+  counts?: CollectionCounters
   createdAt: Date
   updatedAt: Date
 }
