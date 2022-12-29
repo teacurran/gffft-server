@@ -1,11 +1,6 @@
-import * as Joi from "joi"
-import express, {Response} from "express"
-import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {LoggedInUser, optionalAuthentication, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
-import {resetMemberCounter} from "../counters/common"
-import {getGffft} from "../gfffts/gffft_data"
-import {getLinkSet, getLinkSetItems, hydrateLinkSet} from "../link-sets/link_set_data"
-import {linkSetToJsonWithItems} from "../link-sets/link_set_interfaces"
+import express from "express"
+import {createValidator} from "express-joi-validation"
+import {optionalAuthentication, requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
 import {getGalleryItemPathParams} from "../galleries/api/get_gallery_item_request"
 import {getGalleryPathParams, getGalleryQueryParams} from "../galleries/api/get_gallery_request"
 import {getGalleryItemRequest} from "../galleries/api/get_gallery_item"
@@ -32,6 +27,7 @@ import {apiDeleteGffftMembership} from "../gfffts/api/delete_gffft_membership"
 import {apiCreateBookmark} from "./api/create_bookmark"
 import {deleteBookmarkParams} from "./api/delete_bookmark_request"
 import {apiDeleteBookmark} from "./api/delete_bookmark"
+import {getLinkSetPathParams, getLinkSetQueryParams, getLinkSetRequest} from "../link-sets/api/get_link_set"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -141,72 +137,12 @@ router.get(
   getGalleryItemRequest
 )
 
-export const getLinkSetPathParams = Joi.object({
-  uid: Joi.string().required(),
-  gid: Joi.string().required(),
-  lid: Joi.string().required(),
-})
-export const getLinkSetQueryParams = Joi.object({
-  max: Joi.string().optional(),
-  offset: Joi.string().optional(),
-})
-export interface GetLinkSetRequest extends ValidatedRequestSchema {
-  [ContainerTypes.Params]: {
-    uid: string
-    gid: string
-    lid: string
-  }
-  [ContainerTypes.Query]: {
-    max?: number
-    offset?: string
-  };
-}
-
 router.get(
   "/:uid/gfffts/:gid/links/:lid",
   optionalAuthentication,
   validator.params(getLinkSetPathParams),
   validator.query(getLinkSetQueryParams),
-
-  async (req: ValidatedRequest<GetLinkSetRequest>, res: Response) => {
-    const iamUser: LoggedInUser | null = res.locals.iamUser
-
-    let uid = req.params.uid
-    let gid = req.params.gid
-    const lid = req.params.lid
-
-    if (uid == "me") {
-      if (iamUser == null) {
-        res.sendStatus(401)
-        return
-      }
-
-      uid = iamUser.id
-    }
-
-    // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
-    gid = gffft.id
-
-    const linkSet = await getLinkSet(uid, gid, lid)
-
-    if (!linkSet) {
-      res.sendStatus(404)
-      return
-    }
-
-    await resetMemberCounter(iamUser, "linkSetItems", uid, gid)
-
-    const items = await getLinkSetItems(uid, gid, lid, req.query.offset, req.query.max)
-
-    const hydratedLinkSet = await hydrateLinkSet(uid, gid, linkSet, items)
-
-    res.json(linkSetToJsonWithItems(hydratedLinkSet))
-  }
+  getLinkSetRequest
 )
 
 export default router

@@ -21,8 +21,7 @@ import {parse as parseHtml, HTMLElement} from "node-html-parser"
 import {getThreadByRef} from "../boards/board_data"
 import * as opentelemetry from "@opentelemetry/api"
 
-
-const DEFAULT_LINK_SET_KEY = "default"
+export const DEFAULT_LINK_SET_KEY = "default"
 
 export const linksCollection = collection<Link>("links")
 export const linkStatsCollection = subcollection<LinkStat, Link>("stats", linksCollection)

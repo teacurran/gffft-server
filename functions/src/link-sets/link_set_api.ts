@@ -4,18 +4,20 @@ import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
 import {getGffft, gffftsCollection, gffftsMembersCollection} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {add, get, ref, update, value} from "typesaurus"
+import {add, get, ref} from "typesaurus"
 import * as Joi from "joi"
 import multer from "multer"
 import {linkSetCollection, linkSetItemsCollection, hydrateLinkSetItem,
   linksCollection, getOrCreateLink} from "./link_set_data"
-import {LinkSetItem, UpdateLink} from "./link_set_models"
+import {LinkSetItem} from "./link_set_models"
 import {usersCollection} from "../users/user_data"
-import {linkSetItemToJson, linkToJson} from "./link_set_interfaces"
+import {linkSetItemToJson} from "./link_set_interfaces"
 import urlParser from "url-parse"
 import {getOrCreateDefaultBoard, threadPostsCollection, threadsCollection} from "../boards/board_data"
 import {Thread} from "../boards/board_models"
 import * as opentelemetry from "@opentelemetry/api"
+import {linkGetQueryParams} from "./api/get_link"
+import {getLinkSetRequest} from "./api/get_link_set"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -163,32 +165,11 @@ router.post(
   }
 )
 
-export interface LinkRequest extends ValidatedRequestSchema {
-  [ContainerTypes.Query]: {
-    url: string
-  };
-}
-const linkGetQueryParams = Joi.object({
-  url: Joi.string().required(),
-})
 router.get(
   "/link",
   upload.any(),
   validator.query(linkGetQueryParams),
-  async (req: ValidatedRequest<LinkRequest>, res: Response) => {
-    const url = decodeURIComponent(req.query.url)
-
-    const link = await getOrCreateLink(url)
-    if (link == null) {
-      res.status(500).send("unable to fetch url")
-      return
-    }
-    await update<UpdateLink>(linksCollection, link.id, {
-      queryCount: value("increment", 1),
-    })
-
-    res.json(linkToJson(link))
-  }
+  getLinkSetRequest
 )
 
 
