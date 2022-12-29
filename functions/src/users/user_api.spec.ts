@@ -1,7 +1,7 @@
 import "mocha"
 import chai from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, USER_1_AUTH, USER_2_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, DEFAULT_GFFFT_KEY, getGffftRef} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
@@ -21,7 +21,7 @@ describe("users API", function() {
   let gid: string
 
   before(async function() {
-    uid = MOCK_AUTH_USER_2.user_id
+    uid = MOCK_AUTH_USER_1.user_id
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
@@ -101,7 +101,7 @@ describe("users API", function() {
           return chai
             .request(server)
             .get("/api/users/me/bookmarks")
-            .set(USER_1_AUTH)
+            .set(USER_2_AUTH)
             .then((res) => {
               res.should.have.status(200)
               res.body["count"].should.equal(0)
@@ -112,7 +112,7 @@ describe("users API", function() {
           return chai
             .request(server)
             .post("/api/users/me/bookmarks")
-            .set(USER_1_AUTH)
+            .set(USER_2_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
@@ -128,7 +128,7 @@ describe("users API", function() {
           return chai
             .request(server)
             .get("/api/users/me/bookmarks")
-            .set(USER_1_AUTH)
+            .set(USER_2_AUTH)
             .then((res) => {
               res.should.have.status(200)
               res.body["count"].should.equal(1)
@@ -139,11 +139,10 @@ describe("users API", function() {
           return chai
             .request(server)
             .delete("/api/users/me/bookmarks")
-            .set(USER_1_AUTH)
+            .set(USER_2_AUTH)
             .set("Content-Type", "application/json")
             .set("Accept", "application/json")
             .send({
-              uid: gffft.uid,
               gid: gffft.id,
             })
             .then((res) => {
@@ -155,7 +154,7 @@ describe("users API", function() {
           return chai
             .request(server)
             .get("/api/users/me/bookmarks")
-            .set(USER_1_AUTH)
+            .set(USER_2_AUTH)
             .then((res) => {
               res.should.have.status(200)
               res.body["count"].should.equal(0)
@@ -168,7 +167,7 @@ describe("users API", function() {
   describe("/api/users", function() {
     describe("/users/me/gfffts/default/links/lid1", function() {
       describe("unauthenticated", function() {
-        it("returns 401 is me requested", async function() {
+        it("returns 401 if me requested", async function() {
           return chai
             .request(server)
             .get("/api/users/me/gfffts/default/links/1234")
@@ -212,8 +211,8 @@ describe("users API", function() {
           it("will create a default link set if requested", async function() {
             return chai
               .request(server)
-              .get(`/api/users/${MOCK_AUTH_USER_2.user_id}/gfffts/default/links/default`)
-              .set(USER_2_AUTH)
+              .get(`/api/users/${MOCK_AUTH_USER_1.user_id}/gfffts/default/links/default`)
+              .set(USER_1_AUTH)
               .then((res) => {
                 res.should.have.status(200)
               })
@@ -228,7 +227,7 @@ describe("users API", function() {
             return chai
               .request(server)
               .get("/api/users/me/gfffts/default/links/default")
-              .set(USER_2_AUTH)
+              .set(USER_1_AUTH)
               .then((res) => {
                 res.should.have.status(200)
               })
@@ -268,7 +267,7 @@ describe("users API", function() {
           return chai
             .request(server)
             .get("/api/users/me/gfffts/default")
-            .set(USER_2_AUTH)
+            .set(USER_1_AUTH)
             .then((res) => {
               res.should.have.status(200)
             })
@@ -279,7 +278,7 @@ describe("users API", function() {
             return chai
               .request(server)
               .get("/api/users/me/gfffts/invalid_gid")
-              .set(USER_2_AUTH)
+              .set(USER_1_AUTH)
               .then((res) => res.should.have.status(404))
           })
         })
@@ -323,7 +322,7 @@ describe("users API", function() {
         return chai
           .request(server)
           .get(`/api/users/me/gfffts/${gffft.id}/boards/default/threads`)
-          .set(USER_2_AUTH)
+          .set(USER_1_AUTH)
           .then((res) => {
             res.should.have.status(200)
           })
