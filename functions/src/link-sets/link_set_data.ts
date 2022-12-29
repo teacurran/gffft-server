@@ -348,6 +348,9 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
     const itemId = uuid()
     const linkRef = ref(linksCollection, itemId)
     linkCache = await getOrCreateLinkCache(linkRef, url)
+    if (linkCache == null) {
+      return null
+    }
 
     link = {
       domain: parsedUrl.hostname,

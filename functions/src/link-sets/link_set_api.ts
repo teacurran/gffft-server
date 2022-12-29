@@ -16,8 +16,7 @@ import urlParser from "url-parse"
 import {getOrCreateDefaultBoard, threadPostsCollection, threadsCollection} from "../boards/board_data"
 import {Thread} from "../boards/board_models"
 import * as opentelemetry from "@opentelemetry/api"
-import {linkGetQueryParams} from "./api/get_link"
-import {getLinkSetRequest} from "./api/get_link_set"
+import {getLinkRequest, linkGetQueryParams} from "./api/get_link"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -169,7 +168,7 @@ router.get(
   "/link",
   upload.any(),
   validator.query(linkGetQueryParams),
-  getLinkSetRequest
+  getLinkRequest
 )
 
 

@@ -66,7 +66,40 @@ describe("link set API", function(this: Suite) {
       .then(deleteFirestoreItem)
   })
 
-  describe("get", function() {
+  describe("get link", function() {
+    describe("unauthenticated", function() {
+      it("allows request", async function() {
+        return chai
+          .request(server)
+          .get("/api/links/link?url=https://google.com")
+          .then((res) => {
+            res.should.have.status(200)
+          })
+      })
+      describe("link is null", function() {
+        it("returns an error", async function() {
+          return chai
+            .request(server)
+            .get("/api/links/link?url=")
+            .then((res) => {
+              res.should.have.status(400)
+            })
+        })
+      })
+      describe("link is invalid", function() {
+        it("returns an error", async function() {
+          return chai
+            .request(server)
+            .get("/api/links/link?url=this+is+not+a_valid_domainx")
+            .then((res) => {
+              res.should.have.status(500)
+            })
+        })
+      })
+    })
+  })
+
+  describe("get link set", function() {
     function isLinkSetValid(res: request.Response) {
       res.should.have.status(200)
       console.log(`link-set body: ${JSON.stringify(res.body)} / ${JSON.stringify(linkSet)}`)
