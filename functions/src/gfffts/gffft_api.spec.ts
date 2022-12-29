@@ -48,6 +48,17 @@ describe("gfffts API", function(this: Suite) {
     return recursivelyDeleteGfffts(uid1)
   })
 
+  describe("get /", function() {
+    it("returns a list of gfffts", async function() {
+      return chai
+        .request(server)
+        .get("/api/gfffts")
+        .then((res) => {
+          res.should.have.status(200)
+        })
+    })
+  })
+
   describe("fruit-code", function() {
     describe("unauthenticated", function() {
       it("returns 401", async function() {
