@@ -76,6 +76,14 @@ export function getBoardRef(uid: string, gid: string, bid: string): Ref<Board> {
   return ref(getBoardCollection(uid, gid), bid)
 }
 
+export function getThreadCollection(uid: string, gid: string, bid: string): Collection<Thread> {
+  return threadsCollection(getBoardRef(uid, gid, bid))
+}
+
+export function getThreadRef(uid: string, gid: string, bid: string, tid: string): Ref<Thread> {
+  return ref(getThreadCollection(uid, gid, bid), tid)
+}
+
 export async function updateBoard(userId: string, gffftId: string, board: Board): Promise<void> {
   console.log(`updating board userId:${userId} gffftId:${gffftId}, boardId: ${board.id}`)
   const userBoards = boardsCollection([userId, gffftId])

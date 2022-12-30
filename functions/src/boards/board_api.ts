@@ -1,6 +1,6 @@
 import express, {Response} from "express"
 
-import {threadPostsCollection, threadsCollection} from "./board_data"
+import {getThreadCollection, getThreadRef, threadPostsCollection} from "./board_data"
 
 import {LoggedInUser, requiredAuthentication} from "../accounts/auth"
 import {Thread} from "./board_models"
@@ -64,14 +64,13 @@ router.post(
 
     console.log(`creating post: uid:${uid} gid:${gid} bid:${bid} tid:${tid} subject: ${req.body.subject}`)
 
-    const threads = threadsCollection([uid, gid, bid])
-
+    console.log("here2")
     let threadRef: Ref<Thread>
     const posterRef = ref(usersCollection, res.locals.iamUser.id)
 
     // are we replying to an existing thread
     if (tid) {
-      threadRef = ref(threads, tid)
+      threadRef = getThreadRef(uid, gid, bid, tid)
       const thread = await get(threadRef)
 
       // make sure the existing thread exists
@@ -90,7 +89,7 @@ router.post(
         deleted: false,
       } as Thread
 
-      threadRef = await add(threads, thread)
+      threadRef = await add(getThreadCollection(uid, gid, bid), thread)
     }
 
     const postsCollection = threadPostsCollection(threadRef)
