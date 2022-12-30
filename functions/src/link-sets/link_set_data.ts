@@ -19,7 +19,7 @@ import {uuid} from "uuidv4"
 import urlParser from "url-parse"
 import {parse as parseHtml, HTMLElement} from "node-html-parser"
 import {getThreadByRef} from "../boards/board_data"
-import * as opentelemetry from "@opentelemetry/api"
+import {observeAttribute, observeEvent} from "../o11y"
 
 export const COLLECTION_LINKS = "links"
 export const COLLECTION_LINK_SETS = "link-sets"
@@ -338,11 +338,9 @@ export async function getOrCreateLink(url: string): Promise<Link | null> {
   }
   const parsedUrl = urlParser(finalUrl)
 
-  const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
-  activeSpan?.setAttribute("link.url", url)
-  activeSpan?.setAttribute("link.domain", parsedUrl.hostname)
-
-  activeSpan?.addEvent("checking link")
+  observeAttribute("link.url", url)
+  observeAttribute("link.domain", parsedUrl.hostname)
+  observeEvent("checking link")
 
   let linkCache: LinkCache | null = null
   let link = await getLink(finalUrl)

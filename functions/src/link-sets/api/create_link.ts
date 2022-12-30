@@ -3,7 +3,6 @@ import {Response} from "express"
 import {ContainerTypes, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {add, get, ref} from "typesaurus"
 import urlParser from "url-parse"
-import * as opentelemetry from "@opentelemetry/api"
 import {LoggedInUser} from "../../accounts/auth"
 import {getGffft, gffftsCollection, gffftsMembersCollection} from "../../gfffts/gffft_data"
 import {usersCollection} from "../../users/user_data"
@@ -14,6 +13,7 @@ import {Thread} from "../../boards/board_models"
 import {LinkSetItem} from "../link_set_models"
 import {linkSetItemToJson} from "../link_set_interfaces"
 import Joi from "joi"
+import {observeAttribute} from "../../o11y"
 
 export const createLinkSetParams = Joi.object({
   uid: Joi.string().required(),
@@ -61,14 +61,12 @@ export const apiCreateLink = async (req: ValidatedRequest<CreateLinkRequest>, re
   }
   lid = linkSet.id
 
-  const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
-
-  activeSpan?.setAttribute("uid", uid)
-  activeSpan?.setAttribute("gid", gid)
-  activeSpan?.setAttribute("lid", lid)
-  activeSpan?.setAttribute("link.url", url)
-  activeSpan?.setAttribute("link.description", description)
-  activeSpan?.setAttribute("link.domain", parsedUrl.hostname)
+  observeAttribute("uid", uid)
+  observeAttribute("gid", gid)
+  observeAttribute("lid", lid)
+  observeAttribute("link.url", url)
+  observeAttribute("link.description", description)
+  observeAttribute("link.domain", parsedUrl.hostname)
 
   const gffftMembers = gffftsMembersCollection([uid, gid])
 
@@ -97,7 +95,7 @@ export const apiCreateLink = async (req: ValidatedRequest<CreateLinkRequest>, re
     res.status(500).send("unable to fetch url")
     return
   }
-  activeSpan?.setAttribute("link.id", link.id)
+  observeAttribute("link.id", link.id)
 
   const gfffts = gffftsCollection(ref(usersCollection, uid))
   const linkSets = linkSetCollection(ref(gfffts, gid))

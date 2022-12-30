@@ -6,7 +6,7 @@ import {Gffft} from "../gfffts/gffft_models"
 import {getGffftRef, getGffftUser, gffftsCollection} from "../gfffts/gffft_data"
 import {usersCollection} from "../users/user_data"
 import {itemOrNull} from "../common/data"
-import * as opentelemetry from "@opentelemetry/api"
+import {observeAttribute} from "../o11y"
 
 export const COLLECTION_GALLERIES = "galleries"
 export const DEFAULT_GALLERY_KEY = "default"
@@ -43,12 +43,9 @@ export async function getOrCreateDefaultGallery(uid: string, gid: string): Promi
 }
 
 export async function getGallery(uid: string, gid: string, mid: string): Promise<Gallery | null> {
-  const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
-  if (activeSpan) {
-    activeSpan.setAttribute("gid", gid)
-    activeSpan.setAttribute("uid", uid)
-    activeSpan.setAttribute("mid", mid)
-  }
+  observeAttribute("gid", gid)
+  observeAttribute("uid", uid)
+  observeAttribute("mid", mid)
 
   if (mid == "default") {
     return getOrCreateDefaultGallery(uid, gid)

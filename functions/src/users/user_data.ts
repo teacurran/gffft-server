@@ -6,7 +6,7 @@ import {randomInt} from "../common/utils"
 import {getGffft, getGffftMembership, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {HydratedUserBookmark, User, UserBookmark} from "./user_models"
-import * as opentelemetry from "@opentelemetry/api"
+import {observeAttribute, observeEvent} from "../o11y"
 
 export const COLLECTION_USERS = "users"
 export const COLLECTION_ADJECTIVES = "username_adjectives"
@@ -58,14 +58,11 @@ export async function createBookmark(uid: string, gid: string, memberId: string)
  * @return {Promise<User>}
  */
 export async function getUser(userId: string): Promise<User> {
-  const activeSpan = opentelemetry.trace.getSpan(opentelemetry.context.active())
-  if (activeSpan) {
-    activeSpan.setAttribute("query.user.id", userId)
-  }
+  observeAttribute("query.user.id", userId)
 
   let user = await get(usersCollection, userId).then((snapshot) => itemOrNull(snapshot))
   if (user == null) {
-    activeSpan?.addEvent("user not found, creating")
+    observeEvent("user not found, creating")
     user = {createdAt: new Date(),
       updatedAt: new Date()} as User
     await upset<User>(usersCollection, userId, user)
