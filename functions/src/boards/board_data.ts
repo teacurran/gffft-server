@@ -172,8 +172,7 @@ export async function getThread(uid: string,
   tid: string,
   offset?: string,
   maxResults = 200): Promise<HydratedThread | null> {
-  const tCollection = threadsCollection([uid, gid, bid])
-  const threadRef = ref(tCollection, tid)
+  const threadRef = getThreadRef(uid, gid, bid, tid)
   const pCollection = threadPostsCollection(threadRef)
 
   const thread = await get(threadRef)
