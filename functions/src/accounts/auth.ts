@@ -11,7 +11,7 @@ export type LoggedInUser = {
   id: string
 }
 
-async function checkForNpc(idToken: string): Promise<string|null> {
+export async function checkForNpc(idToken: string): Promise<string|null> {
   if (idToken.startsWith("npc-")) {
     observeNpc(idToken)
     const splitToken = idToken.split("-")
@@ -27,7 +27,7 @@ async function checkForNpc(idToken: string): Promise<string|null> {
   return null
 }
 
-async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
+export async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
   observeAttribute("auth.token", idToken)
 
   const npcUserId = await checkForNpc(idToken)

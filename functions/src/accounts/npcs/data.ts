@@ -1,7 +1,8 @@
 import {collection, get, set} from "typesaurus"
 import {Npc} from "./models"
 
-export const npcsCollection = collection<Npc>("npcs")
+export const COLLECTION_NPCS = "npcs"
+export const npcsCollection = collection<Npc>(COLLECTION_NPCS)
 
 /**
  * Gets an npc from firestore if already exists
