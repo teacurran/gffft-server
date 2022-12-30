@@ -1,7 +1,7 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_3_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_2_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
 import {createGffftMembership, getGffft, getGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
@@ -46,6 +46,31 @@ describe("gfffts API", function(this: Suite) {
 
   after(async function() {
     return recursivelyDeleteGfffts(uid1)
+  })
+
+  describe("get /", function() {
+    describe("unauthenticated", function() {
+      it("returns a list of gfffts", async function() {
+        return chai
+          .request(server)
+          .get("/api/gfffts")
+          .then((res) => {
+            res.should.have.status(200)
+          })
+      })
+    })
+
+    describe("authenticated", function() {
+      it("returns a list of gfffts", async function() {
+        return chai
+          .request(server)
+          .get("/api/gfffts")
+          .set(USER_1_AUTH)
+          .then((res) => {
+            res.should.have.status(200)
+          })
+      })
+    })
   })
 
   describe("fruit-code", function() {
@@ -369,6 +394,26 @@ describe("gfffts API", function(this: Suite) {
           })
       })
 
+      describe("not gffft owner", function() {
+        it("returns 403", async function() {
+          return chai
+            .request(server)
+            .patch("/api/gfffts")
+            .set(USER_2_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              name: name,
+              description: description,
+            })
+            .then(async (res) => {
+              res.should.have.status(403)
+            })
+        })
+      })
+
       describe("gffft does not exist", function() {
         it("404 code returned", async function() {
           return chai.request(server)
@@ -387,6 +432,42 @@ describe("gfffts API", function(this: Suite) {
             })
         })
       })
+
+      describe("intro is updated", function() {
+        it("updates gffft intro", async function() {
+          const intro = "This is the intro"
+          return chai
+            .request(server)
+            .patch("/api/gfffts")
+            .set(USER_1_AUTH)
+            .set("Content-Type", "application/json")
+            .set("Accept", "application/json")
+            .send({
+              uid: gffft.uid,
+              gid: gffft.id,
+              name: name,
+              description: "",
+              intro: intro,
+              enabled: true,
+              allowMembers: true,
+              boardEnabled: true,
+            })
+            .then(async (res) => {
+              console.log(`body:${JSON.stringify(res.body)}`)
+              res.should.have.status(204)
+
+              const g2 = await getGffft(gffft.uid ?? "", gffft.id)
+              expect(g2).to.not.be.null
+              if (g2 != null && g2.features) {
+                expect(g2.intro).to.eql(intro)
+                expect(g2.description).to.eql("")
+                expect(g2.enabled).to.eql(true)
+                expect(g2.allowMembers).to.eql(true)
+              }
+            })
+        })
+      })
+
 
       describe("board is enabled", function() {
         it("puts a board in the feature set", async function() {

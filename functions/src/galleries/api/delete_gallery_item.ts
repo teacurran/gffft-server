@@ -17,7 +17,7 @@ export const deleteGalleryItemRequest = async (req: ValidatedRequest<GetGalleryI
   const mid = req.params.mid
   const iid = req.params.iid
 
-  const membershipPromise = getGffftMembership(uid, gid, iamUser?.id)
+  const membershipPromise = getGffftMembership(uid, gid, iamUser.id)
   const itemPromise = getGalleryItem(uid, gid, mid, iid)
 
   const item = await itemPromise

@@ -173,11 +173,11 @@ router.patch(
       gffft.name = body.name
     }
 
-    if (body.intro != undefined && body.intro.length > 0) {
+    if (body.intro != undefined) {
       gffft.intro = body.intro
     }
 
-    if (body.description != undefined && body.description.length > 0) {
+    if (body.description != undefined) {
       gffft.description = body.description
     }
 

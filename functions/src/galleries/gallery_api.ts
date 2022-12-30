@@ -122,11 +122,6 @@ router.post(
     item.id = itemId
 
     const hgi = await hydrateGalleryItem(uid, gid, item)
-    if (hgi == null) {
-      console.warn(`Hydrated gallery item was null when it shouldn't be: ${hgi}`)
-      res.sendStatus(404)
-      return
-    }
     res.json(galleryItemToJson(iamUser, membership, hgi))
   }
 )

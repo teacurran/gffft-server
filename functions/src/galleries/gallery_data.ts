@@ -92,6 +92,9 @@ export async function getGalleryItem(uid: string,
   const galleryItems = getGalleryItemsCollection(uid, gid, mid)
 
   const item = await get(galleryItems, iid)
+  if (item == null) {
+    return null
+  }
   return hydrateGalleryItem(uid, gid, item)
 }
 
@@ -127,14 +130,10 @@ export async function getGalleryItems(uid: string,
 }
 
 export async function hydrateGalleryItem(uid: string, gid: string, snapshot: Doc<GalleryItem> |
-    GalleryItem |
-    null,
-currentUid?: string): Promise<HydratedGalleryItem | null> {
+    GalleryItem,
+currentUid?: string): Promise<HydratedGalleryItem> {
   let item: GalleryItem
 
-  if (snapshot == null) {
-    return null
-  }
   if ((snapshot as Doc<GalleryItem>).data) {
     item = (snapshot as Doc<GalleryItem>).data
     item.id = (snapshot as Doc<GalleryItem>).ref.id

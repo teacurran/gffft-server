@@ -1,8 +1,7 @@
 import {Factory} from "fishery"
 import {set} from "typesaurus"
-import {DEFAULT_GALLERY_KEY} from "../../galleries/gallery_data"
 import {LinkSet} from "../../link-sets/link_set_models"
-import {getLinkSetRef} from "../../link-sets/link_set_data"
+import {DEFAULT_LINK_SET_KEY, getLinkSetRef} from "../../link-sets/link_set_data"
 
 type LinkSetTransientParams = {
   uid: string
@@ -21,7 +20,7 @@ export default Factory.define<LinkSet, LinkSetTransientParams>(({transientParams
   const id = sequence.toString()
   const linkSet: LinkSet = {
     id: id,
-    key: DEFAULT_GALLERY_KEY,
+    key: DEFAULT_LINK_SET_KEY,
     createdAt: new Date(),
     updatedAt: new Date(),
     itemCount: 0,
