@@ -21,7 +21,7 @@ describe("auth", function(this: Suite) {
     await MockFirebaseInit.getInstance().init()
     firestore = firebaseAdmin.firestore()
 
-    createNpc(npcId)
+    await createNpc(npcId)
   })
 
   after(async function() {
@@ -33,23 +33,31 @@ describe("auth", function(this: Suite) {
 
   describe("checkForNpc", function() {
     describe("doesn't start with npc-", function() {
-      it("null returned", function() {
-        expect(checkForNpc("user1234")).to.be.null
+      it("null returned", async function() {
+        return checkForNpc("user1234").then((result) => {
+          expect(result).to.be.null
+        })
       })
     })
     describe("token invalid", function() {
-      it("null returned", function() {
-        expect(checkForNpc("npc-token")).to.be.null
+      it("null returned", async function() {
+        return checkForNpc("npc-user1234").then((result) => {
+          expect(result).to.be.null
+        })
       })
     })
     describe("npc not found", function() {
-      it("null returned", function() {
-        expect(checkForNpc("npc-token-notfound")).to.be.null
+      it("null returned", async function() {
+        return checkForNpc("npc-token-notfound").then((result) => {
+          expect(result).to.be.null
+        })
       })
     })
     describe("npc found", function() {
-      it("npc userId returned", function() {
-        expect(checkForNpc(`npc-${npcId}-user1`)).to.eql("user1")
+      it("npc userId returned", async function() {
+        checkForNpc(`npc-${npcId}-user1`).then((result) => {
+          expect(result).to.eql("user1")
+        })
       })
     })
   })
