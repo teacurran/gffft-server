@@ -214,7 +214,7 @@ export async function getOrCreateLinkCache(linkRef: Ref<Link>, url: string): Pro
   }
   const parsedUrl = urlParser(finalUrl)
 
-  console.debug("link not found, fetching")
+  console.debug(`fetching url: ${finalUrl}`)
   const response = await axios
     .get(finalUrl)
     .catch((error) => {

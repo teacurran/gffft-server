@@ -4,10 +4,14 @@ import {createGffft, gffftsCollection} from "../gfffts/gffft_data"
 import {Gffft} from "../gfffts/gffft_models"
 import {MockFirebaseInit, MOCK_AUTH_USER_1} from "../test/auth"
 import {getUser} from "../users/user_data"
-import {getLinkSetByRef, getLinkSetByRefString, getLinkSetItems, getOrCreateDefaultLinkSet, linkSetCollection} from "./link_set_data"
-import {LinkSet} from "./link_set_models"
+import {COLLECTION_LINKS, getLinkSetByRef, getLinkSetByRefString, getLinkSetItems,
+  getOrCreateDefaultLinkSet, getOrCreateLink, linkSetCollection} from "./link_set_data"
+import {Link, LinkSet} from "./link_set_models"
+import * as firebaseAdmin from "firebase-admin"
+import {deleteFirestoreItem} from "../common/data"
 
 describe("link_set_data", function() {
+  let firestore: firebaseAdmin.firestore.Firestore
   let gffft: Gffft
   let uid1: string
   let user1Handle: string
@@ -15,6 +19,7 @@ describe("link_set_data", function() {
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
+    firestore = firebaseAdmin.firestore()
 
     uid1 = MOCK_AUTH_USER_1.user_id
     await getUser(uid1)
@@ -40,6 +45,27 @@ describe("link_set_data", function() {
       expect(c2).to.not.be.null
       expect(c2?.id).to.eq(linkSet.id)
       expect(c2?.key).to.eq(linkSet.key)
+    })
+  })
+
+  describe("getOrCreateLink", function() {
+    let link1: Link | null
+    step("fetch a link", async function() {
+      console.log("fetching mostly cats")
+      return getOrCreateLink("https://mostlycats.pizza")
+        .then((link) => {
+          link1 = link
+          expect(link1).to.not.be.null
+        })
+    })
+
+    step("delete link", async function() {
+      console.log(`link1:${link1}`)
+      if (link1 != null) {
+        return await firestore.collection(COLLECTION_LINKS).doc(link1.id)
+          .get()
+          .then(deleteFirestoreItem)
+      }
     })
   })
 
