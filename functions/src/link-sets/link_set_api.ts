@@ -1,6 +1,6 @@
 import express from "express"
 import {createValidator} from "express-joi-validation"
-import {requiredAuthentication} from "../accounts/auth"
+import {requiredAuthentication, requiredGffftMembership} from "../accounts/auth"
 
 import {apiCreateLink, createLinkSetParams} from "./api/create_link"
 import {getLinkRequest, linkGetQueryParams} from "./api/get_link"
@@ -13,6 +13,7 @@ router.post(
   "/",
   validator.fields(createLinkSetParams),
   requiredAuthentication,
+  requiredGffftMembership,
   apiCreateLink
 )
 

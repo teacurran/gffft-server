@@ -4,9 +4,8 @@ import {ContainerTypes, ValidatedRequest, ValidatedRequestSchema} from "express-
 import {add, get, ref} from "typesaurus"
 import urlParser from "url-parse"
 import {LoggedInUser} from "../../accounts/auth"
-import {getGffft, getGffftMembersCollection, gffftsCollection} from "../../gfffts/gffft_data"
+import {getGffft, gffftsCollection} from "../../gfffts/gffft_data"
 import {usersCollection} from "../../users/user_data"
-import {TYPE_PENDING, TYPE_REJECTED} from "../../gfffts/gffft_models"
 import {getLinkSet, getOrCreateLink, hydrateLinkSetItem, linksCollection, linkSetCollection, linkSetItemsCollection} from "../link_set_data"
 import {getOrCreateDefaultBoard, getThreadCollection, threadPostsCollection} from "../../boards/board_data"
 import {Thread} from "../../boards/board_models"
@@ -68,25 +67,9 @@ export const apiCreateLink = async (req: ValidatedRequest<CreateLinkRequest>, re
   observeAttribute("link.description", description)
   observeAttribute("link.domain", parsedUrl.hostname)
 
-  const gffftMembers = getGffftMembersCollection(uid, gid)
-
   // is this poster a member of the gffft?
   const posterUid = res.locals.iamUser.id
   const posterRef = ref(usersCollection, posterUid)
-
-  const membershipDoc = await get(ref(gffftMembers, posterUid))
-  if (!membershipDoc) {
-    console.log("poster is not a member of this board")
-    res.sendStatus(403)
-    return
-  }
-
-  const membership = membershipDoc.data
-  if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
-    console.log("poster is not an approved member of this board")
-    res.sendStatus(403)
-    return
-  }
 
   console.log(`creating linkSet item: uid:${uid} gid:${gid} lid:${lid} description: ${description}`)
 
