@@ -16,13 +16,12 @@ import {Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
 import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_interfaces"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, getRefPath, ref, upset} from "typesaurus"
-import {boardsCollection, getOrCreateDefaultBoard} from "../boards/board_data"
+import {boardsCollection, getBoardRef, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Board} from "../boards/board_models"
 import {Gallery} from "../galleries/gallery_models"
-import {galleryCollection, getGalleryCollection, getOrCreateDefaultGallery} from "../galleries/gallery_data"
+import {getGalleryCollection, getGalleryRef, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 import * as Joi from "joi"
 import {getOrCreateDefaultLinkSet, getLinkSetRef} from "../link-sets/link_set_data"
-import {usersCollection} from "../users/user_data"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -281,19 +280,15 @@ router.put(
     gffft.allowMembers = item.allowMembers
     gffft.requireApproval = item.requireApproval
 
-    const gfffts = gffftsCollection(ref(usersCollection, iamUser.id))
-
     const features: string[] = []
     if (item.boardEnabled) {
       const board: Board = await getOrCreateDefaultBoard(iamUser.id, gffft.id)
-      const userBoards = boardsCollection([iamUser.id, gffft.id])
-      features.push(getRefPath(ref(userBoards, board.id)))
+      features.push(getRefPath(getBoardRef(iamUser.id, gffft.id, board.id)))
     }
 
     if (item.galleryEnabled) {
       const gallery: Gallery = await getOrCreateDefaultGallery(iamUser.id, gffft.id)
-      const userGalleries = galleryCollection(ref(gfffts, gffft.id))
-      features.push(getRefPath(ref(userGalleries, gallery.id)))
+      features.push(getRefPath(getGalleryRef(iamUser.id, gffft.id, gallery.id)))
     }
 
     gffft.tags = item.tags

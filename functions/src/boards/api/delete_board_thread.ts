@@ -1,7 +1,7 @@
 import {ValidatedRequest} from "express-joi-validation"
 import {Response} from "express"
 import {LoggedInUser} from "../../accounts/auth"
-import {getThread, threadsCollection} from "../board_data"
+import {getThread, getThreadCollection} from "../board_data"
 import {TYPE_OWNER} from "../../gfffts/gffft_models"
 import {field, update} from "typesaurus"
 import {DeleteBoardThreadsRequest} from "./delete_board_thread_request"
@@ -36,9 +36,7 @@ export const deleteBoardThreads = async (req: ValidatedRequest<DeleteBoardThread
     return
   }
 
-  const threadCollection = threadsCollection([uid, gid, bid])
-
-  await update(threadCollection, tid, [
+  await update(getThreadCollection(uid, gid, bid), tid, [
     field("deleted", true),
     field("deletedAt", new Date()),
   ])

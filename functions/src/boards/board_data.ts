@@ -86,8 +86,7 @@ export function getThreadRef(uid: string, gid: string, bid: string, tid: string)
 
 export async function updateBoard(userId: string, gffftId: string, board: Board): Promise<void> {
   console.log(`updating board userId:${userId} gffftId:${gffftId}, boardId: ${board.id}`)
-  const userBoards = boardsCollection([userId, gffftId])
-  return upset<Board>(userBoards, board.id, board)
+  return upset<Board>(getBoardRef(userId, gffftId, board.id), board)
 }
 
 export async function hydrateThread(uid: string, gid: string,
@@ -133,7 +132,7 @@ export async function getThreads(uid: string,
   bid:string,
   offset?: string,
   maxResults = 200): Promise<HydratedThread[]> {
-  const threadCollection = threadsCollection([uid, gid, bid])
+  const threadCollection = getThreadCollection(uid, gid, bid)
 
   const queries: Query<Thread, keyof Thread>[] = []
 
