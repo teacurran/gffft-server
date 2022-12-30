@@ -2,7 +2,7 @@ import {query, subcollection, where, limit, add, pathToRef, get} from "typesauru
 import {Notebook} from "./notebook_models"
 import {User} from "../users/user_models"
 import {Gffft} from "../gfffts/gffft_models"
-import {gffftsCollection} from "../gfffts/gffft_data"
+import {getGffftRef, gffftsCollection} from "../gfffts/gffft_data"
 
 const DEFAULT_BOARD_KEY = "default"
 
@@ -15,7 +15,7 @@ export const notebookCollection = subcollection<Notebook, Gffft, User>("notebook
  * @return {IIAMUserType}
  */
 export async function getOrCreateDefaultNotebook(userId: string, gffftId: string): Promise<Notebook> {
-  const userGalleries = notebookCollection([userId, gffftId])
+  const userGalleries = notebookCollection(getGffftRef(userId, gffftId))
 
   let notebook = await query(userGalleries, [
     where("key", "==", DEFAULT_BOARD_KEY),

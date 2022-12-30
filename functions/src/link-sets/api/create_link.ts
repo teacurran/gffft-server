@@ -4,11 +4,11 @@ import {ContainerTypes, ValidatedRequest, ValidatedRequestSchema} from "express-
 import {add, get, ref} from "typesaurus"
 import urlParser from "url-parse"
 import {LoggedInUser} from "../../accounts/auth"
-import {getGffft, gffftsCollection, gffftsMembersCollection} from "../../gfffts/gffft_data"
+import {getGffft, getGffftMembersCollection, gffftsCollection} from "../../gfffts/gffft_data"
 import {usersCollection} from "../../users/user_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../../gfffts/gffft_models"
 import {getLinkSet, getOrCreateLink, hydrateLinkSetItem, linksCollection, linkSetCollection, linkSetItemsCollection} from "../link_set_data"
-import {getOrCreateDefaultBoard, threadPostsCollection, threadsCollection} from "../../boards/board_data"
+import {getOrCreateDefaultBoard, getThreadCollection, threadPostsCollection} from "../../boards/board_data"
 import {Thread} from "../../boards/board_models"
 import {LinkSetItem} from "../link_set_models"
 import {linkSetItemToJson} from "../link_set_interfaces"
@@ -68,7 +68,7 @@ export const apiCreateLink = async (req: ValidatedRequest<CreateLinkRequest>, re
   observeAttribute("link.description", description)
   observeAttribute("link.domain", parsedUrl.hostname)
 
-  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const gffftMembers = getGffftMembersCollection(uid, gid)
 
   // is this poster a member of the gffft?
   const posterUid = res.locals.iamUser.id
@@ -104,7 +104,8 @@ export const apiCreateLink = async (req: ValidatedRequest<CreateLinkRequest>, re
   const linkRef = ref(linksCollection, link.id)
 
   const board = await getOrCreateDefaultBoard(uid, gid)
-  const threads = threadsCollection([uid, gid, board.id])
+  const threads = getThreadCollection(uid, gid, board.id)
+
   const thread = {
     subject: `🔗: ${link.title}`,
     firstPost: posterRef,
