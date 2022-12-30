@@ -21,12 +21,12 @@ export async function createNpc(id: string): Promise<void> {
  * @param {string} npcId item to look up
  * @return {IIAMUserType}
  */
-export async function getNpc(npcId: string): Promise<Npc> {
+export async function getNpc(npcId: string): Promise<Npc|undefined> {
   return get(npcsCollection, npcId).then((item) => {
     if (item != null) {
       return item.data
     }
-    return {} as Npc
+    return undefined
   })
 }
 

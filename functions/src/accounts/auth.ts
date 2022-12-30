@@ -17,7 +17,7 @@ export async function checkForNpc(idToken: string): Promise<string|null> {
     const splitToken = idToken.split("-")
     if (splitToken.length == 3) {
       const npc = await getNpc(splitToken[1])
-      if (npc != null) {
+      if (npc) {
         const userId = splitToken[2]
         observeUserId(userId)
         return userId
