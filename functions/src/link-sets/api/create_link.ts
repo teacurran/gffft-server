@@ -1,7 +1,7 @@
 import {Response} from "express"
 
 import {ContainerTypes, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
-import {add, get, ref} from "typesaurus"
+import {add, ref} from "typesaurus"
 import urlParser from "url-parse"
 import {LoggedInUser} from "../../accounts/auth"
 import {getGffft, gffftsCollection} from "../../gfffts/gffft_data"
