@@ -33,22 +33,22 @@ describe("auth", function(this: Suite) {
 
   describe("checkForNpc", function() {
     describe("doesn't start with npc-", function() {
-      it("null returned", async function() {
+      it("null returned", function() {
         expect(checkForNpc("user1234")).to.be.null
       })
     })
     describe("token invalid", function() {
-      it("null returned", async function() {
+      it("null returned", function() {
         expect(checkForNpc("npc-token")).to.be.null
       })
     })
     describe("npc not found", function() {
-      it("null returned", async function() {
+      it("null returned", function() {
         expect(checkForNpc("npc-token-notfound")).to.be.null
       })
     })
     describe("npc found", function() {
-      it("npc userId returned", async function() {
+      it("npc userId returned", function() {
         expect(checkForNpc(`npc-${npcId}-user1`)).to.eql("user1")
       })
     })
