@@ -3,10 +3,10 @@ import express, {Response} from "express"
 import {
   createGffft,
   getGffft,
+  getGffftMembersCollection,
   getGfffts,
   getUniqueFruitCode,
   gffftsCollection,
-  gffftsMembersCollection,
   hydrateGffft,
   updateGffft,
 } from "./gffft_data"
@@ -16,12 +16,12 @@ import {Gffft, GffftMember, TYPE_OWNER} from "./gffft_models"
 import {fruitCodeToJson, gffftsToJson, gffftToJson} from "./gffft_interfaces"
 import {ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema} from "express-joi-validation"
 import {get, getRefPath, ref, upset} from "typesaurus"
-import {boardsCollection, getBoardRef, getOrCreateDefaultBoard} from "../boards/board_data"
-import {Board} from "../boards/board_models"
+import {getBoardCollection, getBoardRef, getOrCreateDefaultBoard} from "../boards/board_data"
 import {Gallery} from "../galleries/gallery_models"
 import {getGalleryCollection, getGalleryRef, getOrCreateDefaultGallery} from "../galleries/gallery_data"
 import * as Joi from "joi"
 import {getOrCreateDefaultLinkSet, getLinkSetRef} from "../link-sets/link_set_data"
+import {Board} from "../boards/board_models"
 
 export interface GffftListRequest extends ValidatedRequestSchema {
   [ContainerTypes.Query]: {
@@ -159,7 +159,7 @@ router.patch(
     const body = req.body
     const uid = res.locals.uid
     const gid = res.locals.gid
-    const gffft = res.locals.gffft
+    const gffft: Gffft = res.locals.gffft
 
     const membership: GffftMember = res.locals.gffftMembership
     if (membership.type !== TYPE_OWNER) {
@@ -192,7 +192,7 @@ router.patch(
       console.log(`got board enable:${body.boardEnabled}`)
 
       const board: Board = await getOrCreateDefaultBoard(uid, gid)
-      const userBoards = boardsCollection([uid, gid])
+      const userBoards = getBoardCollection(uid, gid)
       const itemRef = getRefPath(ref(userBoards, board.id))
 
       const itemIndex = features.indexOf(itemRef, 0)
@@ -335,7 +335,7 @@ router.put(
     const iamUser: LoggedInUser = res.locals.iamUser
     const userId = iamUser.id
 
-    const gffftMembers = gffftsMembersCollection([userId, gffft.id])
+    const gffftMembers = getGffftMembersCollection(userId, gffft.id)
     const memberRef = ref(gffftMembers, userId)
 
     const gfffts = gffftsCollection(userId)
