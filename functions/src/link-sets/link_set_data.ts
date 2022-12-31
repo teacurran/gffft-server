@@ -1,7 +1,8 @@
 import fs from "fs"
 import axios from "axios"
 import {
-  add, Collection, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref, startAfter,
+  add, Collection, collection, Doc, get, limit, order, pathToRef, Query, query, Ref, ref,
+  startAfter,
   subcollection, update, upset, where,
 } from "typesaurus"
 import {itemOrNull} from "../common/data"
@@ -83,17 +84,21 @@ export function getLinkSetRef(uid: string, gid: string, lid: string): Ref<LinkSe
   return ref(getLinkSetCollection(uid, gid), lid)
 }
 
-export async function getLinkSetItems(uid: string,
+export async function getLinkSetItems(
+  uid: string,
   gid: string,
-  mid: string,
+  lid: string,
   offset?: string,
   maxResults = 200): Promise<HydratedLinkSetItem[]> {
-  const linkSetRef = getLinkSetRef(uid, gid, mid)
+  const linkSetRef = getLinkSetRef(uid, gid, lid)
   const linkSetItems = linkSetItemsCollection(linkSetRef)
 
   const queries: Query<LinkSetItem, keyof LinkSetItem>[] = []
   if (offset) {
-    queries.push(order("createdAt", "desc", [startAfter(offset)]))
+    const offsetItem = await get(linkSetItems, offset)
+    if (offsetItem) {
+      queries.push(order("createdAt", "desc", [startAfter(offsetItem)]))
+    }
   } else {
     queries.push(order("createdAt", "desc"))
   }
@@ -102,7 +107,6 @@ export async function getLinkSetItems(uid: string,
   const items: HydratedLinkSetItem[] = []
   return query(linkSetItems, queries).then(async (results) => {
     for (const snapshot of results) {
-      console.log(`snapshot ref: ${snapshot.data?.linkRef?.id}`)
       const link = snapshot.data?.linkRef ?
         await getLinkByRef(snapshot.data?.linkRef) :
         null
@@ -111,9 +115,7 @@ export async function getLinkSetItems(uid: string,
         console.error(`null link reference: ${snapshot.ref.id}`)
       } else {
         const hydratedItem = await hydrateLinkSetItem(uid, gid, snapshot, link)
-        if (hydratedItem != null) {
-          items.push(hydratedItem)
-        }
+        items.push(hydratedItem)
       }
     }
     return items
@@ -123,12 +125,9 @@ export async function getLinkSetItems(uid: string,
 
 export async function hydrateLinkSetItem(uid: string, gid: string, snapshot: Doc<LinkSetItem> |
   LinkSetItem |
-  null, link: Link | null): Promise<HydratedLinkSetItem | null> {
+  null, link: Link | null): Promise<HydratedLinkSetItem> {
   let item: LinkSetItem
 
-  if (snapshot == null) {
-    return null
-  }
   if ((snapshot as Doc<LinkSetItem>).data) {
     item = (snapshot as Doc<LinkSetItem>).data
     item.id = (snapshot as Doc<LinkSetItem>).ref.id

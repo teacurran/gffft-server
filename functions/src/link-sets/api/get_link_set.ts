@@ -33,7 +33,7 @@ export const getLinkSetRequest = async (req: ValidatedRequest<GetLinkSetRequest>
 
   let uid = req.params.uid
   let gid = req.params.gid
-  const lid = req.params.lid
+  let lid = req.params.lid
 
   if (uid == "me") {
     if (iamUser == null) {
@@ -58,6 +58,7 @@ export const getLinkSetRequest = async (req: ValidatedRequest<GetLinkSetRequest>
     res.sendStatus(404)
     return
   }
+  lid = linkSet.id
 
   await resetMemberCounter(iamUser, "linkSetItems", uid, gid)
 
