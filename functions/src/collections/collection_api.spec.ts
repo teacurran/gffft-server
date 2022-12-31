@@ -197,7 +197,7 @@ describe("collections API", function(this: Suite) {
       })
     })
 
-    describe("collection has items", async function() {
+    describe("collection has items", function() {
       const itemSubject = "first post!"
       const itemDescription = "how do I describe this?"
       step("create item", async function() {
@@ -206,13 +206,16 @@ describe("collections API", function(this: Suite) {
           .post("/api/c/createPost")
           .set(USER_1_AUTH)
           .set("Accept", "application/json")
-          .field("uid", uid)
-          .field("gid", gffft.id)
-          .field("cid", collection.id)
-          .field("subject", itemSubject)
-          .field("description", itemDescription)
+          .send({
+            type: "TEXT",
+            uid: uid,
+            gid: gid,
+            cid: collection.id,
+            subject: itemSubject,
+            body: itemDescription,
+          })
           .then((res) => {
-            res.should.have.status(200)
+            res.should.have.status(204)
           })
       })
 
