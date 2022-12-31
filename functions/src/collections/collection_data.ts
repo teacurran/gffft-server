@@ -84,9 +84,12 @@ export async function getPosts(uid: string,
   const posts = postCollection(getCollectionRef(uid, gid, cid))
 
   const queries: Query<Post, keyof Post>[] = []
-  queries.push(where("deleted", "==", false))
+  // queries.push(where("deleted", "==", false))
   if (offset) {
-    queries.push(order("updatedAt", "desc", [startAfter(offset)]))
+    const offsetItem = await get(posts, offset)
+    if (offsetItem) {
+      queries.push(order("updatedAt", "desc", [startAfter(offsetItem)]))
+    }
   } else {
     queries.push(order("updatedAt", "desc"))
   }
