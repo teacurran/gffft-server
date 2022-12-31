@@ -1,7 +1,7 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_1} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, USER_1_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, createGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
@@ -118,6 +118,20 @@ describe("collections API", function(this: Suite) {
         })
     })
 
+    it("gets the collection with 'me'", async function() {
+      return chai
+        .request(server)
+        .get(`/api/c/me/g/${gid}/c/${collection.id}`)
+        .set(USER_1_AUTH)
+        .then(isCollectionValid)
+        .then((res) => {
+          const t = res.body as ICollection
+          expect(t.whoCanReply).to.equal(WHO_MEMBER)
+          expect(t.whoCanPost).to.equal(WHO_MEMBER)
+          expect(t.whoCanView).to.equal(WHO_PUBLIC)
+        })
+    })
+
     describe("collection has counts", async function() {
       collection.counts = {
         audios: 1,
@@ -179,6 +193,43 @@ describe("collections API", function(this: Suite) {
             expect(t.whoCanReply).to.equal(WHO_OWNER)
             expect(t.whoCanPost).to.equal(WHO_OWNER)
             expect(t.whoCanView).to.equal(WHO_OWNER)
+          })
+      })
+    })
+
+    describe("collection has items", function() {
+      const itemSubject = "first post!"
+      const itemDescription = "how do I describe this?"
+      step("create item", async function() {
+        return chai
+          .request(server)
+          .post("/api/c/createPost")
+          .set(USER_1_AUTH)
+          .set("Accept", "application/json")
+          .send({
+            type: "TEXT",
+            uid: uid,
+            gid: gid,
+            cid: collection.id,
+            subject: itemSubject,
+            body: itemDescription,
+          })
+          .then((res) => {
+            res.should.have.status(204)
+          })
+      })
+
+      step("get the collection", async function() {
+        return chai
+          .request(server)
+          .get(`/api/c/${uid}/g/${gid}/c/${collection.id}`)
+          .then(isCollectionValid)
+          .then((res) => {
+            const t = res.body as ICollection
+            expect(t.whoCanReply).to.equal(WHO_MEMBER)
+            expect(t.whoCanPost).to.equal(WHO_MEMBER)
+            expect(t.whoCanView).to.equal(WHO_PUBLIC)
+            expect(t.posts?.length).to.eql(1)
           })
       })
     })

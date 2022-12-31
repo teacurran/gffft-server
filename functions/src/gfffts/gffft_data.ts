@@ -94,7 +94,7 @@ export async function getUniqueFruitCode(): Promise<[string, number, number]> {
 }
 
 export async function checkGffftHandle(uid: string, gid: string, memberId: string, handle: string): Promise<boolean> {
-  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const gffftMembers = getGffftMembersCollection(uid, gid)
   const userRef = ref(usersCollection, memberId)
 
   const membership = await query(gffftMembers, [where("handle", "==", handle), limit(1)]).then(itemOrNull)
@@ -110,13 +110,17 @@ export async function checkGffftHandle(uid: string, gid: string, memberId: strin
   return true
 }
 
+export function getGffftMembersCollection(uid: string, gid: string): Collection<GffftMember> {
+  return gffftsMembersCollection(getGffftRef(uid, gid))
+}
+
 export async function createGffftMembership(
   uid: string,
   gid: string,
   memberId: string,
   handle: string | null
 ): Promise<GffftMember> {
-  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const gffftMembers = getGffftMembersCollection(uid, gid)
   const userRef = ref(usersCollection, memberId)
   const memberRef = ref(gffftMembers, memberId)
 
@@ -156,7 +160,7 @@ export async function createGffftMembership(
 }
 
 export async function deleteGffftMembership(uid: string, gid: string, memberId: string): Promise<void> {
-  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const gffftMembers = getGffftMembersCollection(uid, gid)
   const memberRef = ref(gffftMembers, memberId)
 
   const cacheKey = `${uid}-${gid}-${memberId}`
@@ -166,7 +170,7 @@ export async function deleteGffftMembership(uid: string, gid: string, memberId: 
 }
 
 async function ensureOwnership(gffft: Gffft, userId: string, handle: string): Promise<void> {
-  const gffftMembers = gffftsMembersCollection([userId, gffft.id])
+  const gffftMembers = getGffftMembersCollection(userId, gffft.id)
   const userRef = ref(usersCollection, userId)
   const memberRef = ref(gffftMembers, userId)
   return getGffftMembership(userId, gffft.id, userId).then(async (m) => {
@@ -240,7 +244,7 @@ export async function getGffftMembership(
   if (!memberId) {
     return undefined
   }
-  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const gffftMembers = getGffftMembersCollection(uid, gid)
   const memberRef = ref(gffftMembers, memberId)
   const cacheKey = `${uid}-${gid}-${memberId}`
 
@@ -266,7 +270,7 @@ export function getGffftRef(uid: string, gid: string): Ref<Gffft> {
 }
 
 export async function getOrCreateGffftMembership(uid: string, gid: string, memberId: string): Promise<GffftMember> {
-  const gffftMembers = gffftsMembersCollection([uid, gid])
+  const gffftMembers = getGffftMembersCollection(uid, gid)
   const memberRef = ref(gffftMembers, memberId)
   return get(memberRef).then(async (snapshot) => {
     let member: GffftMember

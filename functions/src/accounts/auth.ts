@@ -1,16 +1,17 @@
 import * as firebaseAdmin from "firebase-admin"
 import {Request, Response, NextFunction} from "express"
 import {getNpc} from "./npcs/data"
-import {trace, context} from "@opentelemetry/api"
 import cacheContainer from "../common/redis"
 import {getGffft, getGffftMembership} from "../gfffts/gffft_data"
 import {TYPE_PENDING, TYPE_REJECTED} from "../gfffts/gffft_models"
+import {observeAttribute, observeError} from "../o11y"
+import {trace} from "@opentelemetry/api"
 
 export type LoggedInUser = {
   id: string
 }
 
-async function checkForNpc(idToken: string): Promise<string|null> {
+export async function checkForNpc(idToken: string): Promise<string|null> {
   if (idToken.startsWith("npc-")) {
     observeNpc(idToken)
     const splitToken = idToken.split("-")
@@ -26,8 +27,8 @@ async function checkForNpc(idToken: string): Promise<string|null> {
   return null
 }
 
-async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
-  observeItem("auth.token", idToken)
+export async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|null> {
+  observeAttribute("auth.token", idToken)
 
   const npcUserId = await checkForNpc(idToken)
   if (npcUserId) {
@@ -69,28 +70,12 @@ async function authenticateAndFetchUser(idToken: string): Promise<LoggedInUser|n
   }
 }
 
-function observeItem(key: string, value: string) {
-  const activeSpan = trace.getSpan(context.active())
-  if (activeSpan != null) {
-    activeSpan.setAttribute(key, value)
-  }
-}
-
 function observeUserId(userId: string) {
-  observeItem("user.id", userId)
+  observeAttribute("user.id", userId)
 }
 
 function observeNpc(token: string) {
-  observeItem("npc.id", token)
-}
-
-function observeError(e: Error | unknown) {
-  const activeSpan = trace.getSpan(context.active())
-  if (e instanceof Error) {
-    activeSpan?.recordException(e)
-  } else {
-    activeSpan?.recordException({message: `${e}`})
-  }
+  observeAttribute("npc.id", token)
 }
 
 export const requiredAuthentication = async (
@@ -152,18 +137,18 @@ export const requiredGffftMembership = async (
   res.locals.uid = uid
   res.locals.gid = gffft.id
 
-  observeItem("uid", uid)
-  observeItem("gid", gid)
+  observeAttribute("uid", uid)
+  observeAttribute("gid", gid)
 
   const membership = await getGffftMembership(uid, gid, res.locals.iamUser.id)
   if (!membership) {
-    observeItem("error.not_a_member.uid", res.locals.iamUser.id)
+    observeAttribute("error.not_a_member.uid", res.locals.iamUser.id)
 
     res.sendStatus(403)
     return
   }
   if (membership.type == TYPE_PENDING || membership.type == TYPE_REJECTED) {
-    observeItem("error.not_approved.uid", res.locals.iamUser.id)
+    observeAttribute("error.not_approved.uid", res.locals.iamUser.id)
     res.sendStatus(403)
     return
   }

@@ -1,6 +1,6 @@
 import {query, where, limit, add, pathToRef, get, upset,
   ref, Ref, Query, startAfter, order, Doc, value} from "typesaurus"
-import {getGffftUser} from "../gfffts/gffft_data"
+import {getGffftRef, getGffftUser} from "../gfffts/gffft_data"
 import {itemOrNull} from "../common/data"
 import {AttachmentType, Collection, collectionCollection, CollectionType,
   CollectionUpdate, CollectionUpdateAudioUpset, CollectionUpdateBinaryUpset,
@@ -15,10 +15,18 @@ export const WHO_OWNER = "owner"
 export const WHO_MEMBER = "member"
 export const WHO_PUBLIC = "public"
 
+export function getCollectionCollection(uid: string, gid: string) {
+  return collectionCollection(getGffftRef(uid, gid))
+}
+
+export function getCollectionRef(uid: string, gid: string, cid: string): Ref<Collection> {
+  return ref(collectionCollection(getGffftRef(uid, gid)), cid)
+}
+
 export async function getOrCreateDefaultCollection(uid: string,
   gid: string,
   type: CollectionType): Promise<Collection> {
-  const userCollections = collectionCollection([uid, gid])
+  const userCollections = collectionCollection(getGffftRef(uid, gid))
 
   let collection = await query(userCollections, [
     where("key", "==", DEFAULT_COLLECTION_KEY),
@@ -39,9 +47,7 @@ export async function getOrCreateDefaultCollection(uid: string,
 }
 
 export async function getCollection(uid: string, gid: string, cid: string): Promise<Collection | null> {
-  const userCollections = collectionCollection([uid, gid])
-  const itemRef = ref(userCollections, cid)
-  return getCollectionByRef(itemRef)
+  return getCollectionByRef(getCollectionRef(uid, gid, cid))
 }
 
 export async function getCollectionByRef(itemRef: Ref<Collection>): Promise<Collection | null> {
@@ -55,7 +61,7 @@ export async function getCollectionByRefString(refId: string): Promise<Collectio
 
 export async function updateCollection(uid: string, gid: string, collection: Collection): Promise<void> {
   console.log(`updating collection userId:${uid} gffftId:${gid}, collection.id: ${collection.id}`)
-  const userCollections = collectionCollection([uid, gid])
+  const userCollections = getCollectionCollection(uid, gid)
 
   return upset<Collection>(userCollections, collection.id, collection)
 }
@@ -75,12 +81,15 @@ export async function getPosts(uid: string,
   offset?: string,
   maxResults = 200,
   currentUid?: string): Promise<HydratedPost[]> {
-  const posts = postCollection([uid, gid, cid])
+  const posts = postCollection(getCollectionRef(uid, gid, cid))
 
   const queries: Query<Post, keyof Post>[] = []
-  queries.push(where("deleted", "==", false))
+  // queries.push(where("deleted", "==", false))
   if (offset) {
-    queries.push(order("updatedAt", "desc", [startAfter(offset)]))
+    const offsetItem = await get(posts, offset)
+    if (offsetItem) {
+      queries.push(order("updatedAt", "desc", [startAfter(offsetItem)]))
+    }
   } else {
     queries.push(order("updatedAt", "desc"))
   }
@@ -113,7 +122,7 @@ export async function getPost(uid: string,
   pid: string,
   offset?: string,
   maxResults = 200): Promise<HydratedPost | null> {
-  const posts = postCollection([uid, gid, cid])
+  const posts = postCollection(getCollectionRef(uid, gid, cid))
   const postRef = ref(posts, pid)
 
   const post = await get(postRef)

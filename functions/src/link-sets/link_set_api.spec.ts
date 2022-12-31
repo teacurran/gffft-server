@@ -1,7 +1,7 @@
 import {Suite} from "mocha"
 import chai, {expect} from "chai"
 import chaiHttp from "chai-http"
-import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH} from "../test/auth"
+import {MockFirebaseInit, MOCK_AUTH_USER_1, MOCK_AUTH_USER_2, MOCK_AUTH_USER_3, USER_1_AUTH, USER_3_AUTH} from "../test/auth"
 import server from "../server"
 import {COLLECTION_GFFFTS, createGffftMembership} from "../gfffts/gffft_data"
 import {factories} from "../test/factories"
@@ -53,7 +53,6 @@ describe("link set API", function(this: Suite) {
 
     await createGffftMembership(uid, gid, MOCK_AUTH_USER_1.user_id, "Sysop")
     await createGffftMembership(uid, gid, MOCK_AUTH_USER_2.user_id, "Michael")
-    await createGffftMembership(uid, gid, MOCK_AUTH_USER_3.user_id, "Lisa")
   })
 
   after(async function() {
@@ -154,33 +153,154 @@ describe("link set API", function(this: Suite) {
       })
 
       describe("authenticated", function() {
-        step("create link", async function() {
-          return chai
-            .request(server)
-            .post("/api/links")
-            .set(USER_1_AUTH)
-            .send({
-              uid: "me",
-              gid: gid,
-              lid: "default",
-              url: "https://www.google.com",
-            })
-            .then((res) => {
-              console.log(`link body: ${JSON.stringify(res.body)}`)
-              res.should.have.status(200)
-            })
+        describe("gffft is invalid", function() {
+          it("doesn't create link", async function() {
+            return chai
+              .request(server)
+              .post("/api/links")
+              .set(USER_1_AUTH)
+              .send({
+                uid: "me",
+                gid: "invlid gid",
+                lid: "default",
+                url: "https://www.google.com",
+              })
+              .then((res) => {
+                res.should.have.status(404)
+              })
+          })
         })
 
-        step("delete link set", async function() {
-          await firestore.collection(COLLECTION_USERS).doc(uid)
-            .collection(COLLECTION_GFFFTS).doc(gid)
-            .collection(COLLECTION_LINK_SETS)
-            .get()
-            .then((snapshot) => {
-              snapshot.forEach(async (doc) => {
-                await firestore.recursiveDelete(doc.ref)
+        describe("lid is invalid", function() {
+          it("doesn't create link", async function() {
+            return chai
+              .request(server)
+              .post("/api/links")
+              .set(USER_1_AUTH)
+              .send({
+                uid: "me",
+                gid: gid,
+                lid: "invalid-lid",
+                url: "https://www.google.com",
               })
-            })
+              .then((res) => {
+                res.should.have.status(404)
+              })
+          })
+        })
+
+        describe("user is not a member", function() {
+          it("doesn't create link", async function() {
+            return chai
+              .request(server)
+              .post("/api/links")
+              .set(USER_3_AUTH)
+              .send({
+                uid: "me",
+                gid: gid,
+                lid: "default",
+                url: "https://www.bing.com",
+              })
+              .then((res) => {
+                res.should.have.status(404)
+              })
+          })
+        })
+
+        describe("link is invalid", function() {
+          it("doesn't create link", async function() {
+            return chai
+              .request(server)
+              .post("/api/links")
+              .set(USER_1_AUTH)
+              .send({
+                uid: "me",
+                gid: gid,
+                lid: "invalid-lid",
+                url: "https://non-existant-domain.spam",
+              })
+              .then((res) => {
+                res.should.have.status(404)
+              })
+          })
+        })
+
+        describe("link is valid", function() {
+          let firstLinkId: string
+          step("create link", async function() {
+            return chai
+              .request(server)
+              .post("/api/links")
+              .set(USER_1_AUTH)
+              .send({
+                uid: "me",
+                gid: gid,
+                lid: "default",
+                url: "https://www.google.com",
+              })
+              .then((res) => {
+                console.log(`link body: ${JSON.stringify(res.body)}`)
+                res.should.have.status(200)
+              })
+          })
+
+          step("create link with uid", async function() {
+            return chai
+              .request(server)
+              .post("/api/links")
+              .set(USER_1_AUTH)
+              .send({
+                uid: MOCK_AUTH_USER_1.user_id,
+                gid: gid,
+                lid: "default",
+                url: "https://www.mostlycats.org",
+              })
+              .then((res) => {
+                console.log(`link body: ${JSON.stringify(res.body)}`)
+                res.should.have.status(200)
+              })
+          })
+
+          step("get link set", async function() {
+            return chai
+              .request(server)
+              .get(`/api/users/${MOCK_AUTH_USER_1.user_id}/gfffts/${gid}/links/default`)
+              .set(USER_1_AUTH)
+              .then((res) => {
+                console.log(`link set body: ${JSON.stringify(res.body)}`)
+                res.should.have.status(200)
+                expect(res.body["items"].length).to.eql(2)
+                firstLinkId = res.body["items"][0]["id"]
+              })
+          })
+
+          step("get link set with offset", async function() {
+            console.log(`calling with offset: ${firstLinkId}`)
+            return chai
+              .request(server)
+              .get(`/api/users/${MOCK_AUTH_USER_1.user_id}/gfffts/${gid}/links/default`)
+              .query({
+                offset: firstLinkId,
+              })
+              .set(USER_1_AUTH)
+              .then((res) => {
+                console.log(`link set body: ${JSON.stringify(res.body)}`)
+                res.should.have.status(200)
+                expect(res.body["items"].length).to.eql(1)
+              })
+          })
+
+          step("delete link set", async function() {
+            await firestore.collection(COLLECTION_USERS).doc(uid)
+              .collection(COLLECTION_GFFFTS).doc(gid)
+              .collection(COLLECTION_LINK_SETS)
+              .get()
+              .then((snapshot) => {
+                snapshot.forEach(async (doc) => {
+                  await firestore.recursiveDelete(doc.ref)
+                })
+              })
+          })
         })
       })
     })
