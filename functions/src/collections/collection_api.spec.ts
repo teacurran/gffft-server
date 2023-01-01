@@ -59,16 +59,16 @@ describe("collections API", function(this: Suite) {
       .then(deleteFirestoreItem)
   })
 
-  describe("unauthenticated", function() {
-    function isCollectionValid(res: request.Response): request.Response {
-      console.log(`collection body: ${JSON.stringify(res.body)} / ${JSON.stringify(collection)}`)
-      res.should.have.status(200)
-      const t = res.body as ICollection
-      expect(t.name).to.equal(collection.name)
-      expect(t.id).to.equal(collection.id)
-      return res
-    }
+  function isCollectionValid(res: request.Response): request.Response {
+    console.log(`collection body: ${JSON.stringify(res.body)} / ${JSON.stringify(collection)}`)
+    res.should.have.status(200)
+    const t = res.body as ICollection
+    expect(t.name).to.equal(collection.name)
+    expect(t.id).to.equal(collection.id)
+    return res
+  }
 
+  describe("unauthenticated", function() {
     it("doesn't allow me", async function() {
       return chai
         .request(server)
@@ -117,7 +117,9 @@ describe("collections API", function(this: Suite) {
           expect(t.whoCanView).to.equal(WHO_PUBLIC)
         })
     })
+  })
 
+  describe("authenticated", function() {
     it("gets the collection with 'me'", async function() {
       return chai
         .request(server)
@@ -219,6 +221,45 @@ describe("collections API", function(this: Suite) {
           })
       })
 
+      step("create item with 'me'", async function() {
+        return chai
+          .request(server)
+          .post("/api/c/createPost")
+          .set(USER_1_AUTH)
+          .set("Accept", "application/json")
+          .send({
+            type: "TEXT",
+            uid: "me",
+            gid: gid,
+            cid: collection.id,
+            subject: itemSubject,
+            body: itemDescription,
+          })
+          .then((res) => {
+            res.should.have.status(204)
+          })
+      })
+
+      step("create item with - gffft doesn't exist", async function() {
+        return chai
+          .request(server)
+          .post("/api/c/createPost")
+          .set(USER_1_AUTH)
+          .set("Accept", "application/json")
+          .send({
+            type: "TEXT",
+            uid: uid,
+            gid: "non-existant-gid",
+            cid: collection.id,
+            subject: itemSubject,
+            body: itemDescription,
+          })
+          .then((res) => {
+            res.should.have.status(404)
+          })
+      })
+
+      let postId: string
       step("get the collection", async function() {
         return chai
           .request(server)
@@ -229,7 +270,51 @@ describe("collections API", function(this: Suite) {
             expect(t.whoCanReply).to.equal(WHO_MEMBER)
             expect(t.whoCanPost).to.equal(WHO_MEMBER)
             expect(t.whoCanView).to.equal(WHO_PUBLIC)
-            expect(t.posts?.length).to.eql(1)
+            expect(t.posts?.length).to.eql(2)
+
+            if (t.posts) {
+              postId = t.posts[0].id
+            }
+          })
+      })
+
+      step("create item - reply", async function() {
+        return chai
+          .request(server)
+          .post("/api/c/createPost")
+          .set(USER_1_AUTH)
+          .set("Accept", "application/json")
+          .send({
+            type: "TEXT",
+            uid: uid,
+            gid: gid,
+            pid: postId,
+            cid: collection.id,
+            subject: itemSubject,
+            body: itemDescription,
+          })
+          .then((res) => {
+            res.should.have.status(204)
+          })
+      })
+
+      step("create item - reply, invalid pid", async function() {
+        return chai
+          .request(server)
+          .post("/api/c/createPost")
+          .set(USER_1_AUTH)
+          .set("Accept", "application/json")
+          .send({
+            type: "TEXT",
+            uid: uid,
+            gid: gid,
+            pid: "invalid-pid",
+            cid: collection.id,
+            subject: itemSubject,
+            body: itemDescription,
+          })
+          .then((res) => {
+            res.should.have.status(404)
           })
       })
     })

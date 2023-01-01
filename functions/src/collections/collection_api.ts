@@ -10,6 +10,7 @@ import * as Joi from "joi"
 import {getCollection, getPosts, hydrateCollection, resetCollectionUpdate} from "./collection_data"
 import {collectionToJsonWithItems} from "./collection_interfaces"
 import {PostType} from "../posts/post_type"
+import {Gffft} from "../gfffts/gffft_models"
 
 // eslint-disable-next-line new-cap
 const router = express.Router()
@@ -120,6 +121,7 @@ router.post(
   validator.body(createPostParams),
   async (req: ValidatedRequest<CreatePostRequest>, res: Response) => {
     const iamUser: LoggedInUser = res.locals.iamUser
+    const gffft: Gffft = res.locals.gffft
 
     let uid = req.body.uid
     let gid = req.body.gid
@@ -130,12 +132,6 @@ router.post(
       uid = iamUser.id
     }
 
-    // make sure the gffft exists
-    const gffft = await getGffft(uid, gid)
-    if (!gffft) {
-      res.sendStatus(404)
-      return
-    }
     gid = gffft.id
 
     console.log(`creating post: uid:${uid} gid:${gid} cid:${cid} pid:${pid} subject: ${req.body.subject}`)
