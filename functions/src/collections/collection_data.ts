@@ -99,9 +99,7 @@ export async function getPosts(uid: string,
   return query(posts, queries).then(async (results) => {
     for (const snapshot of results) {
       const hp = await hydratePost(uid, gid, cid, snapshot, currentUid)
-      if (hp != null) {
-        items.push(hp)
-      }
+      items.push(hp)
     }
     return items
   })
@@ -126,11 +124,11 @@ export async function getPost(uid: string,
   const postRef = ref(posts, pid)
 
   const post = await get(postRef)
-  const hydratedPost = await hydratePost(uid, gid, cid, post)
-
-  if (hydratedPost == null) {
+  if (post == null) {
     return null
   }
+
+  const hydratedPost = await hydratePost(uid, gid, cid, post)
 
   if (maxResults > 0) {
     const queries: Query<Post, keyof Post>[] = []
@@ -169,10 +167,7 @@ export async function hydrateCollection(uid: string, gid: string, collection: Co
 }
 
 export async function hydratePost(uid: string, gid: string, cid: string,
-  snapshot: Doc<Post> | null, currentUid?: string): Promise<HydratedPost | null> {
-  if (snapshot == null) {
-    return null
-  }
+  snapshot: Doc<Post>, currentUid?: string): Promise<HydratedPost> {
   const item = snapshot.data
   item.id = snapshot.ref.id
   const pid = item.id
