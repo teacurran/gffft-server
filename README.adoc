@@ -42,3 +42,9 @@ FIRESTORE_EMULATOR_HOST="localhost:8080" npx ts-node src/npc.ts
 ```
 NODE_ENV=production npx ts-node src/npc.ts
 ```
+
+
+## other notes
+* this is a hobby project
+* I organized the source based on concern ('galleries, gffts, notebooks, etc) rather than typical ('models', 'controllers', 'api', etc).  I read a blog post about how cool this would be but I probably won't do it on projects in the future. 
+* all backend code is in a dir called `functions` because I started out using Firebase functions
