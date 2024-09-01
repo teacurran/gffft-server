@@ -310,26 +310,22 @@ describe("users_data", function() {
           const term = unSplit[0]
           expect([...adjectives, ...verbs]).to.include(term)
           if (adjectives.includes(term)) {
-            return firestore.collection(COLLECTION_ADJECTIVES).doc(term)
-              .get()
-              .then((snapshot) => {
-                expect(snapshot.exists).to.be.true
-                const data = snapshot.data()
-                if (data) {
-                  expect(data.get("count")).to.eq(1)
-                }
-              })
+            const snapshot = await firestore.collection(COLLECTION_ADJECTIVES).doc(term).get()
+
+            expect(snapshot.exists).to.be.true
+            const data = snapshot.data()
+            if (data) {
+              expect(data.get("count")).to.eq(1)
+            }
           }
           if (verbs.includes(term)) {
-            return firestore.collection(COLLECTION_VERBS).doc(term)
-              .get()
-              .then((snapshot) => {
-                expect(snapshot.exists).to.be.true
-                const data = snapshot.data()
-                if (data) {
-                  expect(data.get("count")).to.eq(1)
-                }
-              })
+            const snapshot = await firestore.collection(COLLECTION_VERBS).doc(term).get()
+
+            expect(snapshot.exists).to.be.true
+            const data = snapshot.data()
+            if (data) {
+              expect(data.get("count")).to.eq(1)
+            }
           }
 
           expect(nouns).to.include(unSplit[1])
