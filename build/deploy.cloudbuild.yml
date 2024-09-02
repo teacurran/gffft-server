@@ -87,7 +87,7 @@ steps:
         docker run \
         --rm \
         -e SONAR_HOST_URL="https://sonarcloud.io" \
-        -e SONAR_LOGIN="$$SONAR_TOKEN" \
+        -e SONAR_TOKEN="$$SONAR_TOKEN" \
         -v "/$(pwd):/usr/src" \
         sonarsource/sonar-scanner-cli \
         -Dsonar.javascript.lcov.reportPaths=functions/coverage/lcov.info
@@ -134,7 +134,7 @@ images:
   - "${_ARTIFACT_REPO}/$PROJECT_ID/gffft/gffft-firebase-emulator:latest"
 availableSecrets:
   secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/1
+    - versionName: projects/$PROJECT_ID/secrets/sonarsource-token/versions/2
       env: 'SONAR_TOKEN'
     - versionName: projects/$PROJECT_ID/secrets/honeycomb-key/versions/1
       env: 'HONEYCOMB_KEY'
