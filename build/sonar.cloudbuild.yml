@@ -78,7 +78,7 @@ steps:
         docker run \
         --rm \
         -e SONAR_HOST_URL="https://sonarcloud.io" \
-        -e SONAR_TOKEN="$$SONAR_TOKEN" \
+        -e SONAR_TOKEN="${_SONAR_TOKEN}" \
         -v "/$(pwd):/usr/src" \
         sonarsource/sonar-scanner-cli \
         -Dsonar.branch.name=$BRANCH_NAME \
