@@ -29,6 +29,7 @@ describe("thread_reply_counter", function() {
 
   let boardPath: string
   let eventParams: EventContextOptions
+  let invalidTidEventParams: EventContextOptions
 
   before(async function() {
     await MockFirebaseInit.getInstance().init()
@@ -45,6 +46,16 @@ describe("thread_reply_counter", function() {
         pic: pid,
       },
     }
+
+    invalidTidEventParams = {
+      params: {
+        uid: uid1,
+        gid: gid,
+        bid: board.id,
+        tid: "invalid-tid",
+        pic: pid,
+      },
+    }
   })
 
   after(async function() {
@@ -53,7 +64,6 @@ describe("thread_reply_counter", function() {
 
   describe("increments thread reply counter", function() {
     const firebaseTest = firebaseFunctionsTest()
-
     const wrappedFn = firebaseTest.wrap(threadReplyCounter)
 
     const itemSnapshot = firebaseTest.firestore.makeDocumentSnapshot({
@@ -123,6 +133,47 @@ describe("thread_reply_counter", function() {
       await wrappedFn(changeEvent, eventParams)
 
       expect((await getOrCreateDefaultBoard(uid1, gid)).postCount).to.equal(1)
+    })
+  })
+
+  describe("thread doesn't exist", function() {
+    const firebaseTest = firebaseFunctionsTest()
+    const wrappedFn = firebaseTest.wrap(threadReplyCounter)
+
+    const itemSnapshot = firebaseTest.firestore.makeDocumentSnapshot({
+      id: "test-thread-61",
+      subject: "test-subject",
+      author: pathToRef<User>(user2Path),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }, `${boardPath}/threads/{tid}/posts/{pid}`)
+
+    const nonExistantSnapshot = {
+      exists: false,
+      data() {
+        return undefined
+      },
+      ref: itemSnapshot.ref,
+    } as DocumentSnapshot
+
+    it("handles insert", async function() {
+      let updatedBoard = await getOrCreateDefaultBoard(uid1, gid)
+      expect(updatedBoard.postCount).to.equal(1)
+
+      const changeEvent = firebaseTest.makeChange(
+        nonExistantSnapshot,
+        itemSnapshot,
+      )
+
+      await wrappedFn(changeEvent, invalidTidEventParams)
+
+      updatedBoard = await getOrCreateDefaultBoard(uid1, gid)
+      expect(updatedBoard.postCount).to.equal(2)
+
+      await wrappedFn(changeEvent, invalidTidEventParams)
+
+      updatedBoard = await getOrCreateDefaultBoard(uid1, gid)
+      expect(updatedBoard.postCount).to.equal(3)
     })
   })
 })
