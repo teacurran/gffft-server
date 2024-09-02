@@ -20,7 +20,7 @@
     "test:e2e": "ts-mocha -p tsconfig.json \"{,!(node_modules)/**}/*.spec.ts\" \"**/*.spec.api.ts\" \"**/*.spec.db.ts\" --timeout 5000"
   },
   "engines": {
-    "node": "16"
+    "node": "18"
   },
   "main": "lib/index.js",
   "dependencies": {
