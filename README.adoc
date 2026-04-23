@@ -4,12 +4,17 @@ back-end source code for https://gffft.app[gffft.app]
 
 **This is a project for experimentation, there is a lot of code duplication and inconsistencies**
 
-[link=https://sonarcloud.io/summary/new_code?id=teacurran_gffft-server]
-image::https://sonarcloud.io/api/project_badges/measure?project=teacurran_gffft-server&metric=alert_status[]
+[link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=alert_status[]
 
+[link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=coverage[]
 
-[link=https://sonarcloud.io/summary/new_code?id=teacurran_gffft-server]
-image::https://sonarcloud.io/api/project_badges/measure?project=teacurran_gffft-server&metric=coverage[]
+[link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=sqale_rating[]
+
+[link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=security_rating[]
 
 
 ## testing
