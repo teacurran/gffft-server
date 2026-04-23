@@ -5,16 +5,16 @@ back-end source code for https://gffft.app[gffft.app]
 **This is a project for experimentation, there is a lot of code duplication and inconsistencies**
 
 [link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
-image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=alert_status[]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=alert_status&token=sqb_ffb490fa52727c574a2e751791f052812649dcac[]
 
 [link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
-image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=coverage[]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=coverage&token=sqb_ffb490fa52727c574a2e751791f052812649dcac[]
 
 [link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
-image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=sqale_rating[]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=sqale_rating&token=sqb_ffb490fa52727c574a2e751791f052812649dcac[]
 
 [link=https://sonar.villagecompute.com/dashboard?id=gffft-server]
-image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=security_rating[]
+image::https://sonar.villagecompute.com/api/project_badges/measure?project=gffft-server&metric=security_rating&token=sqb_ffb490fa52727c574a2e751791f052812649dcac[]
 
 
 ## testing
